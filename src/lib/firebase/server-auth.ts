@@ -1,5 +1,8 @@
 'use server';
 
+// This file is NOT a 'use server' file because it's imported by middleware.
+// It needs to run in the nodejs runtime.
+
 import {auth} from 'firebase-admin';
 import {cookies} from 'next/headers';
 import {NextRequest, NextResponse} from 'next/server';
