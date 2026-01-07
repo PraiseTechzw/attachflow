@@ -94,114 +94,162 @@ export function AuthForm({ type }: AuthFormProps) {
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {type === 'signup' && (
-             <FormField
-                control={form.control}
-                name="displayName"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                    <Input placeholder="John Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-        )}
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input placeholder="name@example.com" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+    <div className="w-full max-w-md mx-auto">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {type === 'signup' && (
+               <FormField
+                  control={form.control}
+                  name="displayName"
+                  render={({ field }) => (
+                  <FormItem className="space-y-2">
+                      <FormLabel className="text-sm font-medium text-foreground">Full Name</FormLabel>
+                      <FormControl>
+                      <Input 
+                        placeholder="John Doe" 
+                        className="transition-all duration-300 focus:scale-[1.02]" 
+                        {...field} 
+                      />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                  </FormItem>
+                  )}
+              />
           )}
-        />
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem className="space-y-2">
+                <FormLabel className="text-sm font-medium text-foreground">Email</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="name@example.com" 
+                    className="transition-all duration-300 focus:scale-[1.02]" 
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem className="space-y-2">
+                <FormLabel className="text-sm font-medium text-foreground">Password</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="password" 
+                    placeholder="••••••••" 
+                    className="transition-all duration-300 focus:scale-[1.02]" 
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
+          {type === 'signup' && (
+            <div className="space-y-4 pt-2">
+              <div className="text-sm font-medium text-muted-foreground border-t pt-4">
+                Optional Information
+              </div>
+              <FormField
+                  control={form.control}
+                  name="regNumber"
+                  render={({ field }) => (
+                  <FormItem className="space-y-2">
+                      <FormLabel className="text-sm font-medium text-foreground">Registration Number</FormLabel>
+                      <FormControl>
+                      <Input 
+                        placeholder="C1234567" 
+                        className="transition-all duration-300 focus:scale-[1.02]" 
+                        {...field} 
+                      />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                  </FormItem>
+                  )}
+              />
+              <FormField
+                  control={form.control}
+                  name="companyName"
+                  render={({ field }) => (
+                  <FormItem className="space-y-2">
+                      <FormLabel className="text-sm font-medium text-foreground">Company Name</FormLabel>
+                      <FormControl>
+                      <Input 
+                        placeholder="AttachFlow Inc." 
+                        className="transition-all duration-300 focus:scale-[1.02]" 
+                        {...field} 
+                      />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                  </FormItem>
+                  )}
+              />
+              <FormField
+                  control={form.control}
+                  name="universityName"
+                  render={({ field }) => (
+                  <FormItem className="space-y-2">
+                      <FormLabel className="text-sm font-medium text-foreground">University Name</FormLabel>
+                      <FormControl>
+                      <Input 
+                        placeholder="University of Technology" 
+                        className="transition-all duration-300 focus:scale-[1.02]" 
+                        {...field} 
+                      />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                  </FormItem>
+                  )}
+              />
+            </div>
           )}
-        />
-        {type === 'signup' && (
-          <>
-            <FormField
-                control={form.control}
-                name="regNumber"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Registration Number (Optional)</FormLabel>
-                    <FormControl>
-                    <Input placeholder="C1234567" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-            <FormField
-                control={form.control}
-                name="companyName"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Company Name (Optional)</FormLabel>
-                    <FormControl>
-                    <Input placeholder="AttachFlow Inc." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-            <FormField
-                control={form.control}
-                name="universityName"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>University Name (Optional)</FormLabel>
-                    <FormControl>
-                    <Input placeholder="University of Technology" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-          </>
-        )}
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {type === 'login' ? 'Sign In' : 'Sign Up'}
-        </Button>
-      </form>
-      <div className="mt-4 text-center text-sm">
-        {type === 'login' ? (
-          <>
-            Don&apos;t have an account?{' '}
-            <Link href="/signup" className="underline">
-              Sign up
-            </Link>
-          </>
-        ) : (
-          <>
-            Already have an account?{' '}
-            <Link href="/" className="underline">
-              Sign in
-            </Link>
-          </>
-        )}
-      </div>
-    </Form>
+          <Button 
+            type="submit" 
+            className="w-full mt-8 h-11 text-base font-medium" 
+            variant="gradient"
+            size="lg"
+            disabled={isLoading}
+          >
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {type === 'login' ? 'Sign In' : 'Create Account'}
+          </Button>
+        </form>
+        <div className="mt-6 text-center">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-border/50" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                {type === 'login' ? 'New to AttachFlow?' : 'Already have an account?'}
+              </span>
+            </div>
+          </div>
+          <div className="mt-4">
+            {type === 'login' ? (
+              <Link 
+                href="/signup" 
+                className="text-sm font-medium text-primary hover:text-primary-hover transition-colors duration-300 hover:underline"
+              >
+                Create your account →
+              </Link>
+            ) : (
+              <Link 
+                href="/" 
+                className="text-sm font-medium text-primary hover:text-primary-hover transition-colors duration-300 hover:underline"
+              >
+                Sign in to your account →
+              </Link>
+            )}
+          </div>
+        </div>
+      </Form>
+    </div>
   );
 }

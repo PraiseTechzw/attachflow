@@ -39,25 +39,38 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       open={isSidebarOpen}
       onOpenChange={setSidebarOpen}
     >
-      <div className="flex min-h-screen">
-        <Sidebar className="h-full border-r bg-sidebar text-sidebar-foreground">
+      <div className="flex min-h-screen bg-gradient-to-br from-background via-background-secondary to-background">
+        <Sidebar className="h-full border-r bg-gradient-to-b from-sidebar via-sidebar to-sidebar/95 text-sidebar-foreground backdrop-blur-sm">
             <div className="flex h-full min-h-0 flex-col">
-                <div className="flex h-16 items-center border-b px-6">
-                    <Logo className="h-8 w-auto" />
+                <div className="flex h-16 items-center border-b border-sidebar-border/50 px-6 bg-gradient-to-r from-sidebar-primary/10 to-transparent">
+                    <Logo className="h-8 w-auto floating" />
                 </div>
                 <SidebarNav />
             </div>
         </Sidebar>
         <div className="flex flex-1 flex-col">
-          <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-md sm:px-6">
+          <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-border/50 bg-background/80 backdrop-blur-md px-4 shadow-sm sm:px-6">
             <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden"
+                className="md:hidden hover:bg-primary/10 hover:text-primary transition-all duration-300"
                 onClick={() => setMobileSidebarOpen(true)}
               >
                 <Menu className="h-6 w-6" />
             </Button>
+            <div className="flex items-center gap-4">
+              <UserNav />
+            </div>
+          </header>
+          <main className="flex-1 p-4 sm:p-6 lg:p-8">
+            <div className="mx-auto max-w-7xl">
+              {children}
+            </div>
+          </main>
+        </div>
+      </div>
+    </SidebarProvider>
+  );
             <div className="flex-1"></div>
             <UserNav />
           </header>

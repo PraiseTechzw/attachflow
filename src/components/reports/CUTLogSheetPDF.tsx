@@ -103,6 +103,7 @@ const styles = StyleSheet.create({
   }
 });
 
+
 interface CUTLogSheetPDFProps {
   logs: DailyLog[];
   studentName: string;
@@ -113,6 +114,61 @@ interface CUTLogSheetPDFProps {
   onRendered: () => void;
 }
 
+const MyDocument: React.FC<Omit<CUTLogSheetPDFProps, 'onRendered'>> = ({
+  logs,
+  studentName,
+  regNumber,
+  companyName,
+  startDate,
+  endDate,
+}) => (
+  <Document>
+    <Page size="A4" style={styles.page}>
+      <View style={styles.repeatingHeader} fixed>
+          <Text>{`Name: ${studentName} | Reg No: ${regNumber}`}</Text>
+      </View>
+
+      <View style={styles.header}>
+        <Text style={styles.university}>CHINHOYI UNIVERSITY OF TECHNOLOGY (CUT)</Text>
+        <Text style={styles.school}>SCHOOL OF ENGINEERING SCIENCES AND TECHNOLOGY</Text>
+        <Text style={styles.department}>ICT AND ELECTRONICS DEPARTMENT</Text>
+        <Text style={styles.title}>INDUSTRIAL ATTACHMENT LOG SHEET</Text>
+      </View>
+
+      <View style={styles.metaBlock}>
+        <Text>Name: {studentName}</Text>
+        <Text>Reg No: {regNumber}</Text>
+        <Text>Company: {companyName}</Text>
+        <Text>Period: {startDate} to {endDate}</Text>
+      </View>
+
+      <View style={styles.table}>
+        <View style={styles.tableHeader} fixed>
+          <View style={[styles.colDate, styles.colHeader]}><Text>Date</Text></View>
+          <View style={[styles.colActivities, styles.colHeader]}><Text>Activities</Text></View>
+          <View style={[styles.colComments, styles.colHeader]}><Text>Comments</Text></View>
+        </View>
+        {logs.map((log) => (
+          <View key={log.id} style={styles.tableRow} wrap={false}>
+            <View style={styles.colDate}><Text>{log.date ? format(log.date.toDate(), 'dd/MM/yyyy') : ''}</Text></View>
+            <View style={styles.colActivities}><Text>{log.activitiesProfessional || log.activitiesRaw}</Text></View>
+            <View style={styles.colComments}><Text>{log.feedback || ''}</Text></View>
+          </View>
+        ))}
+      </View>
+
+      <View style={styles.footer}>
+          <Text>Supervisor's Signature................................................</Text>
+          <Text style={styles.signature}>Date: ................................................</Text>
+      </View>
+
+      <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => (
+        `${pageNumber} / ${totalPages}`
+      )} fixed />
+    </Page>
+  </Document>
+);
+
 const CUTLogSheetPDF: React.FC<CUTLogSheetPDFProps> = ({
   logs,
   studentName,
@@ -122,75 +178,35 @@ const CUTLogSheetPDF: React.FC<CUTLogSheetPDFProps> = ({
   endDate,
   onRendered,
 }) => {
-
-  const MyDocument = () => (
-    <Document>
-      <Page size="A4" style={styles.page}>
-        <View style={styles.repeatingHeader} fixed>
-            <Text>{`Name: ${studentName} | Reg No: ${regNumber}`}</Text>
-        </View>
-
-        <View style={styles.header}>
-          <Text style={styles.university}>CHINHOYI UNIVERSITY OF TECHNOLOGY (CUT)</Text>
-          <Text style={styles.school}>SCHOOL OF ENGINEERING SCIENCES AND TECHNOLOGY</Text>
-          <Text style={styles.department}>ICT AND ELECTRONICS DEPARTMENT</Text>
-          <Text style={styles.title}>INDUSTRIAL ATTACHMENT LOG SHEET</Text>
-        </View>
-
-        <View style={styles.metaBlock}>
-          <Text>Name: {studentName}</Text>
-          <Text>Reg No: {regNumber}</Text>
-          <Text>Company: {companyName}</Text>
-          <Text>Period: {startDate} to {endDate}</Text>
-        </View>
-
-        <View style={styles.table}>
-          <View style={styles.tableHeader} fixed>
-            <View style={[styles.colDate, styles.colHeader]}><Text>Date</Text></View>
-            <View style={[styles.colActivities, styles.colHeader]}><Text>Activities</Text></View>
-            <View style={[styles.colComments, styles.colHeader]}><Text>Comments</Text></View>
-          </View>
-          {logs.map((log) => (
-            <View key={log.id} style={styles.tableRow} wrap={false}>
-              <View style={styles.colDate}><Text>{log.date ? format(log.date.toDate(), 'dd/MM/yyyy') : ''}</Text></View>
-              <View style={styles.colActivities}><Text>{log.activitiesProfessional || log.activitiesRaw}</Text></View>
-              <View style={styles.colComments}><Text>{log.feedback || ''}</Text></View>
-            </View>
-          ))}
-        </View>
-
-        <View style={styles.footer}>
-            <Text>Supervisor's Signature................................................</Text>
-            <Text style={styles.signature}>Date: ................................................</Text>
-        </View>
-
-        <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => (
-          `${pageNumber} / ${totalPages}`
-        )} fixed />
-      </Page>
-    </Document>
+  return (
+    <div style={{ display: 'none' }}>
+      <BlobProvider document={
+        <MyDocument
+          logs={logs}
+          studentName={studentName}
+          regNumber={regNumber}
+          companyName={companyName}
+          startDate={startDate}
+          endDate={endDate}
+        />
+      }>
+        {({ url, loading, error }) => {
+          useEffect(() => {
+            if (url && !loading && !error) {
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = `CUT_Log_Sheet_${studentName}.pdf`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              onRendered();
+            }
+          }, [url, loading, error]);
+          return null;
+        }}
+      </BlobProvider>
+    </div>
   );
-
-    return (
-      <div style={{ display: 'none' }}>
-        <BlobProvider document={<MyDocument />}>
-          {({ url, loading, error }) => {
-            React.useEffect(() => {
-              if (url && !loading && !error) {
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `CUT_Log_Sheet_${studentName}.pdf`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                onRendered();
-              }
-            }, [url, loading, error]);
-            return null;
-          }}
-        </BlobProvider>
-      </div>
-    );
 };
 
 export default CUTLogSheetPDF;
