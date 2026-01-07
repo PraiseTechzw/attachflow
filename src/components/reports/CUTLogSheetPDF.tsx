@@ -122,7 +122,8 @@ const CUTLogSheetPDF: React.FC<CUTLogSheetPDFProps> = ({
   endDate,
   onRendered,
 }) => {
-  const MyDocument = (
+
+  const MyDocument = () => (
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.repeatingHeader} fixed>
@@ -170,26 +171,26 @@ const CUTLogSheetPDF: React.FC<CUTLogSheetPDFProps> = ({
     </Document>
   );
 
-  return (
+    return (
     <div style={{ display: 'none' }}>
-        <PDFDownloadLink document={MyDocument} fileName={`CUT_Log_Sheet_${studentName}.pdf`}>
-            {({ blob, url, loading, error }) => {
-                useEffect(() => {
-                    if (url && !loading && !error) {
-                        const link = document.createElement('a');
-                        link.href = url;
-                        link.download = `CUT_Log_Sheet_${studentName}.pdf`;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        onRendered();
-                    }
-                }, [url, loading, error]);
-                return null;
-            }}
-        </PDFDownloadLink>
+      <PDFDownloadLink document={<MyDocument />} fileName={`CUT_Log_Sheet_${studentName}.pdf`}>
+        {({ blob, url, loading, error }) => {
+          useEffect(() => {
+            if (url && !loading && !error) {
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = `CUT_Log_Sheet_${studentName}.pdf`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              onRendered();
+            }
+          }, [url, loading, error]);
+          return null;
+        }}
+      </PDFDownloadLink>
     </div>
-  );
+    );
 };
 
 export default CUTLogSheetPDF;

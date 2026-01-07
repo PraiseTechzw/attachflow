@@ -8,65 +8,141 @@ body {
 
 @layer base {
   :root {
+    /* Modern gradient background */
     --background: 0 0% 100%;
-    --foreground: 224 71.4% 4.1%;
+    --background-secondary: 240 10% 98%;
+    --foreground: 240 10% 3.9%;
+    
+    /* Enhanced card system */
     --card: 0 0% 100%;
-    --card-foreground: 224 71.4% 4.1%;
+    --card-foreground: 240 10% 3.9%;
+    --card-hover: 240 4.8% 95.9%;
+    
+    /* Popover improvements */
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71.4% 4.1%;
-    --primary: 262.1 83.3% 57.8%;
-    --primary-foreground: 210 20% 98%;
-    --secondary: 220 14.3% 95.9%;
-    --secondary-foreground: 220.9 39.3% 11%;
-    --muted: 220 14.3% 95.9%;
-    --muted-foreground: 220 8.9% 46.1%;
-    --accent: 220 14.3% 95.9%;
-    --accent-foreground: 220.9 39.3% 11%;
+    --popover-foreground: 240 10% 3.9%;
+    
+    /* Beautiful primary colors - Modern blue-purple gradient */
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --primary-hover: 221.2 83.2% 48%;
+    --primary-light: 221.2 83.2% 93%;
+    
+    /* Enhanced secondary palette */
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --secondary-hover: 210 40% 92%;
+    
+    /* Improved muted colors */
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    
+    /* Modern accent colors */
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --accent-hover: 210 40% 92%;
+    
+    /* Success and warning colors */
+    --success: 142.1 76.2% 36.3%;
+    --success-foreground: 355.7 100% 97.3%;
+    --warning: 32.5 94.6% 43.7%;
+    --warning-foreground: 355.7 100% 97.3%;
+    
+    /* Enhanced destructive */
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 262.1 83.3% 57.8%;
-    --radius: 0.5rem;
+    --destructive-foreground: 210 40% 98%;
+    
+    /* Modern borders and inputs */
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --input-hover: 214.3 31.8% 87%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.75rem;
 
-    --sidebar-background: 224 76% 10%;
+    /* Beautiful sidebar with gradient */
+    --sidebar-background: linear-gradient(135deg, 222.2 84% 4.9% 0%, 221.2 83.2% 8% 100%);
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 244 64% 52%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 224 76% 18%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 224 76% 18%;
-    --sidebar-ring: 244 71% 65%;
+    --sidebar-primary: 221.2 83.2% 53.3%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 221.2 83.2% 15%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 221.2 83.2% 12%;
+    --sidebar-ring: 221.2 83.2% 53.3%;
+    
+    /* Chart colors */
+    --chart-1: 221.2 83.2% 53.3%;
+    --chart-2: 142.1 76.2% 36.3%;
+    --chart-3: 32.5 94.6% 43.7%;
+    --chart-4: 271.5 81.3% 55.9%;
+    --chart-5: 0 84.2% 60.2%;
   }
   .dark {
-    --background: 224 71.4% 4.1%;
-    --foreground: 210 20% 98%;
-    --card: 224 71.4% 4.1%;
-    --card-foreground: 210 20% 98%;
-    --popover: 224 71.4% 4.1%;
-    --popover-foreground: 210 20% 98%;
-    --primary: 263.4 95.2% 66.3%;
-    --primary-foreground: 210 20% 98%;
-    --secondary: 215 27.9% 16.9%;
-    --secondary-foreground: 210 20% 98%;
-    --muted: 215 27.9% 16.9%;
-    --muted-foreground: 217.9 10.6% 64.9%;
-    --accent: 215 27.9% 16.9%;
-    --accent-foreground: 210 20% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 215 27.9% 16.9%;
-    --input: 215 27.9% 16.9%;
-    --ring: 263.4 95.2% 66.3%;
+    /* Dark mode with modern gradient */
+    --background: 222.2 84% 4.9%;
+    --background-secondary: 222.2 84% 6%;
+    --foreground: 210 40% 98%;
+    
+    /* Enhanced dark cards */
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --card-hover: 222.2 84% 8%;
+    
+    /* Dark popover */
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    
+    /* Vibrant primary in dark mode */
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --primary-hover: 217.2 91.2% 65%;
+    --primary-light: 217.2 91.2% 15%;
+    
+    /* Dark secondary */
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --secondary-hover: 217.2 32.6% 22%;
+    
+    /* Dark muted */
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    
+    /* Dark accent */
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --accent-hover: 217.2 32.6% 22%;
+    
+    /* Success and warning in dark */
+    --success: 142.1 70.6% 45.3%;
+    --success-foreground: 144.9 80.4% 10%;
+    --warning: 32.5 94.6% 43.7%;
+    --warning-foreground: 20.5 90.2% 4.3%;
+    
+    /* Dark destructive */
+    --destructive: 0 72.2% 50.6%;
+    --destructive-foreground: 210 40% 98%;
+    
+    /* Dark borders */
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --input-hover: 217.2 32.6% 22%;
+    --ring: 217.2 91.2% 59.8%;
 
-    --sidebar-background: 224 71.4% 4.1%;
-    --sidebar-foreground: 210 20% 98%;
-    --sidebar-primary: 263.4 95.2% 66.3%;
-    --sidebar-primary-foreground: 210 20% 98%;
-    --sidebar-accent: 215 27.9% 16.9%;
-    --sidebar-accent-foreground: 210 20% 98%;
-    --sidebar-border: 215 27.9% 16.9%;
-    --sidebar-ring: 263.4 95.2% 66.3%;
+    /* Enhanced dark sidebar */
+    --sidebar-background: linear-gradient(135deg, 222.2 84% 4.9% 0%, 217.2 32.6% 8% 100%);
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 217.2 91.2% 59.8%;
+    --sidebar-primary-foreground: 222.2 84% 4.9%;
+    --sidebar-accent: 217.2 32.6% 17.5%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    /* Dark chart colors */
+    --chart-1: 217.2 91.2% 59.8%;
+    --chart-2: 142.1 70.6% 45.3%;
+    --chart-3: 32.5 94.6% 43.7%;
+    --chart-4: 271.5 81.3% 65.9%;
+    --chart-5: 0 72.2% 50.6%;
   }
 }
 
