@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
+    "target": "ES2022",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
@@ -21,7 +21,9 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": ["@types/file-saver", "@types/uuid"]
+    "types": ["@types/file-saver", "@types/uuid"],
+    "allowImportingTsExtensions": false,
+    "noUncheckedIndexedAccess": false
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]

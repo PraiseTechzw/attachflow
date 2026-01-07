@@ -33,7 +33,24 @@ const nextConfig: NextConfig = {
     allowedDevOrigins: [
       'https://6000-firebase-studio-1767811365337.cluster-ikslh4rdsnbqsvu5nw3v4dqjj2.cloudworkstations.dev',
     ],
+    // Enable React 19 features
+    reactCompiler: false,
+    // Enable Turbopack for faster builds
+    turbo: {
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.js',
+        },
+      },
+    },
   },
+  // Enable React 19 strict mode
+  reactStrictMode: true,
+  // Enable SWC minification for better performance
+  swcMinify: true,
+  // Enable modern bundling
+  bundlePagesRouterDependencies: true,
 };
 
 export default nextConfig;
