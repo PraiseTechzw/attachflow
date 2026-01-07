@@ -24,10 +24,6 @@ export const AnalyzeLogSentimentOutputSchema = z.object({
 });
 export type AnalyzeLogSentimentOutput = z.infer<typeof AnalyzeLogSentimentOutputSchema>;
 
-// Define the main function that calls the flow
-export async function analyzeLogSentiment(input: AnalyzeLogSentimentInput): Promise<AnalyzeLogSentimentOutput> {
-  return analyzeLogSentimentFlow(input);
-}
 
 const analyzeLogSentimentPrompt = ai.definePrompt({
   name: 'analyzeLogSentimentPrompt',
@@ -57,3 +53,8 @@ const analyzeLogSentimentFlow = ai.defineFlow(
     return output!;
   }
 );
+
+// Define the main function that calls the flow
+export async function analyzeLogSentiment(input: AnalyzeLogSentimentInput): Promise<AnalyzeLogSentimentOutput> {
+  return analyzeLogSentimentFlow(input);
+}

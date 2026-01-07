@@ -26,12 +26,6 @@ export const GenerateLogSuggestionOutputSchema = z.object({
 export type GenerateLogSuggestionOutput = z.infer<typeof GenerateLogSuggestionOutputSchema>;
 
 
-// Define the main function that calls the flow
-export async function generateLogSuggestion(input: GenerateLogSuggestionInput): Promise<GenerateLogSuggestionOutput> {
-  return generateLogSuggestionFlow(input);
-}
-
-
 const generateLogSuggestionPrompt = ai.definePrompt({
   name: 'generateLogSuggestionPrompt',
   input: { schema: GenerateLogSuggestionInputSchema },
@@ -62,3 +56,9 @@ const generateLogSuggestionFlow = ai.defineFlow(
     return output!;
   }
 );
+
+
+// Define the main function that calls the flow
+export async function generateLogSuggestion(input: GenerateLogSuggestionInput): Promise<GenerateLogSuggestionOutput> {
+  return generateLogSuggestionFlow(input);
+}

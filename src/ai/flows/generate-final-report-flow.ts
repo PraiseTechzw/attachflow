@@ -5,13 +5,12 @@
  * from a user's project information and all their daily logs.
  *
  * It exports:
- * - `generateFinalReportFlow`: An asynchronous function to generate the structured report content.
+ * - `generateFinalReport`: An asynchronous function to generate the structured report content.
  * - `FinalReportInput`: The TypeScript interface for the input.
  * - `FinalReportOutput`: The TypeScript interface for the structured output.
  */
 
 import { ai } from '@/ai/genkit';
-import { DailyLog, Project } from '@/types';
 import { z } from 'genkit';
 
 // Define the complex input object schemas
@@ -144,8 +143,8 @@ Analyze the provided project details and the complete set of daily logs. Your go
 });
 
 
-// Define the main function that calls the flow
-export const generateFinalReport = ai.defineFlow(
+// Define the flow
+const generateFinalReportFlow = ai.defineFlow(
   {
     name: 'generateFinalReportFlow',
     inputSchema: FinalReportInputSchema,
@@ -156,3 +155,8 @@ export const generateFinalReport = ai.defineFlow(
     return output!;
   }
 );
+
+// Define the main function that calls the flow
+export async function generateFinalReport(input: FinalReportInput): Promise<FinalReportOutput> {
+    return generateFinalReportFlow(input);
+}

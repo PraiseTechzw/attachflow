@@ -13,7 +13,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 // Define the input schema for the flow
-const GenerateLogFeedbackInputSchema = z.object({
+export const GenerateLogFeedbackInputSchema = z.object({
   logText: z.string().describe('The text content of the daily log.'),
   studentGoals: z.string().describe('The student attachment goals.'),
 });
@@ -26,18 +26,13 @@ const ScorecardItemSchema = z.object({
 });
 
 // Define the output schema for the flow
-const GenerateLogFeedbackOutputSchema = z.object({
+export const GenerateLogFeedbackOutputSchema = z.object({
   technicalDepth: ScorecardItemSchema.describe("Evaluation of the log's technical detail and substance."),
   professionalTone: ScorecardItemSchema.describe("Evaluation of the log's tone, language, and professionalism."),
   problemSolvingClarity: ScorecardItemSchema.describe("Evaluation of how clearly the log describes problems and the steps taken to solve them."),
 });
 export type GenerateLogFeedbackOutput = z.infer<typeof GenerateLogFeedbackOutputSchema>;
 
-
-// Define the main function that calls the flow
-export async function generateLogFeedback(input: GenerateLogFeedbackInput): Promise<GenerateLogFeedbackOutput> {
-  return generateLogFeedbackFlow(input);
-}
 
 // Define the prompt
 const generateLogFeedbackPrompt = ai.definePrompt({
@@ -74,3 +69,8 @@ const generateLogFeedbackFlow = ai.defineFlow(
     return output!;
   }
 );
+
+// Define the main function that calls the flow
+export async function generateLogFeedback(input: GenerateLogFeedbackInput): Promise<GenerateLogFeedbackOutput> {
+  return generateLogFeedbackFlow(input);
+}

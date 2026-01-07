@@ -24,10 +24,6 @@ export const ExtractSkillsOutputSchema = z.object({
 });
 export type ExtractSkillsOutput = z.infer<typeof ExtractSkillsOutputSchema>;
 
-// Define the main function that calls the flow
-export async function extractSkillsFromLog(input: ExtractSkillsInput): Promise<ExtractSkillsOutput> {
-  return extractSkillsFlow(input);
-}
 
 const extractSkillsPrompt = ai.definePrompt({
   name: 'extractSkillsPrompt',
@@ -56,3 +52,8 @@ const extractSkillsFlow = ai.defineFlow(
     return output!;
   }
 );
+
+// Define the main function that calls the flow
+export async function extractSkillsFromLog(input: ExtractSkillsInput): Promise<ExtractSkillsOutput> {
+  return extractSkillsFlow(input);
+}

@@ -24,10 +24,6 @@ export const PolishLogEntryOutputSchema = z.object({
 });
 export type PolishLogEntryOutput = z.infer<typeof PolishLogEntryOutputSchema>;
 
-// Define the main function that calls the flow
-export async function polishLogEntry(input: PolishLogEntryInput): Promise<PolishLogEntryOutput> {
-  return polishLogEntryFlow(input);
-}
 
 const polishLogEntryPrompt = ai.definePrompt({
   name: 'polishLogEntryPrompt',
@@ -62,3 +58,9 @@ const polishLogEntryFlow = ai.defineFlow(
     return output!;
   }
 );
+
+
+// Define the main function that calls the flow
+export async function polishLogEntry(input: PolishLogEntryInput): Promise<PolishLogEntryOutput> {
+  return polishLogEntryFlow(input);
+}
