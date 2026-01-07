@@ -40,4 +40,3 @@ const generateLogSuggestionFlow = ai.defineFlow(
 export async function generateLogSuggestion(input: GenerateLogSuggestionInput): Promise<GenerateLogSuggestionOutput> {
   return generateLogSuggestionFlow(input);
 }
-}
