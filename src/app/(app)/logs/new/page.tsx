@@ -30,7 +30,7 @@ export default function NewLogPage() {
         
         if (!logSnapshot.empty) {
           const lastLog = logSnapshot.docs[0].data() as DailyLog;
-          const result = await generateLogSuggestion({ previousLogContent: lastLog.content });
+          const result = await generateLogSuggestion({ previousLogContent: lastLog.activitiesRaw });
           setSuggestion(result.suggestion);
         }
       } catch (error) {

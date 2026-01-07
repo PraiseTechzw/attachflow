@@ -24,10 +24,10 @@ import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { collection, doc, serverTimestamp, runTransaction, writeBatch, increment } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
 import { extractSkillsFromLog } from "@/ai/flows/extract-skills-from-log-flow";
-import { format } from 'date-fns';
+import { format, getWeek } from 'date-fns';
 
 const logFormSchema = z.object({
-  content: z.string().min(10, {
+  activitiesRaw: z.string().min(10, {
     message: "Log content must be at least 10 characters.",
   }),
 });
@@ -48,7 +48,7 @@ export function LogForm({ log, suggestion }: LogFormProps) {
   const form = useForm<LogFormValues>({
     resolver: zodResolver(logFormSchema),
     defaultValues: {
-      content: log?.content || "",
+      activitiesRaw: log?.activitiesRaw || "",
     },
   });
 
@@ -101,7 +101,7 @@ export function LogForm({ log, suggestion }: LogFormProps) {
                     logCount: 1,
                     status: 'Draft',
                     lastUpdated: serverTimestamp(),
-                } as MonthlyReport);
+                } as Omit<MonthlyReport, 'status'> & { status: 'Draft' });
             }
         }
       });
@@ -130,7 +130,7 @@ export function LogForm({ log, suggestion }: LogFormProps) {
             // Update existing log
             const logRef = doc(firestore, `users/${user.uid}/dailyLogs`, log.id);
             updateDocumentNonBlocking(logRef, {
-                content: data.content,
+                activitiesRaw: data.activitiesRaw,
                 updatedAt: serverTimestamp(),
             });
             toast({
@@ -141,18 +141,23 @@ export function LogForm({ log, suggestion }: LogFormProps) {
         } else {
             // Create new log
             const logId = uuidv4();
+            const now = new Date();
             const logRef = doc(firestore, `users/${user.uid}/dailyLogs`, logId);
-            const newLog = {
-                id: logId,
-                content: data.content,
-                userId: user.uid,
+            const newLog: Omit<DailyLog, 'id' | 'userId' | 'createdAt' | 'updatedAt'> = {
+                activitiesRaw: data.activitiesRaw,
                 date: serverTimestamp(),
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp(),
+                monthYear: format(now, 'MMMM yyyy'),
+                weekNumber: getWeek(now),
             };
              // Use a batch to ensure the primary document is created non-blockingly
              const batch = writeBatch(firestore);
-             batch.set(logRef, newLog);
+             batch.set(logRef, {
+                id: logId,
+                userId: user.uid,
+                ...newLog,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+            });
              await batch.commit();
 
             toast({
@@ -162,7 +167,7 @@ export function LogForm({ log, suggestion }: LogFormProps) {
         }
         
         // After saving, extract skills and update monthly report
-        await updateSkillsAndReports(data.content, !log);
+        await updateSkillsAndReports(data.activitiesRaw, !log);
 
         if (!log) {
             router.push('/logs');
@@ -187,7 +192,7 @@ export function LogForm({ log, suggestion }: LogFormProps) {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <FormField
               control={form.control}
-              name="content"
+              name="activitiesRaw"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Today's Activities</FormLabel>

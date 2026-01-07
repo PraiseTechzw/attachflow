@@ -58,7 +58,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ logId: str
             <LogForm log={log as any}/>
         </div>
         <div className="lg:col-span-1">
-            <AIFeedback logText={log.content} studentGoals={userProfile?.goals || "No goals set."} />
+            <AIFeedback logText={log.activitiesRaw} studentGoals={userProfile?.goals || "No goals set."} />
         </div>
       </div>
     </div>

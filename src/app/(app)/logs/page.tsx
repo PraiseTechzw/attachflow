@@ -66,7 +66,7 @@ export default function LogsPage() {
                             logs.map((log) => (
                             <TableRow key={log.id}>
                                 <TableCell className="font-medium">{formatDate(log.date)}</TableCell>
-                                <TableCell className="text-muted-foreground truncate max-w-sm">{log.content.substring(0, 100)}...</TableCell>
+                                <TableCell className="text-muted-foreground truncate max-w-sm">{log.activitiesRaw.substring(0, 100)}...</TableCell>
                                 <TableCell>{log.feedback ? 'Provided' : 'Pending'}</TableCell>
                                 <TableCell className="text-right">
                                     <Link href={`/logs/${log.id}`} passHref>

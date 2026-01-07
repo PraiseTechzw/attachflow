@@ -15,13 +15,20 @@ export interface UserProfile {
 export interface DailyLog {
   id: string;
   userId: string;
+  universityName?: string;
+  department?: string;
   date: any; // Firestore Timestamp
-  content: string;
-  attachments?: any[]; // Document references
-  feedback?: string;
+  monthYear: string;
+  weekNumber: number;
+  activitiesRaw: string;
+  activitiesProfessional?: string;
+  skills?: string[];
+  sentiment?: 'Positive' | 'Neutral' | 'Negative';
+  feedback?: string; // Supervisor comments
   createdAt: any; // Firestore Timestamp
   updatedAt: any; // Firestore Timestamp
 }
+
 
 export interface Project {
   id: string;
@@ -137,7 +144,7 @@ export interface MonthlyReport {
     month: string; // e.g., "August 2024"
     year: number;
     logCount: number;
-    status: 'Draft' | 'Submitted' | 'Finalized';
+    status: 'Draft' | 'Finalized';
     lastUpdated: any; // Firestore Timestamp
     // AI Generated content
     introduction?: string;

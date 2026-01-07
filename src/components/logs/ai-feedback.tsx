@@ -35,7 +35,7 @@ export function AIFeedback({ logText, studentGoals }: AIFeedbackProps) {
         setError(null);
         setFeedback(null);
         try {
-            const result = await generateLogFeedback({ logText, studentGoals });
+            const result = await generateLogFeedback({ logText: logText, studentGoals });
             setFeedback(result);
         } catch (err) {
             setError("Failed to generate feedback. The AI may be unavailable or the content could not be processed. Please try again.");
