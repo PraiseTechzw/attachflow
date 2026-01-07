@@ -44,7 +44,6 @@ Previous Log Content:
 });
 
 
-// Define the flow
 const generateLogSuggestionFlow = ai.defineFlow(
   {
     name: 'generateLogSuggestionFlow',
