@@ -11,9 +11,7 @@
 
 import { ai } from '@/ai/genkit';
 
-'use server';
 
-import { ai } from '@/ai/genkit';
 import {
   PolishLogEntryInputSchema,
   PolishLogEntryOutputSchema,
