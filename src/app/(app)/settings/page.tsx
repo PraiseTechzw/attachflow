@@ -30,6 +30,7 @@ const settingsFormSchema = z.object({
     }),
     regNumber: z.string().optional(),
     companyName: z.string().optional(),
+    universityName: z.string().optional(),
     goals: z.string().max(500, {
         message: "Goals must not be longer than 500 characters.",
     }).optional(),
@@ -49,6 +50,7 @@ export default function SettingsPage() {
           displayName: "",
           regNumber: "",
           companyName: "",
+          universityName: "",
           goals: "",
         },
         mode: "onChange",
@@ -60,6 +62,7 @@ export default function SettingsPage() {
                 displayName: userProfile.displayName || "",
                 regNumber: userProfile.regNumber || "",
                 companyName: userProfile.companyName || "",
+                universityName: userProfile.universityName || "",
                 goals: userProfile.goals || "",
             });
         }
@@ -77,6 +80,7 @@ export default function SettingsPage() {
                 displayName: data.displayName,
                 regNumber: data.regNumber,
                 companyName: data.companyName,
+                universityName: data.universityName,
                 goals: data.goals,
             });
             toast({
@@ -154,6 +158,20 @@ export default function SettingsPage() {
                                             <Input placeholder="e.g. Google" {...field} />
                                         </FormControl>
                                         <FormDescription>The company where you are attached.</FormDescription>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="universityName"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>University Name</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="e.g. University of Technology" {...field} />
+                                        </FormControl>
+                                        <FormDescription>The university you attend.</FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}

@@ -3,12 +3,13 @@
 export interface UserProfile {
   uid: string;
   email: string | null;
-  displayName: string | null;
+  displayName: string;
   role: 'student' | 'supervisor' | 'admin';
   goals?: string;
   createdAt: Date;
   regNumber?: string;
   companyName?: string;
+  universityName?: string;
 }
 
 export interface DailyLog {

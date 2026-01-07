@@ -183,7 +183,7 @@ export default function GenerateMonthlyReportPage({ params }: { params: { monthI
 
       <Card id="report-content">
           <CardHeader className='text-center'>
-              <div className='font-bold'>CHINHOYI UNIVERSITY OF TECHNOLOGY (CUT)</div>
+              <div className='font-bold'>{userProfile?.universityName || 'University Name'}</div>
               <div className='font-bold text-sm'>SCHOOL OF ENGINEERING SCIENCES AND TECHNOLOGY</div>
               <div className='font-bold text-xs'>ICT AND ELECTRONICS DEPARTMENT</div>
               <CardTitle className='text-base underline pt-2'>INDUSTRIAL ATTACHMENT MONTHLY REPORT</CardTitle>

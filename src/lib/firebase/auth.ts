@@ -19,7 +19,8 @@ export const signInUser = async (email, password) => {
   return userCredential;
 };
 
-export const signUpUser = async (email, password) => {
+export const signUpUser = async (userData) => {
+  const { email, password, displayName, regNumber, companyName, universityName } = userData;
   const userCredential = await createUserWithEmailAndPassword(
     auth,
     email,
@@ -28,7 +29,10 @@ export const signUpUser = async (email, password) => {
   // Create user profile in Firestore
   await createUserProfile(userCredential.user.uid, {
     email: userCredential.user.email,
-    displayName: userCredential.user.displayName,
+    displayName: displayName,
+    regNumber: regNumber,
+    companyName: companyName,
+    universityName: universityName,
     role: 'student',
   });
   const idToken = await userCredential.user.getIdToken();

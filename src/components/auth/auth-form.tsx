@@ -20,12 +20,22 @@ import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
 import { signInUser, signUpUser } from '@/lib/firebase/auth';
 
-const formSchema = z.object({
+const loginSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
   password: z
     .string()
     .min(6, { message: 'Password must be at least 6 characters.' }),
 });
+
+const signupSchema = z.object({
+    displayName: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
+    email: z.string().email({ message: 'Invalid email address.' }),
+    password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
+    regNumber: z.string().optional(),
+    companyName: z.string().optional(),
+    universityName: z.string().optional(),
+});
+
 
 type AuthFormProps = {
   type: 'login' | 'signup';
@@ -36,15 +46,22 @@ export function AuthForm({ type }: AuthFormProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
+  const form = useForm<z.infer<typeof loginSchema | typeof signupSchema>>({
+    resolver: zodResolver(type === 'login' ? loginSchema : signupSchema),
+    defaultValues: type === 'login' ? {
       email: '',
       password: '',
+    } : {
+        displayName: '',
+        email: '',
+        password: '',
+        regNumber: '',
+        companyName: '',
+        universityName: '',
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof loginSchema | typeof signupSchema>) {
     setIsLoading(true);
     try {
       if (type === 'login') {
@@ -56,7 +73,8 @@ export function AuthForm({ type }: AuthFormProps) {
         router.push('/dashboard');
         router.refresh();
       } else {
-        await signUpUser(values.email, values.password);
+        const signupValues = values as z.infer<typeof signupSchema>;
+        await signUpUser(signupValues);
         toast({
           title: 'Account Created',
           description: "You've been successfully signed up!",
@@ -78,6 +96,21 @@ export function AuthForm({ type }: AuthFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {type === 'signup' && (
+             <FormField
+                control={form.control}
+                name="displayName"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl>
+                    <Input placeholder="John Doe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
+        )}
         <FormField
           control={form.control}
           name="email"
@@ -104,6 +137,49 @@ export function AuthForm({ type }: AuthFormProps) {
             </FormItem>
           )}
         />
+        {type === 'signup' && (
+          <>
+            <FormField
+                control={form.control}
+                name="regNumber"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Registration Number (Optional)</FormLabel>
+                    <FormControl>
+                    <Input placeholder="C1234567" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
+            <FormField
+                control={form.control}
+                name="companyName"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Company Name (Optional)</FormLabel>
+                    <FormControl>
+                    <Input placeholder="AttachFlow Inc." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
+            <FormField
+                control={form.control}
+                name="universityName"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel>University Name (Optional)</FormLabel>
+                    <FormControl>
+                    <Input placeholder="University of Technology" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
+          </>
+        )}
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {type === 'login' ? 'Sign In' : 'Sign Up'}
