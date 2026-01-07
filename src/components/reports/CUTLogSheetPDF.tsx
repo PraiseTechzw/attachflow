@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { Page, Text, View, Document, StyleSheet, Font, PDFDownloadLink } from '@react-pdf/renderer';
+import { Page, Text, View, Document, StyleSheet, Font, BlobProvider } from '@react-pdf/renderer';
 import type { DailyLog } from '@/types';
 import { format } from 'date-fns';
 
@@ -172,24 +172,24 @@ const CUTLogSheetPDF: React.FC<CUTLogSheetPDFProps> = ({
   );
 
     return (
-    <div style={{ display: 'none' }}>
-      <PDFDownloadLink document={<MyDocument />} fileName={`CUT_Log_Sheet_${studentName}.pdf`}>
-        {({ blob, url, loading, error }) => {
-          useEffect(() => {
-            if (url && !loading && !error) {
-              const link = document.createElement('a');
-              link.href = url;
-              link.download = `CUT_Log_Sheet_${studentName}.pdf`;
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-              onRendered();
-            }
-          }, [url, loading, error]);
-          return null;
-        }}
-      </PDFDownloadLink>
-    </div>
+      <div style={{ display: 'none' }}>
+        <BlobProvider document={<MyDocument />}>
+          {({ url, loading, error }) => {
+            React.useEffect(() => {
+              if (url && !loading && !error) {
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `CUT_Log_Sheet_${studentName}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                onRendered();
+              }
+            }, [url, loading, error]);
+            return null;
+          }}
+        </BlobProvider>
+      </div>
     );
 };
 
