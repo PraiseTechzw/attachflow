@@ -1,6 +1,6 @@
 'use client';
 import { doc, setDoc, getDoc, serverTimestamp, collection, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject as deleteFile } from "firebase/storage";
 import { initializeFirebase } from '@/firebase';
 import type { UserProfile, DailyLog, Project, Document } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
@@ -8,14 +8,14 @@ import { v4 as uuidv4 } from 'uuid';
 const { firestore, storage } = initializeFirebase();
 
 // User Profile Functions
-export const createUserProfile = async (uid: string, data: Omit<UserProfile, 'uid' | 'createdAt' | 'role'> & { role?: 'student' | 'supervisor' | 'admin' }) => {
+export const createUserProfile = async (uid: string, data: Partial<Omit<UserProfile, 'uid' | 'createdAt'>>) => {
   const userProfileRef = doc(firestore, 'users', uid);
   const newUserProfile: UserProfile = {
     uid,
-    email: data.email,
+    email: data.email || null,
     displayName: data.displayName || 'New User',
     role: data.role || 'student', // Default role
-    createdAt: new Date(), // Using client-side date for now
+    createdAt: new Date(),
   };
   await setDoc(userProfileRef, newUserProfile);
   return newUserProfile;
@@ -27,9 +27,9 @@ export const getUserProfile = async (uid: string): Promise<UserProfile | null> =
 
   if (docSnap.exists()) {
     const data = docSnap.data();
-    // Ensure Timestamps are converted to Dates
     return {
       ...data,
+      uid: docSnap.id,
       createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
     } as UserProfile;
   } else {
@@ -39,23 +39,23 @@ export const getUserProfile = async (uid: string): Promise<UserProfile | null> =
 
 export const updateUserProfile = async (uid: string, data: Partial<UserProfile>) => {
     const userRef = doc(firestore, "users", uid);
-    return await updateDoc(userRef, data);
+    return await updateDoc(userRef, { ...data, updatedAt: serverTimestamp() });
 };
-
 
 // Daily Log Functions
 export const createDailyLog = async (userId: string, data: Pick<DailyLog, 'content'>) => {
     const logCollection = collection(firestore, `users/${userId}/dailyLogs`);
-    const newLog = {
+    const logId = uuidv4();
+    const newLog: DailyLog = {
         ...data,
-        id: uuidv4(),
+        id: logId,
         userId,
         date: serverTimestamp(),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
-        attachments: [],
     };
-    return await addDoc(logCollection, newLog);
+    await setDoc(doc(logCollection, logId), newLog);
+    return newLog;
 };
 
 export const updateDailyLog = async (userId: string, logId: string, data: Partial<DailyLog>) => {
@@ -67,28 +67,29 @@ export const updateDailyLog = async (userId: string, logId: string, data: Partia
 // Project Functions
 export const createProject = async (userId: string, data: Pick<Project, 'title' | 'description'>) => {
     const projectCollection = collection(firestore, `users/${userId}/projects`);
-    const newProject: Omit<Project, 'id'> = {
+    const projectId = uuidv4();
+    const newProject: Project = {
         ...data,
+        id: projectId,
         userId,
         status: 'Pending',
-        proposalDoc: null,
-        finalReportDoc: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
     };
-    const docRef = await addDoc(projectCollection, newProject);
-    await updateDoc(docRef, { id: docRef.id }); // Add the id to the document
-    return docRef;
+    await setDoc(doc(projectCollection, projectId), newProject);
+    return newProject;
 };
 
 // Document Functions
-export const uploadDocument = async (userId: string, file: File) => {
-    const storageRef = ref(storage, `users/${userId}/documents/${Date.now()}_${file.name}`);
+export const uploadDocument = async (userId: string, file: File): Promise<Document> => {
+    const documentId = uuidv4();
+    const storageRef = ref(storage, `users/${userId}/documents/${documentId}_${file.name}`);
     const snapshot = await uploadBytes(storageRef, file);
     const downloadURL = await getDownloadURL(snapshot.ref);
 
     const docCollection = collection(firestore, `users/${userId}/documents`);
-    const newDoc: Omit<Document, 'id'> = {
+    const newDoc: Document = {
+        id: documentId,
         userId,
         filename: file.name,
         storagePath: snapshot.ref.fullPath,
@@ -98,15 +99,14 @@ export const uploadDocument = async (userId: string, file: File) => {
         url: downloadURL,
     };
     
-    const docRef = await addDoc(docCollection, newDoc);
-    await updateDoc(docRef, { id: docRef.id });
-    return { id: docRef.id, ...newDoc };
+    await setDoc(doc(docCollection, documentId), newDoc);
+    return newDoc;
 };
 
 export const deleteDocument = async (userId: string, document: Document) => {
     // Delete file from storage
     const fileRef = ref(storage, document.storagePath);
-    await deleteDoc(fileRef);
+    await deleteFile(fileRef);
     
     // Delete firestore record
     const docRef = doc(firestore, `users/${userId}/documents`, document.id);

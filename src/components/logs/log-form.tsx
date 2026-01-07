@@ -20,7 +20,8 @@ import { Loader2 } from "lucide-react";
 import type { DailyLog } from "@/types";
 import { useFirebase } from "@/firebase";
 import { useRouter } from "next/navigation";
-import { addDoc, collection, doc, serverTimestamp, updateDoc } from "firebase/firestore";
+import { addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { collection, doc, serverTimestamp } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
 
 const logFormSchema = z.object({
@@ -59,7 +60,7 @@ export function LogForm({ log }: LogFormProps) {
         if (log) {
             // Update existing log
             const logRef = doc(firestore, `users/${user.uid}/dailyLogs`, log.id);
-            await updateDoc(logRef, {
+            updateDocumentNonBlocking(logRef, {
                 content: data.content,
                 updatedAt: serverTimestamp(),
             });
@@ -69,7 +70,9 @@ export function LogForm({ log }: LogFormProps) {
             });
         } else {
             // Create new log
+            const logId = uuidv4();
             const newLog = {
+                id: logId,
                 content: data.content,
                 userId: user.uid,
                 date: serverTimestamp(),
@@ -77,7 +80,7 @@ export function LogForm({ log }: LogFormProps) {
                 updatedAt: serverTimestamp(),
             };
             const logCollection = collection(firestore, `users/${user.uid}/dailyLogs`);
-            await addDoc(logCollection, newLog);
+            addDocumentNonBlocking(logCollection, newLog);
 
             toast({
                 title: "Log saved successfully!",

@@ -9,11 +9,12 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
-import { useCollection } from "@/firebase";
+import { useCollection, useMemoFirebase } from "@/firebase";
 import { useFirebase } from "@/firebase/provider";
 import { useMemo } from "react";
-import { collection, query, where, orderBy } from "firebase/firestore";
-import { subMonths, format, startOfMonth } from 'date-fns';
+import { collection, query, orderBy } from "firebase/firestore";
+import { subMonths, format } from 'date-fns';
+import type { DailyLog, Project } from "@/types";
 
 const chartConfig = {
   logs: {
@@ -25,18 +26,18 @@ const chartConfig = {
 export default function DashboardPage() {
   const { firestore, user } = useFirebase();
 
-  const logsQuery = useMemo(() => {
+  const logsQuery = useMemoFirebase(() => {
     if (!user) return null;
     return query(collection(firestore, 'users', user.uid, 'dailyLogs'), orderBy('date', 'desc'));
   }, [firestore, user]);
 
-  const projectsQuery = useMemo(() => {
+  const projectsQuery = useMemoFirebase(() => {
     if (!user) return null;
     return collection(firestore, 'users', user.uid, 'projects');
   }, [firestore, user]);
 
-  const { data: logs, isLoading: logsLoading } = useCollection(logsQuery);
-  const { data: projects, isLoading: projectsLoading } = useCollection(projectsQuery);
+  const { data: logs, isLoading: logsLoading } = useCollection<DailyLog>(logsQuery);
+  const { data: projects, isLoading: projectsLoading } = useCollection<Project>(projectsQuery);
 
   const chartData = useMemo(() => {
     if (!logs) return [];
@@ -54,12 +55,13 @@ export default function DashboardPage() {
     });
 
     logs.forEach(log => {
-      // Assuming log.date is a Firestore Timestamp
-      const logDate = log.date.toDate();
-      const monthKey = format(logDate, 'yyyy-MM');
-      const monthData = monthlyLogs.find(m => m.monthKey === monthKey);
-      if (monthData) {
-        monthData.logs += 1;
+      if (log.date && log.date.toDate) {
+        const logDate = log.date.toDate();
+        const monthKey = format(logDate, 'yyyy-MM');
+        const monthData = monthlyLogs.find(m => m.monthKey === monthKey);
+        if (monthData) {
+          monthData.logs += 1;
+        }
       }
     });
 

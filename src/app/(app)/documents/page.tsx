@@ -3,14 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, FileText, Loader2, Trash2 } from "lucide-react";
 import { useFirebase } from "@/firebase/provider";
-import { useCollection } from "@/firebase";
-import { collection, doc, deleteDoc } from "firebase/firestore";
+import { useCollection, useMemoFirebase } from "@/firebase";
+import { collection, doc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import { useMemo, useRef, useState } from "react";
 import type { Document } from "@/types";
-import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { addDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
+import { v4 as uuidv4 } from "uuid";
 
 export default function DocumentsPage() {
     const { firestore, storage, user } = useFirebase();
@@ -18,7 +19,7 @@ export default function DocumentsPage() {
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const docsQuery = useMemo(() => {
+    const docsQuery = useMemoFirebase(() => {
         if (!user) return null;
         return collection(firestore, `users/${user.uid}/documents`);
     }, [firestore, user]);
@@ -35,11 +36,13 @@ export default function DocumentsPage() {
 
         setIsUploading(true);
         try {
-            const storageRef = ref(storage, `users/${user.uid}/documents/${Date.now()}_${file.name}`);
+            const documentId = uuidv4();
+            const storageRef = ref(storage, `users/${user.uid}/documents/${documentId}_${file.name}`);
             const snapshot = await uploadBytes(storageRef, file);
             const downloadURL = await getDownloadURL(snapshot.ref);
 
-            const newDoc: Omit<Document, 'id'> = {
+            const newDoc: Document = {
+                id: documentId,
                 userId: user.uid,
                 filename: file.name,
                 storagePath: snapshot.ref.fullPath,
@@ -48,7 +51,8 @@ export default function DocumentsPage() {
                 createdAt: new Date(),
                 url: downloadURL,
             };
-
+            
+            const docRef = doc(firestore, `users/${user.uid}/documents`, documentId);
             addDocumentNonBlocking(collection(firestore, `users/${user.uid}/documents`), newDoc);
             
             toast({
@@ -76,7 +80,7 @@ export default function DocumentsPage() {
 
             // Delete from Firestore
             const docRef = doc(firestore, `users/${user.uid}/documents`, docToDelete.id);
-            await deleteDoc(docRef);
+            deleteDocumentNonBlocking(docRef);
 
             toast({
                 title: "Document Deleted",
@@ -180,24 +184,3 @@ export default function DocumentsPage() {
         </div>
     );
 }
-// Dummy icon since FileText is not in lucide-react
-const FileTextIcon = (props: any) => (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-      <polyline points="14 2 14 8 20 8" />
-      <line x1="16" y1="13" x2="8" y2="13" />
-      <line x1="16" y1="17" x2="8" y2="17" />
-      <line x1="10" y1="9" x2="8" y2="9" />
-    </svg>
-  )
