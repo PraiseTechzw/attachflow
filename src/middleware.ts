@@ -2,6 +2,9 @@ import {NextResponse} from 'next/server';
 import type {NextRequest} from 'next/server';
 import {verifySessionCookie} from './lib/firebase/server-auth';
 
+// This forces the file to be evaluated in the nodejs runtime for the middleware.
+export const runtime = 'nodejs';
+
 export async function middleware(request: NextRequest) {
   const user = await verifySessionCookie();
 
