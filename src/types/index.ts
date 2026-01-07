@@ -27,6 +27,7 @@ export interface DailyLog {
   feedback?: string; // Supervisor comments
   createdAt: any; // Firestore Timestamp
   updatedAt: any; // Firestore Timestamp
+  content?: string; // for compatibility with cut log sheet
 }
 
 

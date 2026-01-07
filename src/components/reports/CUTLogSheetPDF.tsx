@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Page, Text, View, Document, StyleSheet, Font, PDFViewer, PDFDownloadLink } from '@react-pdf/renderer';
+import { Page, Text, View, Document, StyleSheet, Font, PDFDownloadLink } from '@react-pdf/renderer';
 import { useFirebase } from '@/firebase';
-import { useCollection } from '@/firebase';
-import { collection, query, where, orderBy } from 'firebase/firestore';
+import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
 import type { DailyLog } from '@/types';
 import { format } from 'date-fns';
 
@@ -141,7 +140,7 @@ const CUTLogSheetPDF: React.FC<CUTLogSheetPDFProps> = ({
         orderBy('date', 'asc')
       );
       
-      const snapshot = await collection(logsQuery).get();
+      const snapshot = await getDocs(logsQuery);
       const fetchedLogs = snapshot.docs.map(doc => doc.data() as DailyLog);
       setLogs(fetchedLogs);
       setIsLoading(false);
@@ -180,7 +179,7 @@ const CUTLogSheetPDF: React.FC<CUTLogSheetPDFProps> = ({
           {logs.map((log, index) => (
             <View key={index} style={styles.tableRow} wrap={false}>
               <View style={styles.colDate}><Text>{log.date ? format(log.date.toDate(), 'dd/MM/yyyy') : ''}</Text></View>
-              <View style={styles.colActivities}><Text>{log.content}</Text></View>
+              <View style={styles.colActivities}><Text>{log.activitiesProfessional || log.activitiesRaw}</Text></View>
               <View style={styles.colComments}><Text>{log.feedback || ''}</Text></View>
             </View>
           ))}
