@@ -12,7 +12,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { GenerateLogFeedbackOutputSchema } from './generate-log-feedback';
+import { GenerateLogFeedbackOutputSchema } from './generate-log-feedback-shared';
 
 // Define the input schema for the flow
 export const ImproveLogEntryInputSchema = z.object({
