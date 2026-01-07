@@ -8,10 +8,10 @@ import { v4 as uuidv4 } from 'uuid';
 const { firestore, storage } = initializeFirebase();
 
 // User Profile Functions
-export const createUserProfile = async (uid: string, data: Partial<Omit<UserProfile, 'uid' | 'createdAt'>>) => {
+export const createUserProfile = async (uid: string, data: Partial<Omit<UserProfile, 'createdAt'>>) => {
   const userProfileRef = doc(firestore, 'users', uid);
   const newUserProfile: UserProfile = {
-    uid,
+    id: uid,
     email: data.email || null,
     displayName: data.displayName || 'New User',
     role: data.role || 'student', // Default role
@@ -29,7 +29,7 @@ export const getUserProfile = async (uid: string): Promise<UserProfile | null> =
     const data = docSnap.data();
     return {
       ...data,
-      uid: docSnap.id,
+      id: docSnap.id,
       createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
     } as UserProfile;
   } else {
@@ -92,11 +92,11 @@ export const uploadDocument = async (userId: string, file: File): Promise<Docume
         id: documentId,
         userId,
         filename: file.name,
+        url: downloadURL,
         storagePath: snapshot.ref.fullPath,
         mimeType: file.type,
         size: file.size,
         createdAt: new Date(),
-        url: downloadURL,
     };
     
     await setDoc(doc(docCollection, documentId), newDoc);

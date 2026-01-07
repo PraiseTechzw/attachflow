@@ -28,6 +28,7 @@ export const signUpUser = async (userData) => {
   );
   // Create user profile in Firestore
   await createUserProfile(userCredential.user.uid, {
+    id: userCredential.user.uid, // Add this line
     email: userCredential.user.email,
     displayName: displayName,
     regNumber: regNumber,

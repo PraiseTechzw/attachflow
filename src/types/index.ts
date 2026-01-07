@@ -1,7 +1,7 @@
 'use server';
 
 export interface UserProfile {
-  uid: string;
+  id: string;
   email: string | null;
   displayName: string;
   role: 'student' | 'supervisor' | 'admin';
