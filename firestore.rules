@@ -57,9 +57,10 @@ service cloud.firestore {
 
     /**
      * On update, ensures the user document's internal 'id' field is immutable.
+     * This rule only applies if the 'id' field is present in the request.
      */
     function hasImmutableId() {
-      return request.resource.data.id == resource.data.id;
+      return !('id' in request.resource.data) || request.resource.data.id == resource.data.id;
     }
     
     /**
@@ -73,9 +74,11 @@ service cloud.firestore {
     /**
      * On update, ensures that a subcollection document's 'userId' and 'id' fields
      * are immutable, preserving the original ownership and identity.
+     * This rule only applies if 'id' or 'userId' are present in the request.
      */
     function hasImmutableSubcollectionIds() {
-      return request.resource.data.userId == resource.data.userId && request.resource.data.id == resource.data.id;
+        return (!('id' in request.resource.data) || request.resource.data.id == resource.data.id) &&
+               (!('userId' in request.resource.data) || request.resource.data.userId == resource.data.userId);
     }
     
     /**
