@@ -3,16 +3,30 @@
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
+import { Progress } from "../ui/progress";
 import { Sparkles, Loader2 } from "lucide-react";
-import { generateLogFeedback } from "@/ai/flows/generate-log-feedback";
+import { generateLogFeedback, type GenerateLogFeedbackOutput } from "@/ai/flows/generate-log-feedback";
+import { Label } from "../ui/label";
 
 interface AIFeedbackProps {
     logText: string;
     studentGoals: string;
 }
 
+const ScorecardItem = ({ title, score, feedback }: { title: string, score: number, feedback: string }) => (
+    <div className="space-y-2">
+        <div className="flex items-baseline justify-between">
+            <Label className="text-sm font-medium">{title}</Label>
+            <span className="text-sm font-bold text-primary">{score}/10</span>
+        </div>
+        <Progress value={score * 10} className="h-2" />
+        <p className="text-xs text-muted-foreground pt-1">{feedback}</p>
+    </div>
+);
+
+
 export function AIFeedback({ logText, studentGoals }: AIFeedbackProps) {
-    const [feedback, setFeedback] = useState<string | null>(null);
+    const [feedback, setFeedback] = useState<GenerateLogFeedbackOutput | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -22,9 +36,9 @@ export function AIFeedback({ logText, studentGoals }: AIFeedbackProps) {
         setFeedback(null);
         try {
             const result = await generateLogFeedback({ logText, studentGoals });
-            setFeedback(result.feedback);
+            setFeedback(result);
         } catch (err) {
-            setError("Failed to generate feedback. Please try again.");
+            setError("Failed to generate feedback. The AI may be unavailable or the content could not be processed. Please try again.");
             console.error(err);
         } finally {
             setIsLoading(false);
@@ -36,9 +50,9 @@ export function AIFeedback({ logText, studentGoals }: AIFeedbackProps) {
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <Sparkles className="text-primary h-5 w-5"/>
-                    AI Feedback
+                    AI Mentor
                 </CardTitle>
-                <CardDescription>Get suggestions on how to improve your log and align with your goals.</CardDescription>
+                <CardDescription>Get a supervisor's critique of your log entry.</CardDescription>
             </CardHeader>
             <CardContent className="min-h-[150px]">
                 {isLoading && (
@@ -48,14 +62,21 @@ export function AIFeedback({ logText, studentGoals }: AIFeedbackProps) {
                 )}
                 {error && <p className="text-sm text-destructive">{error}</p>}
                 {feedback && (
-                    <div className="prose prose-sm dark:prose-invert max-w-none text-foreground/90 whitespace-pre-wrap font-sans">
-                        {feedback}
+                     <div className="space-y-6">
+                        <ScorecardItem title="Technical Depth" score={feedback.technicalDepth.score} feedback={feedback.technicalDepth.feedback} />
+                        <ScorecardItem title="Professional Tone" score={feedback.professionalTone.score} feedback={feedback.professionalTone.feedback} />
+                        <ScorecardItem title="Problem-Solving Clarity" score={feedback.problemSolvingClarity.score} feedback={feedback.problemSolvingClarity.feedback} />
+                    </div>
+                )}
+                {!isLoading && !feedback && !error && (
+                    <div className="text-center text-sm text-muted-foreground h-full flex flex-col items-center justify-center">
+                        <p>Click below to get a detailed scorecard on your log's quality.</p>
                     </div>
                 )}
             </CardContent>
             <CardFooter>
-                <Button onClick={handleGenerateFeedback} disabled={isLoading} className="w-full">
-                    {isLoading ? "Generating..." : "Generate Feedback"}
+                <Button onClick={handleGenerateFeedback} disabled={isLoading || !logText} className="w-full">
+                    {isLoading ? "Generating Critique..." : "Critique My Log"}
                 </Button>
             </CardFooter>
         </Card>
