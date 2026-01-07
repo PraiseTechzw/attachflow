@@ -21,7 +21,7 @@ import type { DailyLog, MonthlyReport } from "@/types";
 import { useFirebase } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { collection, doc, serverTimestamp, runTransaction, writeBatch, increment } from "firebase/firestore";
+import { collection, doc, serverTimestamp, runTransaction, writeBatch, increment, setDoc } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
 import { extractSkillsFromLog } from "@/ai/flows/extract-skills-from-log-flow";
 import { polishLogEntry } from "@/ai/flows/polish-log-entry-flow";
