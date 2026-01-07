@@ -34,8 +34,8 @@ export async function createSessionCookie(idToken: string) {
   });
 }
 
-export async function verifySessionCookie() {
-  const sessionCookie = cookies().get('session')?.value;
+export async function verifySessionCookie(request: NextRequest) {
+  const sessionCookie = request.cookies.get('session')?.value;
 
   if (!sessionCookie) {
     return null;

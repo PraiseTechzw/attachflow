@@ -6,7 +6,7 @@ import {verifySessionCookie} from './lib/firebase/server-auth';
 export const runtime = 'nodejs';
 
 export async function middleware(request: NextRequest) {
-  const user = await verifySessionCookie();
+  const user = await verifySessionCookie(request);
 
   const {pathname} = request.nextUrl;
 
@@ -24,7 +24,7 @@ export async function middleware(request: NextRequest) {
 }
 
 function isProtectedRoute(pathname: string): boolean {
-  const protectedRoutes = ['/dashboard', '/logs', '/projects', '/documents', '/settings'];
+  const protectedRoutes = ['/dashboard', '/logs', '/projects', '/documents', '/settings', '/reports'];
   return protectedRoutes.some(route => pathname.startsWith(route));
 }
 
