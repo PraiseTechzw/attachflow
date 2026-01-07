@@ -153,3 +153,7 @@ export interface MonthlyReport {
     analysis?: string;
     conclusion?: string;
 }
+
+export interface PolishLogEntryOutput {
+    polishedContent: string;
+}
