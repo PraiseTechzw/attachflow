@@ -104,7 +104,7 @@ export default function ReportsPage() {
       </div>
       
       <div className="mb-12">
-        <Card className='bg-gradient-to-br from-primary/80 to-accent/80 text-primary-foreground'>
+        <Card className='bg-gradient-to-br from-primary/80 to-primary/60 text-primary-foreground'>
           <CardHeader>
             <CardTitle>AI-Powered Final Report</CardTitle>
             <CardDescription className='text-primary-foreground/80'>Let AI structure and summarize all your logs into a professional Word document.</CardDescription>

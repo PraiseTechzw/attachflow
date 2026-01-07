@@ -212,12 +212,36 @@ export default function GenerateMonthlyReportPage({ params }: { params: { monthI
 
       <style jsx global>{`
         @media print {
+            body {
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+            .print-hide {
+              display: none;
+            }
+            main {
+              padding: 0;
+              margin: 0;
+            }
+            .print-container {
+               padding: 1rem;
+            }
+            #report-content {
+              border: none;
+              box-shadow: none;
+            }
             .print-show {
                 border: none !important;
                 background-color: transparent !important;
                 box-shadow: none !important;
                 resize: none !important;
                 height: auto !important;
+                -webkit-print-color-adjust: exact;
+                 print-color-adjust: exact;
+            }
+            @page {
+              size: A4;
+              margin: 2cm;
             }
         }
       `}</style>
