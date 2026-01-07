@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -15,8 +15,8 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { generateMonthlyReport } from '@/ai/flows/generate-monthly-report-flow';
 
-export default function GenerateMonthlyReportPage({ params }: { params: { monthId: string } }) {
-  const { monthId } = params; // e.g., "2024-08"
+export default function GenerateMonthlyReportPage({ params }: { params: Promise<{ monthId: string }> }) {
+  const { monthId } = React.use(params);
   const { toast } = useToast();
   const { firestore, user } = useFirebase();
   const { userProfile } = useUserProfile();
@@ -210,7 +210,7 @@ export default function GenerateMonthlyReportPage({ params }: { params: { monthI
           </CardContent>
       </Card>
 
-      <style jsx global>{`
+      <style jsx global>{\`
         @media print {
             body {
               -webkit-print-color-adjust: exact;
@@ -244,7 +244,7 @@ export default function GenerateMonthlyReportPage({ params }: { params: { monthI
               margin: 2cm;
             }
         }
-      `}</style>
+      \`}</style>
 
     </div>
   );

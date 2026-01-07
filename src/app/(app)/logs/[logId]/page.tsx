@@ -1,5 +1,6 @@
 'use client';
 
+import React from "react";
 import { AIFeedback } from "@/components/logs/ai-feedback";
 import { LogForm } from "@/components/logs/log-form";
 import { useFirebase } from "@/firebase/provider";
@@ -8,14 +9,15 @@ import { doc } from "firebase/firestore";
 import { Loader2 } from "lucide-react";
 import { useUserProfile } from "@/hooks/use-user-profile";
 
-export default function LogDetailPage({ params }: { params: { logId: string } }) {
+export default function LogDetailPage({ params }: { params: Promise<{ logId: string }> }) {
+    const { logId } = React.use(params);
     const { firestore, user } = useFirebase();
     const { userProfile, isLoading: profileLoading } = useUserProfile();
     
     const logRef = useMemoFirebase(() => {
         if (!user) return null;
-        return doc(firestore, `users/${user.uid}/dailyLogs`, params.logId);
-    }, [firestore, user, params.logId]);
+        return doc(firestore, `users/${user.uid}/dailyLogs`, logId);
+    }, [firestore, user, logId]);
 
     const { data: log, isLoading: logLoading } = useDoc(logRef);
 

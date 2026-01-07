@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -14,8 +14,8 @@ import type { DailyLog, MonthlyReport } from '@/types';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { format, parse } from 'date-fns';
 
-export default function MonthlyReportPage({ params }: { params: { monthId: string } }) {
-  const { monthId } = params; // e.g., "2024-08"
+export default function MonthlyReportPage({ params }: { params: Promise<{ monthId: string }> }) {
+  const { monthId } = React.use(params);
   const { toast } = useToast();
   const { firestore, user } = useFirebase();
   const { userProfile } = useUserProfile();

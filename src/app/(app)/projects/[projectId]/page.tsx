@@ -1,4 +1,5 @@
 'use client';
+import React from "react";
 import { ProjectForm } from "@/components/projects/project-form";
 import { useFirebase } from "@/firebase/provider";
 import { useDoc, useMemoFirebase } from "@/firebase";
@@ -6,13 +7,14 @@ import { doc } from "firebase/firestore";
 import { Loader2 } from "lucide-react";
 import type { Project } from "@/types";
 
-export default function ProjectDetailPage({ params }: { params: { projectId: string } }) {
+export default function ProjectDetailPage({ params }: { params: Promise<{ projectId: string }> }) {
+    const { projectId } = React.use(params);
     const { firestore, user } = useFirebase();
 
     const projectRef = useMemoFirebase(() => {
         if (!user) return null;
-        return doc(firestore, `users/${user.uid}/projects`, params.projectId);
-    }, [firestore, user, params.projectId]);
+        return doc(firestore, `users/${user.uid}/projects`, projectId);
+    }, [firestore, user, projectId]);
 
     const { data: project, isLoading } = useDoc<Project>(projectRef);
     
