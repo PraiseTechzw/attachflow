@@ -36,9 +36,9 @@ export default function ProjectDetailPage({ params }: { params: { projectId: str
     return (
         <div className="container mx-auto py-8">
             <div className="mb-8">
-                <h1 className="text-3xl font-bold tracking-tight">Edit Project</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Edit Project Report</h1>
                 <p className="text-muted-foreground">
-                    Update the details of your project.
+                    Fill out the report chapters for your project: <span className="font-semibold">{project.title}</span>
                 </p>
             </div>
             <ProjectForm project={project} />

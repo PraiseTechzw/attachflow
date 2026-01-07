@@ -28,18 +28,77 @@ export interface Project {
   userId: string;
   title: string;
   description: string;
-  proposalDoc?: any | null; // Document reference
-  finalReportDoc?: any | null; // Document reference
   status: 'Pending' | 'Approved' | 'Rejected' | 'Completed';
+  createdAt: any; // Firestore Timestamp
+  updatedAt: any; // Firestore Timestamp
+
+  // Chapter 1: Introduction
+  introduction_background?: string;
+  introduction_organogram?: string; // Base64 image
+  introduction_vision?: string;
+  introduction_mission?: string;
+  introduction_problemDefinition?: string;
+  introduction_aim?: string;
+  introduction_smartObjectives?: string;
+  introduction_constraints?: string;
+  introduction_justification?: string;
+
+  // Chapter 2: Planning
+  planning_businessValue?: string;
+  planning_feasibility_technical?: string;
+  planning_feasibility_operational?: string;
+  planning_feasibility_economic?: string;
+  planning_riskAnalysis?: string;
+  planning_projectSchedule?: string; // Base64 image (Gantt Chart)
+
+  // Chapter 3: Analysis
+  analysis_infoGathering?: string;
+  analysis_currentSystem?: string;
+  analysis_processData?: string;
+  analysis_weaknesses?: string;
+  analysis_functionalRequirements?: string;
+  analysis_nonFunctionalRequirements?: string;
+
+  // Chapter 4: Design
+  design_system?: string;
+  design_architectural?: string;
+  design_physical?: string;
+  design_databaseSchema?: string; // Base64 image (ERD)
+  design_packageDiagram?: string;
+  design_classDiagram?: string;
+  design_sequenceDiagram?: string;
+  design_interface_input?: string;
+  design_interface_output?: string;
+  design_interface_security?: string;
+
+  // Chapter 5: Implementation
+  implementation_coding?: string;
+  implementation_testing_unit?: string;
+  implementation_testing_modular?: string;
+  implementation_testing_acceptance?: string;
+  implementation_testing_validation?: string;
+  implementation_testing_verification?: string;
+  implementation_installation_hardware?: string;
+  implementation_installation_software?: string;
+  implementation_installation_db?: string;
+  implementation_installation_training?: string;
+  implementation_review?: string;
+  implementation_backup?: string;
+  
+  // Appendices
+  appendix_userManual?: string;
+  appendix_sampleCode?: string;
+  appendix_researchMethodologies?: string;
+
+  // Legacy fields (optional, for backward compatibility if needed)
   introduction?: string;
   methodology?: string;
   analysis?: string;
   design?: string;
   implementation?: string;
   conclusion?: string;
-  createdAt: any; // Firestore Timestamp
-  updatedAt: any; // Firestore Timestamp
 }
+
 
 export interface Document {
   id: string;

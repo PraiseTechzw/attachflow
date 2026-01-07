@@ -21,16 +21,65 @@ const ProjectSchema = z.object({
   title: z.string(),
   description: z.string(),
   status: z.string(),
-  introduction: z.string().optional(),
-  methodology: z.string().optional(),
-  analysis: z.string().optional(),
-  design: z.string().optional(),
-  implementation: z.string().optional(),
-  conclusion: z.string().optional(),
-  // Timestamps can be complex, stringify for simplicity or use z.date() if needed
   createdAt: z.any(),
   updatedAt: z.any(),
+  // Chapter 1
+  introduction_background: z.string().optional(),
+  introduction_organogram: z.string().optional(),
+  introduction_vision: z.string().optional(),
+  introduction_mission: z.string().optional(),
+  introduction_problemDefinition: z.string().optional(),
+  introduction_aim: z.string().optional(),
+  introduction_smartObjectives: z.string().optional(),
+  introduction_constraints: z.string().optional(),
+  introduction_justification: z.string().optional(),
+  // Chapter 2
+  planning_businessValue: z.string().optional(),
+  planning_feasibility_technical: z.string().optional(),
+  planning_feasibility_operational: z.string().optional(),
+  planning_feasibility_economic: z.string().optional(),
+  planning_riskAnalysis: z.string().optional(),
+  planning_projectSchedule: z.string().optional(),
+  // Chapter 3
+  analysis_infoGathering: z.string().optional(),
+  analysis_currentSystem: z.string().optional(),
+  analysis_processData: z.string().optional(),
+  analysis_weaknesses: z.string().optional(),
+  analysis_functionalRequirements: z.string().optional(),
+  analysis_nonFunctionalRequirements: z.string().optional(),
+  // Chapter 4
+  design_system: z.string().optional(),
+  design_architectural: z.string().optional(),
+  design_physical: z.string().optional(),
+  design_databaseSchema: z.string().optional(),
+  design_packageDiagram: z.string().optional(),
+  design_classDiagram: z.string().optional(),
+  design_sequenceDiagram: z.string().optional(),
+  design_interface_input: z.string().optional(),
+  design_interface_output: z.string().optional(),
+  design_interface_security: z.string().optional(),
+  // Chapter 5
+  implementation_coding: z.string().optional(),
+  implementation_testing_unit: z.string().optional(),
+  implementation_testing_modular: z.string().optional(),
+  implementation_testing_acceptance: z.string().optional(),
+  implementation_testing_validation: z.string().optional(),
+  implementation_testing_verification: z.string().optional(),
+  implementation_installation_hardware: z.string().optional(),
+  implementation_installation_software: z.string().optional(),
+  implementation_installation_db: z.string().optional(),
+  implementation_installation_training: z.string().optional(),
+  implementation_review: z.string().optional(),
+  implementation_backup: z.string().optional(),
+  // Appendices
+  appendix_userManual: z.string().optional(),
+  appendix_sampleCode: z.string().optional(),
+  appendix_researchMethodologies: z.string().optional(),
+  // Legacy
+  introduction: z.string().optional(),
+  conclusion: z.string().optional(),
 });
+
 
 const DailyLogSchema = z.object({
   id: z.string(),
@@ -57,10 +106,10 @@ const ReportChapterSchema = z.object({
 });
 
 export const FinalReportOutputSchema = z.object({
-    introduction: z.string().describe("A professionally written introduction for the final report, based on the project details."),
+    introduction: z.string().describe("A professionally written introduction for the final report, using the project's problem statement and justification."),
     chapters: z.array(ReportChapterSchema).describe("An array of logical chapters, where each chapter represents a phase or theme of the work performed, derived from semantically clustering the daily logs."),
     technologiesUsed: z.array(z.string()).describe("A list of unique technologies, frameworks, and tools mentioned in the daily logs."),
-    conclusion: z.string().describe("A professionally written conclusion for the final report, based on the project details."),
+    conclusion: z.string().describe("A professionally written conclusion for the final report, summarizing the project's achievements and outcomes."),
 });
 export type FinalReportOutput = z.infer<typeof FinalReportOutputSchema>;
 
@@ -75,7 +124,7 @@ Analyze the provided project details and the complete set of daily logs. Your go
 
 **Instructions:**
 
-1.  **Introduction & Conclusion**: Rewrite the provided project introduction and conclusion to be more professional and suitable for a final report.
+1.  **Introduction & Conclusion**: Write a professional introduction based on the project's problem definition and justification. Write a strong conclusion that summarizes the project's outcomes.
 2.  **Semantic Clustering**: Read all the daily logs and group them into logical, thematic chapters. A chapter could represent a time period (e.g., "Weeks 1-3"), a project phase (e.g., "Backend API Development"), or a key skill area (e.g., "User Interface Implementation"). Create 3-5 chapters.
 3.  **Chapter Summaries**: For each chapter, write a detailed summary paragraph. This summary should synthesize the key activities, achievements, and challenges from the logs that fall into that chapter's theme.
 4.  **Technologies Used**: Scan all logs and extract a unique list of all programming languages, frameworks, libraries, and tools that were used.
@@ -83,9 +132,9 @@ Analyze the provided project details and the complete set of daily logs. Your go
 
 **Project Details:**
 - Title: {{{project.title}}}
-- Description: {{{project.description}}}
-- Student's Intro Draft: {{{project.introduction}}}
-- Student's Conclusion Draft: {{{project.conclusion}}}
+- Problem Definition: {{{project.introduction_problemDefinition}}}
+- Justification: {{{project.introduction_justification}}}
+
 
 **Daily Logs:**
 {{#each logs}}
