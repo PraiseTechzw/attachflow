@@ -1,8 +1,5 @@
 'use server';
 
-// This file is NOT a 'use server' file because it's imported by middleware.
-// It needs to run in the nodejs runtime.
-
 import {auth} from 'firebase-admin';
 import {cookies} from 'next/headers';
 import {NextRequest, NextResponse} from 'next/server';
@@ -38,8 +35,7 @@ export async function createSessionCookie(idToken: string) {
 }
 
 export async function verifySessionCookie() {
-  const cookieStore = cookies();
-  const sessionCookie = cookieStore.get('session')?.value;
+  const sessionCookie = cookies().get('session')?.value;
 
   if (!sessionCookie) {
     return null;
@@ -50,6 +46,8 @@ export async function verifySessionCookie() {
     return decodedClaims;
   } catch (error) {
     console.error('Error verifying session cookie:', error);
+    // Clear the invalid cookie
+    cookies().delete('session');
     return null;
   }
 }
