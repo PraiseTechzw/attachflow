@@ -84,7 +84,7 @@ export default function LogsPage() {
                                         <div key={log.id} className="flex items-center justify-between p-4 rounded-lg border bg-card/50">
                                             <div>
                                                 <p className="font-medium">{formatDate(log.date)}</p>
-                                                <p className="text-sm text-muted-foreground truncate max-w-lg">{log.activitiesRaw.substring(0,120)}...</p>
+                                                <p className="text-sm text-muted-foreground truncate max-w-lg">{typeof log.activitiesRaw === 'string' ? log.activitiesRaw.substring(0,120) : ''}{typeof log.activitiesRaw === 'string' && log.activitiesRaw.length > 120 ? '...' : ''}</p>
                                             </div>
                                             <Link href={`/logs/${log.id}`} passHref>
                                                 <Button variant="outline">View Details</Button>
