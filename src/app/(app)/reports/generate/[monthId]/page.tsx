@@ -121,14 +121,14 @@ export default function GenerateMonthlyReportPage({ params }: { params: Promise<
       try {
         const reportRef = doc(firestore, `users/${user.uid}/monthlyReports`, monthId);
         const finalReportData: MonthlyReport = {
-            id: monthId,
-            userId: user.uid,
-            month: monthName,
-            year: getYear(reportDate),
-            logCount: logs.length,
-            status: 'Draft',
-            lastUpdated: new Date(),
-            ...reportData as MonthlyReport, // Ensure we satisfy the type
+          id: monthId,
+          userId: user.uid,
+          month: monthName,
+          year: getYear(reportDate),
+          logCount: logs.length,
+          status: 'Draft',
+          ...reportData as MonthlyReport, // Spread first
+          lastUpdated: new Date(), // Override after
         };
 
         await setDoc(reportRef, finalReportData, { merge: true });
