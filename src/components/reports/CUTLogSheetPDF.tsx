@@ -1,9 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Page, Text, View, Document, StyleSheet, Font, PDFDownloadLink } from '@react-pdf/renderer';
-import { useFirebase } from '@/firebase';
-import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
 import type { DailyLog } from '@/types';
 import { format } from 'date-fns';
 
@@ -106,6 +104,7 @@ const styles = StyleSheet.create({
 });
 
 interface CUTLogSheetPDFProps {
+  logs: DailyLog[];
   studentName: string;
   regNumber: string;
   companyName: string;
@@ -114,41 +113,13 @@ interface CUTLogSheetPDFProps {
 }
 
 const CUTLogSheetPDF: React.FC<CUTLogSheetPDFProps> = ({
+  logs,
   studentName,
   regNumber,
   companyName,
   startDate,
   endDate,
 }) => {
-  const { firestore, user } = useFirebase();
-
-  const [logs, setLogs] = useState<DailyLog[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchLogs = async () => {
-      if (!user) return;
-      setIsLoading(true);
-      
-      const fromDate = new Date(startDate.split('/').reverse().join('-'));
-      const toDate = new Date(endDate.split('/').reverse().join('-'));
-
-      const logsQuery = query(
-        collection(firestore, `users/${user.uid}/dailyLogs`),
-        where('date', '>=', fromDate),
-        where('date', '<=', toDate),
-        orderBy('date', 'asc')
-      );
-      
-      const snapshot = await getDocs(logsQuery);
-      const fetchedLogs = snapshot.docs.map(doc => doc.data() as DailyLog);
-      setLogs(fetchedLogs);
-      setIsLoading(false);
-    };
-
-    fetchLogs();
-  }, [firestore, user, startDate, endDate]);
-
   const MyDocument = (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -176,8 +147,8 @@ const CUTLogSheetPDF: React.FC<CUTLogSheetPDFProps> = ({
             <View style={[styles.colActivities, styles.colHeader]}><Text>Activities</Text></View>
             <View style={[styles.colComments, styles.colHeader]}><Text>Comments</Text></View>
           </View>
-          {logs.map((log, index) => (
-            <View key={index} style={styles.tableRow} wrap={false}>
+          {logs.map((log) => (
+            <View key={log.id} style={styles.tableRow} wrap={false}>
               <View style={styles.colDate}><Text>{log.date ? format(log.date.toDate(), 'dd/MM/yyyy') : ''}</Text></View>
               <View style={styles.colActivities}><Text>{log.activitiesProfessional || log.activitiesRaw}</Text></View>
               <View style={styles.colComments}><Text>{log.feedback || ''}</Text></View>
@@ -199,23 +170,21 @@ const CUTLogSheetPDF: React.FC<CUTLogSheetPDFProps> = ({
 
   return (
     <div style={{ display: 'none' }}>
-        { !isLoading && (
-             <PDFDownloadLink document={MyDocument} fileName={`CUT_Log_Sheet_${studentName}.pdf`}>
-                {({ blob, url, loading, error }) => {
-                    useEffect(() => {
-                        if (url && !loading && !error) {
-                            const link = document.createElement('a');
-                            link.href = url;
-                            link.download = `CUT_Log_Sheet_${studentName}.pdf`;
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                        }
-                    }, [url, loading, error]);
-                    return null;
-                }}
-            </PDFDownloadLink>
-        )}
+        <PDFDownloadLink document={MyDocument} fileName={`CUT_Log_Sheet_${studentName}.pdf`}>
+            {({ blob, url, loading, error }) => {
+                useEffect(() => {
+                    if (url && !loading && !error) {
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = `CUT_Log_Sheet_${studentName}.pdf`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }
+                }, [url, loading, error]);
+                return null;
+            }}
+        </PDFDownloadLink>
     </div>
   );
 };

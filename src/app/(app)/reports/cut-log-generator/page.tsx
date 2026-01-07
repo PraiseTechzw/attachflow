@@ -24,6 +24,7 @@ export default function CutLogGeneratorPage() {
   const { firestore, user } = useFirebase();
   const { userProfile } = useUserProfile();
   const [isLoading, setIsLoading] = useState(false);
+  const [logsForPdf, setLogsForPdf] = useState<DailyLog[] | null>(null);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: startOfMonth(new Date()),
     to: new Date(),
@@ -40,6 +41,7 @@ export default function CutLogGeneratorPage() {
     }
 
     setIsLoading(true);
+    setLogsForPdf(null); // Reset previous PDF data
     try {
       const logsQuery = query(
         collection(firestore, `users/${user.uid}/dailyLogs`),
@@ -48,18 +50,15 @@ export default function CutLogGeneratorPage() {
         orderBy('date', 'asc')
       );
       const logSnapshot = await getDocs(logsQuery);
-      const logs = logSnapshot.docs.map(doc => doc.data() as DailyLog);
+      const fetchedLogs = logSnapshot.docs.map(doc => doc.data() as DailyLog);
 
-      if (logs.length === 0) {
+      if (fetchedLogs.length === 0) {
         toast({ title: 'No Logs Found', description: 'There are no logs in the selected date range.' });
         return;
       }
-
-      toast({ title: "Generating PDF...", description: "Your log sheet is being prepared for download." });
-
-      // The dynamic import handles the client-side rendering
-      // We don't need to do anything special here, just render the component
-      // and it will trigger the download.
+      
+      toast({ title: "Preparing PDF...", description: "Your log sheet is being prepared for download." });
+      setLogsForPdf(fetchedLogs);
 
     } catch (error) {
       console.error("Failed to generate PDF:", error);
@@ -68,24 +67,6 @@ export default function CutLogGeneratorPage() {
       setIsLoading(false);
     }
   };
-
-  // Render the PDF component conditionally when logs are ready
-  const renderPdf = () => {
-    if (isLoading || !dateRange || !dateRange.from || !dateRange.to || !userProfile) {
-      return null;
-    }
-
-    // A bit of a hack to trigger re-render and download
-    return (
-        <CUTLogSheetPDF
-            studentName={userProfile?.displayName || 'N/A'}
-            regNumber={userProfile?.regNumber || 'N/A'}
-            companyName={userProfile?.companyName || 'N/A'}
-            startDate={format(dateRange.from, 'dd/MM/yyyy')}
-            endDate={format(dateRange.to, 'dd/MM/yyyy')}
-        />
-    )
-  }
 
   return (
     <div className="container mx-auto py-8">
@@ -147,7 +128,16 @@ export default function CutLogGeneratorPage() {
         </CardContent>
       </Card>
       
-      {isLoading && <div className='hidden'>{renderPdf()}</div>}
+      {logsForPdf && userProfile && dateRange?.from && dateRange?.to && (
+        <CUTLogSheetPDF
+            logs={logsForPdf}
+            studentName={userProfile.displayName}
+            regNumber={userProfile.regNumber || 'N/A'}
+            companyName={userProfile.companyName || 'N/A'}
+            startDate={format(dateRange.from, 'dd/MM/yyyy')}
+            endDate={format(dateRange.to, 'dd/MM/yyyy')}
+        />
+      )}
     </div>
   );
 }
