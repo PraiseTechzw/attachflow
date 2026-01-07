@@ -13,11 +13,6 @@ import { useCollection, useDoc, useMemoFirebase } from '@/firebase';
 import type { DailyLog, MonthlyReport } from '@/types';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { format, parse } from 'date-fns';
-import dynamic from 'next/dynamic';
-
-const MonthlyReportPDF = dynamic(() => import('@/components/reports/MonthlyReportPDF'), {
-  ssr: false,
-});
 
 export default function MonthlyReportPage({ params }: { params: { monthId: string } }) {
   const { monthId } = params; // e.g., "2024-08"
@@ -25,7 +20,6 @@ export default function MonthlyReportPage({ params }: { params: { monthId: strin
   const { firestore, user } = useFirebase();
   const { userProfile } = useUserProfile();
   
-  const [isDownloading, setIsDownloading] = useState(false);
   const [isLocking, setIsLocking] = useState(false);
 
   // Parse month and year from monthId
@@ -55,15 +49,7 @@ export default function MonthlyReportPage({ params }: { params: { monthId: strin
   const isLoading = isReportLoading || areLogsLoading;
 
   const handleDownloadClick = () => {
-     if (!logs || logs.length === 0 || !userProfile || !report) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Cannot generate report. No logs found for this month.',
-      });
-      return;
-    }
-    setIsDownloading(true);
+    window.print();
   }
   
   const handleToggleLock = async () => {
@@ -104,74 +90,64 @@ export default function MonthlyReportPage({ params }: { params: { monthId: strin
   }
 
   return (
-    <>
-      {isDownloading && logs && report && userProfile && (
-        <MonthlyReportPDF 
-          logs={logs}
-          studentName={userProfile.displayName || 'N/A'}
-          month={report.month}
-          onFinished={() => setIsDownloading(false)}
-        />
-      )}
-      <div className="container mx-auto py-8">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Live Report: {report.month}</h1>
-            <div className="flex items-center gap-2 mt-2">
-              <p className="text-muted-foreground">Status:</p>
-              <Badge variant={report.status === 'Draft' ? 'secondary' : 'default'}>{report.status}</Badge>
-            </div>
-          </div>
-          <div className="flex gap-2">
-              <Button onClick={handleToggleLock} variant="outline" disabled={isLocking}>
-                  {isLocking ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (
-                      report.status === 'Draft' ? <Lock className="mr-2 h-4 w-4"/> : <Unlock className="mr-2 h-4 w-4"/>
-                  )}
-                  {report.status === 'Draft' ? 'Finalize' : 'Unlock'}
-              </Button>
-              <Button onClick={handleDownloadClick} disabled={isDownloading}>
-                  {isDownloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
-                  Download PDF
-              </Button>
+    <div className="print-container">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8 print-hide">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Live Report: {report.month}</h1>
+          <div className="flex items-center gap-2 mt-2">
+            <p className="text-muted-foreground">Status:</p>
+            <Badge variant={report.status === 'Draft' ? 'secondary' : 'default'}>{report.status}</Badge>
           </div>
         </div>
-
-        <Card>
-            <CardHeader>
-                <CardTitle>Daily Log Entries</CardTitle>
-                <CardDescription>This is a live preview of the logs for {report.month}.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-lg border">
-                  <Table>
-                      <TableHeader>
-                          <TableRow>
-                              <TableHead className="w-[180px]">Date</TableHead>
-                              <TableHead>Log Content</TableHead>
-                          </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                          {areLogsLoading ? (
-                              <TableRow><TableCell colSpan={2} className="h-24 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></TableCell></TableRow>
-                          ) : logs && logs.length > 0 ? (
-                              logs.sort((a,b) => a.date.seconds - b.date.seconds).map(log => (
-                                  <TableRow key={log.id}>
-                                      <TableCell className="font-medium">{format(log.date.toDate(), 'EEEE, MMMM d, yyyy')}</TableCell>
-                                      <TableCell className="text-muted-foreground whitespace-pre-wrap">{log.content}</TableCell>
-                                  </TableRow>
-                              ))
-                          ) : (
-                              <TableRow><TableCell colSpan={2} className="h-24 text-center">No logs found for this month.</TableCell></TableRow>
-                          )}
-                      </TableBody>
-                  </Table>
-              </div>
-            </CardContent>
-            <CardFooter>
-                <p className="text-sm text-muted-foreground">Total logs for this month: {report.logCount}</p>
-            </CardFooter>
-        </Card>
+        <div className="flex gap-2">
+            <Button onClick={handleToggleLock} variant="outline" disabled={isLocking}>
+                {isLocking ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (
+                    report.status === 'Draft' ? <Lock className="mr-2 h-4 w-4"/> : <Unlock className="mr-2 h-4 w-4"/>
+                )}
+                {report.status === 'Draft' ? 'Finalize' : 'Unlock'}
+            </Button>
+            <Button onClick={handleDownloadClick}>
+                <FileDown className="mr-2 h-4 w-4" />
+                Download PDF
+            </Button>
+        </div>
       </div>
-    </>
+
+      <Card id="report-content">
+          <CardHeader>
+              <CardTitle>Daily Log Entries</CardTitle>
+              <CardDescription>This is a live preview of the logs for {report.month}.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-lg border">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="w-[180px]">Date</TableHead>
+                            <TableHead>Log Content</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {areLogsLoading ? (
+                            <TableRow><TableCell colSpan={2} className="h-24 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></TableCell></TableRow>
+                        ) : logs && logs.length > 0 ? (
+                            logs.sort((a,b) => a.date.seconds - b.date.seconds).map(log => (
+                                <TableRow key={log.id}>
+                                    <TableCell className="font-medium">{format(log.date.toDate(), 'EEEE, MMMM d, yyyy')}</TableCell>
+                                    <TableCell className="text-muted-foreground whitespace-pre-wrap">{log.content}</TableCell>
+                                </TableRow>
+                            ))
+                        ) : (
+                            <TableRow><TableCell colSpan={2} className="h-24 text-center">No logs found for this month.</TableCell></TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
+          </CardContent>
+          <CardFooter>
+              <p className="text-sm text-muted-foreground">Total logs for this month: {report.logCount}</p>
+          </CardFooter>
+      </Card>
+    </div>
   );
 }
