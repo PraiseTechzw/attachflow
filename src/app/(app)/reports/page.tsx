@@ -9,14 +9,15 @@ import { Calendar as CalendarIcon, FileDown, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase } from '@/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import type { DailyLog, Project } from '@/types';
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import type { DailyLog, Project, FinalReportAIStructure } from '@/types';
 import { pdf } from '@react-pdf/renderer';
 import { saveAs } from 'file-saver';
 import MonthlyReportDocument from '@/components/reports/MonthlyReportDocument';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { Packer } from 'docx';
-import { generateFinalReport } from '@/lib/docx-generator';
+import { generateFinalReportDoc } from '@/lib/docx-generator';
+import { generateFinalReport } from '@/ai/flows/generate-final-report-flow';
 
 export default function ReportsPage() {
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -80,11 +81,14 @@ export default function ReportsPage() {
   };
 
   const handleDownloadFinalReport = async () => {
-    if (!user) return;
+    if (!user || !userProfile) {
+      toast({ variant: 'destructive', title: 'Not logged in' });
+      return;
+    }
     setIsDocxLoading(true);
     try {
         const projectsQuery = query(collection(firestore, `users/${user.uid}/projects`));
-        const logsQuery = query(collection(firestore, `users/${user.uid}/dailyLogs`));
+        const logsQuery = query(collection(firestore, `users/${user.uid}/dailyLogs`), orderBy('date', 'asc'));
 
         const [projectSnapshot, logSnapshot] = await Promise.all([getDocs(projectsQuery), getDocs(logsQuery)]);
 
@@ -94,10 +98,26 @@ export default function ReportsPage() {
 
         if (!project) {
             toast({ title: 'No Project Found', description: 'Create a project before generating a final report.' });
+            setIsDocxLoading(false);
             return;
         }
 
-        const doc = generateFinalReport(project, logs, userProfile?.displayName || 'Student');
+        toast({ title: "AI is structuring your report...", description: "This might take a moment. Please wait." });
+
+        const aiGeneratedContent = await generateFinalReport({
+            project,
+            logs,
+            studentName: userProfile.displayName || 'Student',
+        });
+        
+        toast({ title: "Generating Word document..." });
+
+        const doc = generateFinalReportDoc(
+            project,
+            userProfile.displayName || 'Student',
+            aiGeneratedContent
+        );
+
         const blob = await Packer.toBlob(doc);
         saveAs(blob, "Final_Report.docx");
 
@@ -160,8 +180,8 @@ export default function ReportsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Final Attachment Report</CardTitle>
-            <CardDescription>Generate a Word document of your final project report.</CardDescription>
+            <CardTitle>AI-Powered Final Report</CardTitle>
+            <CardDescription>Let AI structure and summarize your logs into a professional Word document.</CardDescription>
           </CardHeader>
           <CardContent>
             <Button onClick={handleDownloadFinalReport} disabled={isDocxLoading}>
@@ -170,7 +190,7 @@ export default function ReportsPage() {
                 ) : (
                     <FileDown className="mr-2 h-4 w-4" />
                 )}
-                Download Word Report
+                Generate Final Report (DOCX)
             </Button>
           </CardContent>
         </Card>

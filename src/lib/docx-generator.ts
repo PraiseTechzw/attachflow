@@ -1,8 +1,12 @@
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, PageBreak, AlignmentType } from "docx";
-import type { DailyLog, Project } from "@/types";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, PageBreak, AlignmentType, Bullet, Table, TableRow, TableCell, WidthType } from "docx";
+import type { Project, FinalReportAIStructure } from "@/types";
 import { format } from "date-fns";
 
-export const generateFinalReport = (project: Project, logs: DailyLog[], studentName: string): Document => {
+export const generateFinalReportDoc = (
+    project: Project,
+    studentName: string,
+    aiContent: FinalReportAIStructure
+): Document => {
     const doc = new Document({
         creator: "AttachFlow",
         title: "Final Attachment Report",
@@ -20,13 +24,29 @@ export const generateFinalReport = (project: Project, logs: DailyLog[], studentN
                         size: 24, // 12pt
                     },
                 },
+                 {
+                    id: "listPara",
+                    name: "List Para",
+                    basedOn: "Normal",
+                    quickFormat: true,
+                    run: {
+                        font: "Inter",
+                        size: 24, // 12pt
+                    },
+                    paragraph: {
+                        indent: { left: 720 }, // 0.5 inch indent
+                    },
+                },
             ],
         },
     });
 
-    // Title Page
+    // --- TITLE PAGE ---
     doc.addSection({
         children: [
+            new Paragraph({ text: "" }),
+            new Paragraph({ text: "" }),
+            new Paragraph({ text: "" }),
             new Paragraph({
                 text: project.title,
                 heading: HeadingLevel.TITLE,
@@ -51,58 +71,54 @@ export const generateFinalReport = (project: Project, logs: DailyLog[], studentN
         children: [new PageBreak()]
     });
 
-    const createSection = (title: string, content?: string) => {
-        const children = [new Paragraph({
-            text: title,
-            heading: HeadingLevel.HEADING_1,
-            spacing: { after: 200 }
-        })];
-        
-        if (content) {
-            const paragraphs = content.split('\n').map(p => new Paragraph({ text: p, style: "normalPara", spacing: { after: 150 } }));
-            children.push(...paragraphs);
-        }
-        
-        children.push(new Paragraph({ text: "" })); // spacing
-        return children;
-    }
-
-    // Report Sections
-    const sections = [
-        { title: "Introduction", content: project.introduction },
-        { title: "Methodology", content: project.methodology },
-        { title: "Design & Analysis", content: project.analysis },
-        { title: "Implementation", content: project.implementation },
-        { title: "Conclusion", content: project.conclusion },
-    ];
-    
-    const reportSections = sections.flatMap(sec => createSection(sec.title, sec.content));
-
-
-    // Log Summary Section
-    const logSummarySection = [
-         new Paragraph({
-            text: "Appendix: Daily Log Summary",
-            heading: HeadingLevel.HEADING_1,
-            spacing: { after: 200 }
-        }),
-        ...logs.sort((a,b) => a.date.seconds - b.date.seconds).map(log => 
+    // --- MAIN CONTENT ---
+    const createSection = (title: string, content: string, headingLevel: HeadingLevel = HeadingLevel.HEADING_1) => {
+        const paragraphs = content.split('\n').filter(p => p.trim() !== '').map(p => new Paragraph({ text: p, style: "normalPara", spacing: { after: 150 } }));
+        return [
             new Paragraph({
-                children: [
-                    new TextRun({
-                        text: `${format(log.date.toDate(), 'yyyy-MM-dd')}: `,
-                        bold: true,
-                    }),
-                    new TextRun(log.content),
-                ],
-                style: "normalPara",
-                spacing: { after: 100 }
-            })
-        )
+                text: title,
+                heading: headingLevel,
+                spacing: { after: 200 }
+            }),
+            ...paragraphs,
+            new Paragraph({ text: "" }), // spacing
+        ];
+    }
+    
+    // Abstract / Introduction
+    const introSection = createSection("Introduction", aiContent.introduction);
+
+    // AI-Generated Chapters
+    const aiChapters = aiContent.chapters.flatMap(chapter => 
+        createSection(chapter.title, chapter.summary, HeadingLevel.HEADING_2)
+    );
+    
+    const dutiesSection = [
+        new Paragraph({ text: "Duties and Responsibilities", heading: HeadingLevel.HEADING_1, spacing: { after: 200 }}),
+        ...aiChapters
     ];
+
+    // Technologies Used
+    const technologiesSection = [
+        new Paragraph({ text: "Technologies Used", heading: HeadingLevel.HEADING_1, spacing: { after: 200 } }),
+        ...aiContent.technologiesUsed.map(tech => new Paragraph({
+            text: tech,
+            bullet: { level: 0 },
+            style: "listPara",
+        })),
+         new Paragraph({ text: "" }),
+    ];
+
+    // Conclusion
+    const conclusionSection = createSection("Conclusion", aiContent.conclusion);
 
     doc.addSection({
-        children: [...reportSections, new PageBreak(), ...logSummarySection]
+        children: [
+            ...introSection,
+            ...dutiesSection,
+            ...technologiesSection,
+            ...conclusionSection
+        ]
     });
     
     return doc;

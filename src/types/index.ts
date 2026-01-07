@@ -47,3 +47,16 @@ export interface Document {
   size: number;
   createdAt: any; // Can be Date or Firestore Timestamp
 }
+
+
+export interface ReportChapter {
+    title: string;
+    summary: string;
+}
+
+export interface FinalReportAIStructure {
+    introduction: string;
+    chapters: ReportChapter[];
+    technologiesUsed: string[];
+    conclusion: string;
+}
