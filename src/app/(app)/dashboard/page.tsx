@@ -150,14 +150,16 @@ export default function DashboardPage() {
   const maxSkillFrequency = skills && skills.length > 0 ? Math.max(...skills.map(s => s.frequency)) : 0;
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">Welcome back! Here&apos;s a summary of your attachment progress.</p>
+    <div className="container mx-auto py-8 space-y-8">
+      <div className="text-center space-y-4">
+        <h1 className="text-4xl font-bold tracking-tight gradient-text">Dashboard</h1>
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          Welcome back! Here&apos;s a beautiful overview of your attachment progress and achievements.
+        </p>
       </div>
 
       {showBurnoutWarning && (
-         <Alert variant="destructive" className="mb-6">
+         <Alert variant="destructive" className="backdrop-blur-sm bg-destructive/10 border-destructive/50">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Feeling Overwhelmed?</AlertTitle>
             <AlertDescription>
@@ -167,7 +169,7 @@ export default function DashboardPage() {
       )}
 
       {showInactivityReminder && !showBurnoutWarning && (
-        <Alert className="mb-6">
+        <Alert className="backdrop-blur-sm bg-primary/10 border-primary/50">
             <Info className="h-4 w-4" />
           <AlertTitle>Friendly Reminder</AlertTitle>
           <AlertDescription>
@@ -177,46 +179,58 @@ export default function DashboardPage() {
       )}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="card-hover">
+        <Card className="card-hover group">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Logs</CardTitle>
-            <Book className="h-4 w-4 text-muted-foreground" />
+            <Book className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalLogs}</div>
+            <div className="text-3xl font-bold text-primary">{totalLogs}</div>
+            <p className="text-xs text-muted-foreground mt-1">Keep up the great work!</p>
           </CardContent>
         </Card>
-        <Card className="card-hover">
+        
+        <Card className="card-hover group">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Projects Submitted</CardTitle>
-            <FolderKanban className="h-4 w-4 text-muted-foreground" />
+            <FolderKanban className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalProjects}</div>
-            <p className="text-xs text-muted-foreground">{pendingProjects} pending approval</p>
+            <div className="text-3xl font-bold text-primary">{totalProjects}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {pendingProjects > 0 ? `${pendingProjects} pending approval` : 'All projects approved!'}
+            </p>
           </CardContent>
         </Card>
-        <Card className="flex flex-col items-center justify-center bg-card border-dashed card-hover">
+        
+        <Card className="card-hover group bg-gradient-to-br from-primary/5 to-chart-4/5 border-primary/20">
             <Link href="/logs/new" className="w-full h-full">
-                <CardContent className="flex flex-col items-center justify-center p-6 h-full text-center">
-                    <PlusCircle className="h-8 w-8 text-primary mb-2" />
-                    <h3 className="text-lg font-semibold text-primary">Add New Log</h3>
-                    <p className="text-sm text-muted-foreground">Record your activities for today.</p>
+                <CardContent className="flex flex-col items-center justify-center p-6 h-full text-center space-y-3">
+                    <div className="p-3 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-all duration-300">
+                      <PlusCircle className="h-8 w-8 text-primary group-hover:scale-110 transition-transform duration-300" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-primary">Add New Log</h3>
+                      <p className="text-sm text-muted-foreground">Record your activities for today</p>
+                    </div>
                 </CardContent>
             </Link>
         </Card>
       </div>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-2">
-        <Card>
-            <CardHeader>
-                <CardTitle>Log Activity & Sentiment</CardTitle>
-                <CardDescription>Your log count and average sentiment over the past 6 months.</CardDescription>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card className="card-hover">
+            <CardHeader className="space-y-2">
+                <CardTitle className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-primary animate-pulse"></div>
+                  Log Activity & Sentiment
+                </CardTitle>
+                <CardDescription>Your log count and average sentiment over the past 6 months</CardDescription>
             </CardHeader>
             <CardContent>
-            <ChartContainer config={chartConfig} className="h-[200px] w-full">
+            <ChartContainer config={chartConfig} className="h-[250px] w-full">
                 <ComposedChart accessibilityLayer data={chartData}>
-                    <CartesianGrid vertical={false} />
+                    <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis
                     dataKey="month"
                     tickLine={false}
@@ -248,32 +262,45 @@ export default function DashboardPage() {
                         content={<ChartTooltipContent indicator="dashed" />}
                     />
                     <ChartLegend content={<ChartLegendContent />} />
-                    <Bar yAxisId="left" dataKey="logs" fill="var(--color-logs)" radius={4} />
-                    <Line yAxisId="right" dataKey="sentiment" type="monotone" stroke="var(--color-sentiment)" strokeWidth={2} dot={false}/>
+                    <Bar yAxisId="left" dataKey="logs" fill="var(--color-logs)" radius={6} />
+                    <Line yAxisId="right" dataKey="sentiment" type="monotone" stroke="var(--color-sentiment)" strokeWidth={3} dot={{ fill: "var(--color-sentiment)", strokeWidth: 2, r: 4 }}/>
                 </ComposedChart>
             </ChartContainer>
             </CardContent>
         </Card>
-        <Card>
-            <CardHeader>
-                <CardTitle>Skills Word Cloud</CardTitle>
-                <CardDescription>Skills identified from your logs.</CardDescription>
+        
+        <Card className="card-hover">
+            <CardHeader className="space-y-2">
+                <CardTitle className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-chart-4 animate-pulse"></div>
+                  Skills Word Cloud
+                </CardTitle>
+                <CardDescription>Skills identified from your logs with frequency visualization</CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-wrap items-center justify-center gap-4 min-h-[248px]">
+            <CardContent className="flex flex-wrap items-center justify-center gap-4 min-h-[280px] p-6">
               {skills && skills.length > 0 ? (
-                skills.map((skill) => (
+                skills.map((skill, index) => (
                   <span 
                     key={skill.id}
-                    className="text-foreground/80"
-                    style={{ fontSize: getFontSize(skill.frequency, maxSkillFrequency), fontWeight: 500 }}
+                    className="text-foreground/80 hover:text-primary transition-all duration-300 cursor-default hover:scale-110 px-2 py-1 rounded-md hover:bg-primary/10"
+                    style={{ 
+                      fontSize: getFontSize(skill.frequency, maxSkillFrequency), 
+                      fontWeight: 500,
+                      animationDelay: `${index * 100}ms`
+                    }}
                   >
                     {skill.name}
                   </span>
                 ))
               ) : (
-                <div className="text-center text-muted-foreground">
-                  <Cloud className="h-10 w-10 mx-auto mb-2" />
-                  <p>No skills logged yet. Start adding daily logs to see your skills grow!</p>
+                <div className="text-center text-muted-foreground space-y-4">
+                  <div className="p-4 rounded-full bg-muted/20 w-fit mx-auto">
+                    <Cloud className="h-12 w-12 mx-auto text-muted-foreground/50" />
+                  </div>
+                  <div>
+                    <p className="font-medium">No skills logged yet</p>
+                    <p className="text-sm">Start adding daily logs to see your skills grow!</p>
+                  </div>
                 </div>
               )}
             </CardContent>
