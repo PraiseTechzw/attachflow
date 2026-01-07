@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlusCircle, Book, FolderKanban, Loader2 } from "lucide-react";
+import { PlusCircle, Book, FolderKanban, Loader2, Info } from "lucide-react";
 import Link from "next/link";
 import {
   ChartContainer,
@@ -11,10 +11,11 @@ import {
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
 import { useCollection, useMemoFirebase } from "@/firebase";
 import { useFirebase } from "@/firebase/provider";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { collection, query, orderBy } from "firebase/firestore";
-import { subMonths, format } from 'date-fns';
+import { subMonths, format, differenceInHours } from 'date-fns';
 import type { DailyLog, Project } from "@/types";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const chartConfig = {
   logs: {
@@ -25,6 +26,7 @@ const chartConfig = {
 
 export default function DashboardPage() {
   const { firestore, user } = useFirebase();
+  const [showInactivityReminder, setShowInactivityReminder] = useState(false);
 
   const logsQuery = useMemoFirebase(() => {
     if (!user) return null;
@@ -38,6 +40,21 @@ export default function DashboardPage() {
 
   const { data: logs, isLoading: logsLoading } = useCollection<DailyLog>(logsQuery);
   const { data: projects, isLoading: projectsLoading } = useCollection<Project>(projectsQuery);
+
+  useEffect(() => {
+    if (logs) {
+      if (logs.length > 0) {
+        const lastLogDate = logs[0].date?.toDate();
+        if (lastLogDate) {
+          const hoursSinceLastLog = differenceInHours(new Date(), lastLogDate);
+          setShowInactivityReminder(hoursSinceLastLog > 48);
+        }
+      } else {
+        // If there are no logs at all, show the reminder.
+        setShowInactivityReminder(true);
+      }
+    }
+  }, [logs]);
 
   const chartData = useMemo(() => {
     if (!logs) return [];
@@ -90,6 +107,16 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">Welcome back! Here&apos;s a summary of your attachment progress.</p>
       </div>
+
+      {showInactivityReminder && (
+        <Alert className="mb-6">
+            <Info className="h-4 w-4" />
+          <AlertTitle>Friendly Reminder</AlertTitle>
+          <AlertDescription>
+            Don&apos;t forget to log your activities! Consistent logs make reports much easier to write.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card>

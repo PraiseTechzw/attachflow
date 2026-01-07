@@ -34,9 +34,10 @@ type LogFormValues = z.infer<typeof logFormSchema>;
 
 interface LogFormProps {
   log?: DailyLog;
+  suggestion?: string;
 }
 
-export function LogForm({ log }: LogFormProps) {
+export function LogForm({ log, suggestion }: LogFormProps) {
   const { firestore, user } = useFirebase();
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -113,7 +114,7 @@ export function LogForm({ log }: LogFormProps) {
                   <FormLabel>Today's Activities</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Describe your tasks, progress, and any challenges you faced today."
+                      placeholder={suggestion || "Describe your tasks, progress, and any challenges you faced today."}
                       className="min-h-[200px]"
                       {...field}
                     />
