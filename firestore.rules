@@ -1,0 +1,27 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can read and update their own user profile
+    match /users/{userId} {
+      allow read, update: if request.auth.uid == userId;
+      allow create: if request.auth.uid != null;
+    }
+
+    // Users can only CUD their own logs
+    match /users/{userId}/logs/{logId} {
+      allow read, create, update, delete: if request.auth.uid == userId;
+    }
+
+    // Users can only CUD their own projects
+    match /users/{userId}/projects/{projectId} {
+      allow read, create, update, delete: if request.auth.uid == userId;
+    }
+
+    // Users can only CUD their own documents. Note: This is a simplification.
+    // In a real app, you might have more complex rules for shared documents.
+    match /users/{userId}/documents/{documentId} {
+      allow read, create, update, delete: if request.auth.uid == userId;
+    }
+  }
+}
