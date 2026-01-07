@@ -1,75 +1,153 @@
-{
-  "name": "nextn",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev --turbopack -p 9002",
-    "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
-    "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
-    "build": "NODE_ENV=production next build",
-    "start": "next start",
-    "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+import React from 'react';
+import { Page, Text, View, Document, StyleSheet, Font } from '@react-pdf/renderer';
+import type { DailyLog, MonthlyReport, UserProfile } from '@/types';
+import { format } from 'date-fns';
+
+// Register Inter font
+Font.register({
+  family: 'Inter',
+  fonts: [
+    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuOKfMZhrib2emQ.ttf', fontWeight: 'normal' },
+    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuOKfMZhrib2emQ.ttf', fontWeight: 500 },
+    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuOKfMZhrib2emQ.ttf', fontWeight: 'bold' },
+  ]
+});
+
+const styles = StyleSheet.create({
+  page: {
+    fontFamily: 'Inter',
+    padding: '1in',
+    fontSize: 12,
+    color: '#333',
   },
-  "dependencies": {
-    "@genkit-ai/google-genai": "^1.20.0",
-    "@genkit-ai/next": "^1.20.0",
-    "@hookform/resolvers": "^4.1.3",
-    "@radix-ui/react-accordion": "^1.2.3",
-    "@radix-ui/react-alert-dialog": "^1.1.6",
-    "@radix-ui/react-avatar": "^1.1.3",
-    "@radix-ui/react-checkbox": "^1.1.4",
-    "@radix-ui/react-collapsible": "^1.1.11",
-    "@radix-ui/react-dialog": "^1.1.6",
-    "@radix-ui/react-dropdown-menu": "^2.1.6",
-    "@radix-ui/react-label": "^2.1.2",
-    "@radix-ui/react-menubar": "^1.1.6",
-    "@radix-ui/react-popover": "^1.1.6",
-    "@radix-ui/react-progress": "^1.1.2",
-    "@radix-ui/react-radio-group": "^1.2.3",
-    "@radix-ui/react-scroll-area": "^1.2.3",
-    "@radix-ui/react-select": "^2.1.6",
-    "@radix-ui/react-separator": "^1.1.2",
-    "@radix-ui/react-slider": "^1.2.3",
-    "@radix-ui/react-slot": "^1.2.3",
-    "@radix-ui/react-switch": "^1.1.3",
-    "@radix-ui/react-tabs": "^1.1.3",
-    "@radix-ui/react-toast": "^1.2.6",
-    "@radix-ui/react-tooltip": "^1.1.8",
-    "@tanstack/react-query": "^5.51.1",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "date-fns": "^3.6.0",
-    "docx": "^8.5.0",
-    "dotenv": "^16.5.0",
-    "embla-carousel-react": "^8.6.0",
-    "file-saver": "^2.0.5",
-    "firebase": "^11.9.1",
-    "genkit": "^1.20.0",
-    "lucide-react": "^0.475.0",
-    "next": "15.5.9",
-    "react": "18.2.0",
-    "react-day-picker": "^9.11.3",
-    "react-dom": "18.2.0",
-    "react-hook-form": "^7.54.2",
-    "recharts": "^2.15.1",
-    "tailwind-merge": "^3.0.1",
-    "tailwindcss-animate": "^1.0.7",
-    "uuid": "^9.0.1",
-    "zod": "^3.24.2"
+  header: {
+    marginBottom: 30,
+    textAlign: 'center',
   },
-  "devDependencies": {
-    "@types/file-saver": "^2.0.7",
-    "@types/node": "^20",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "@types/uuid": "^9.0.8",
-    "genkit-cli": "^1.20.0",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
   },
-  "overrides": {
-    "react": "18.2.0"
+  subtitle: {
+    fontSize: 14,
+    color: '#666',
+  },
+  table: {
+    display: "flex",
+    width: "auto",
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderRightWidth: 0,
+    borderBottomWidth: 0,
+    borderColor: '#eee',
+    marginBottom: 20,
+  },
+  tableRow: {
+    flexDirection: "row",
+    backgroundColor: '#fff',
+  },
+  tableColHeader: {
+    width: "30%",
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderLeftWidth: 0,
+    borderTopWidth: 0,
+    borderColor: '#eee',
+    backgroundColor: '#f8f8f8',
+    padding: 8,
+  },
+  tableCol: {
+    width: "70%",
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderLeftWidth: 0,
+    borderTopWidth: 0,
+    borderColor: '#eee',
+    padding: 8,
+  },
+  tableCellHeader: {
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  tableCell: {
+    fontSize: 10,
+    
+  },
+  logDateCell: {
+    width: '30%',
+    padding: 8,
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderLeftWidth: 0,
+    borderTopWidth: 0,
+    borderColor: '#eee',
+  },
+  logContentCell: {
+    width: '70%',
+    padding: 8,
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderLeftWidth: 0,
+    borderTopWidth: 0,
+    borderColor: '#eee',
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 30,
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    fontSize: 10,
+    color: 'grey',
   }
+});
+
+interface MonthlyReportDocumentProps {
+  report: MonthlyReport;
+  logs: DailyLog[];
+  userProfile: UserProfile | null;
 }
+
+export const MonthlyReportDocument = ({ report, logs, userProfile }: MonthlyReportDocumentProps) => (
+  <Document
+    title={`Monthly Report - ${report.month}`}
+    author={userProfile?.displayName || 'AttachFlow User'}
+  >
+    <Page size="A4" style={styles.page}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Monthly Attachment Report</Text>
+        <Text style={styles.subtitle}>{report.month}</Text>
+        <Text style={styles.subtitle}>Student: {userProfile?.displayName || 'N/A'}</Text>
+      </View>
+
+      <View style={styles.table}>
+        {/* Table Header */}
+        <View style={styles.tableRow}>
+          <View style={styles.tableColHeader}>
+            <Text style={styles.tableCellHeader}>Date</Text>
+          </View>
+          <View style={styles.tableColHeader}>
+            <Text style={styles.tableCellHeader}>Log Entry</Text>
+          </View>
+        </View>
+
+        {/* Table Body */}
+        {logs.sort((a,b) => a.date.seconds - b.date.seconds).map((log) => (
+          <View style={styles.tableRow} key={log.id}>
+            <View style={styles.logDateCell}>
+              <Text style={styles.tableCell}>{format(log.date.toDate(), 'EEEE, MMMM d, yyyy')}</Text>
+            </View>
+            <View style={styles.logContentCell}>
+              <Text style={styles.tableCell}>{log.content}</Text>
+            </View>
+          </View>
+        ))}
+      </View>
+      
+      <Text style={styles.footer}>
+        Report generated by AttachFlow on {format(new Date(), 'MMMM d, yyyy')}
+      </Text>
+    </Page>
+  </Document>
+);

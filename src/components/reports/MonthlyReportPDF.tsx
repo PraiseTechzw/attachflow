@@ -1,75 +1,42 @@
-{
-  "name": "nextn",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev --turbopack -p 9002",
-    "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
-    "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
-    "build": "NODE_ENV=production next build",
-    "start": "next start",
-    "lint": "next lint",
-    "typecheck": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@genkit-ai/google-genai": "^1.20.0",
-    "@genkit-ai/next": "^1.20.0",
-    "@hookform/resolvers": "^4.1.3",
-    "@radix-ui/react-accordion": "^1.2.3",
-    "@radix-ui/react-alert-dialog": "^1.1.6",
-    "@radix-ui/react-avatar": "^1.1.3",
-    "@radix-ui/react-checkbox": "^1.1.4",
-    "@radix-ui/react-collapsible": "^1.1.11",
-    "@radix-ui/react-dialog": "^1.1.6",
-    "@radix-ui/react-dropdown-menu": "^2.1.6",
-    "@radix-ui/react-label": "^2.1.2",
-    "@radix-ui/react-menubar": "^1.1.6",
-    "@radix-ui/react-popover": "^1.1.6",
-    "@radix-ui/react-progress": "^1.1.2",
-    "@radix-ui/react-radio-group": "^1.2.3",
-    "@radix-ui/react-scroll-area": "^1.2.3",
-    "@radix-ui/react-select": "^2.1.6",
-    "@radix-ui/react-separator": "^1.1.2",
-    "@radix-ui/react-slider": "^1.2.3",
-    "@radix-ui/react-slot": "^1.2.3",
-    "@radix-ui/react-switch": "^1.1.3",
-    "@radix-ui/react-tabs": "^1.1.3",
-    "@radix-ui/react-toast": "^1.2.6",
-    "@radix-ui/react-tooltip": "^1.1.8",
-    "@tanstack/react-query": "^5.51.1",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "date-fns": "^3.6.0",
-    "docx": "^8.5.0",
-    "dotenv": "^16.5.0",
-    "embla-carousel-react": "^8.6.0",
-    "file-saver": "^2.0.5",
-    "firebase": "^11.9.1",
-    "genkit": "^1.20.0",
-    "lucide-react": "^0.475.0",
-    "next": "15.5.9",
-    "react": "18.2.0",
-    "react-day-picker": "^9.11.3",
-    "react-dom": "18.2.0",
-    "react-hook-form": "^7.54.2",
-    "recharts": "^2.15.1",
-    "tailwind-merge": "^3.0.1",
-    "tailwindcss-animate": "^1.0.7",
-    "uuid": "^9.0.1",
-    "zod": "^3.24.2"
-  },
-  "devDependencies": {
-    "@types/file-saver": "^2.0.7",
-    "@types/node": "^20",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "@types/uuid": "^9.0.8",
-    "genkit-cli": "^1.20.0",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5"
-  },
-  "overrides": {
-    "react": "18.2.0"
-  }
+'use client';
+
+import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
+import { MonthlyReportDocument } from './MonthlyReportDocument';
+import type { DailyLog, MonthlyReport, UserProfile } from '@/types';
+import { Button } from '@/components/ui/button';
+import { FileDown, Loader2 } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+
+interface MonthlyReportPDFProps {
+  report: MonthlyReport;
+  logs: DailyLog[];
+  userProfile: UserProfile | null;
+}
+
+export function MonthlyReportPDF({ report, logs, userProfile }: MonthlyReportPDFProps) {
+    const isMobile = useIsMobile();
+
+    if (isMobile) {
+        return (
+            <PDFDownloadLink
+                document={<MonthlyReportDocument report={report} logs={logs} userProfile={userProfile} />}
+                fileName={`Monthly_Report_${report.id}.pdf`}
+            >
+                {({ loading }) => (
+                    <Button disabled={loading}>
+                        {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
+                        Download PDF
+                    </Button>
+                )}
+            </PDFDownloadLink>
+        )
+    }
+
+    return (
+        <div className="h-[70vh] w-full mt-8">
+            <PDFViewer width="100%" height="100%">
+                <MonthlyReportDocument report={report} logs={logs} userProfile={userProfile} />
+            </PDFViewer>
+        </div>
+    )
 }
