@@ -98,20 +98,25 @@ export default function GenerateMonthlyReportPage({ params }: { params: Promise<
     }
     setIsGenerating(true);
     try {
-        const result = await generateMonthlyReport({ logs });
-        setReportData(prev => ({
-            ...prev,
-            duties: result.duties,
-            problems: result.problems,
-            analysis: result.analysis,
-            conclusion: result.conclusion,
-        }));
-        toast({ title: 'Draft Generated', description: 'AI has generated the report draft. Please review and edit.' });
+      // Map logs to required shape for generateMonthlyReport
+      const mappedLogs = logs.map(log => ({
+        content: log.content ?? log.activitiesRaw ?? '',
+        date: log.date
+      }));
+      const result = await generateMonthlyReport({ logs: mappedLogs });
+      setReportData(prev => ({
+        ...prev,
+        duties: result.duties,
+        problems: result.problems,
+        analysis: result.analysis,
+        conclusion: result.conclusion,
+      }));
+      toast({ title: 'Draft Generated', description: 'AI has generated the report draft. Please review and edit.' });
     } catch (error) {
-        console.error("AI generation failed:", error);
-        toast({ variant: 'destructive', title: 'AI Generation Failed', description: 'Please try again later.' });
+      console.error("AI generation failed:", error);
+      toast({ variant: 'destructive', title: 'AI Generation Failed', description: 'Please try again later.' });
     } finally {
-        setIsGenerating(false);
+      setIsGenerating(false);
     }
   };
 
@@ -121,13 +126,13 @@ export default function GenerateMonthlyReportPage({ params }: { params: Promise<
       try {
         const reportRef = doc(firestore, `users/${user.uid}/monthlyReports`, monthId);
         const finalReportData: MonthlyReport = {
+          ...reportData as MonthlyReport, // Spread first (may include AI fields)
           id: monthId,
           userId: user.uid,
           month: monthName,
           year: getYear(reportDate),
           logCount: logs.length,
           status: 'Draft',
-          ...reportData as MonthlyReport, // Spread first
           lastUpdated: new Date(), // Override after
         };
 
