@@ -27,6 +27,12 @@ export interface Project {
   proposalDoc?: any | null; // Document reference
   finalReportDoc?: any | null; // Document reference
   status: 'Pending' | 'Approved' | 'Rejected' | 'Completed';
+  introduction?: string;
+  methodology?: string;
+  analysis?: string;
+  design?: string;
+  implementation?: string;
+  conclusion?: string;
   createdAt: any; // Firestore Timestamp
   updatedAt: any; // Firestore Timestamp
 }

@@ -14,6 +14,7 @@ import { useFirebase } from "@/firebase/provider";
 import { useCollection, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy } from "firebase/firestore";
 import type { Project } from "@/types";
+import Link from "next/link";
 
 
 const statusVariant = {
@@ -45,11 +46,12 @@ export default function ProjectsPage() {
                     <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
                     <p className="text-muted-foreground">Manage your project proposals and reports.</p>
                 </div>
-                {/* A modal or new page would be used for form */}
-                <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    New Project
-                </Button>
+                <Link href="/projects/new">
+                    <Button>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        New Project
+                    </Button>
+                </Link>
             </div>
             <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
                  <Table>
@@ -79,7 +81,9 @@ export default function ProjectsPage() {
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="text-right">
-                                    <Button variant="outline" size="sm">View</Button>
+                                    <Link href={`/projects/${project.id}`}>
+                                        <Button variant="outline" size="sm">View</Button>
+                                    </Link>
                                 </TableCell>
                             </TableRow>
                             ))
