@@ -1,40 +1,14 @@
+
 'use server';
 
-/**
- * @fileOverview This file defines a Genkit flow for generating feedback on student daily logs using Google Gemini.
- *
- * It exports:
- * - `generateLogFeedback`: An asynchronous function to generate feedback on a given log.
- * - `GenerateLogFeedbackInput`: The TypeScript interface for the input to the `generateLogfeedback` function.
- * - `GenerateLogFeedbackOutput`: The TypeScript interface for the output of the `generateLogfeedback` function.
- */
-
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {
+  GenerateLogFeedbackInputSchema,
+  GenerateLogFeedbackOutputSchema,
+  GenerateLogFeedbackInput,
+  GenerateLogFeedbackOutput
+} from './generate-log-feedback-shared';
 
-// Define the input schema for the flow
-export const GenerateLogFeedbackInputSchema = z.object({
-  logText: z.string().describe('The text content of the daily log.'),
-  studentGoals: z.string().describe('The student attachment goals.'),
-});
-export type GenerateLogFeedbackInput = z.infer<typeof GenerateLogFeedbackInputSchema>;
-
-
-const ScorecardItemSchema = z.object({
-  score: z.number().min(1).max(10).describe("The score from 1-10 for this criterion."),
-  feedback: z.string().describe("Specific, constructive feedback for this criterion.")
-});
-
-// Define the output schema for the flow
-export const GenerateLogFeedbackOutputSchema = z.object({
-  technicalDepth: ScorecardItemSchema.describe("Evaluation of the log's technical detail and substance."),
-  professionalTone: ScorecardItemSchema.describe("Evaluation of the log's tone, language, and professionalism."),
-  problemSolvingClarity: ScorecardItemSchema.describe("Evaluation of how clearly the log describes problems and the steps taken to solve them."),
-});
-export type GenerateLogFeedbackOutput = z.infer<typeof GenerateLogFeedbackOutputSchema>;
-
-
-// Define the prompt
 const generateLogFeedbackPrompt = ai.definePrompt({
   name: 'generateLogFeedbackPrompt',
   input: {schema: GenerateLogFeedbackInputSchema},
@@ -57,7 +31,6 @@ const generateLogFeedbackPrompt = ai.definePrompt({
   `,
 });
 
-// Define the flow
 const generateLogFeedbackFlow = ai.defineFlow(
   {
     name: 'generateLogFeedbackFlow',
@@ -70,7 +43,6 @@ const generateLogFeedbackFlow = ai.defineFlow(
   }
 );
 
-// Define the main function that calls the flow
 export async function generateLogFeedback(input: GenerateLogFeedbackInput): Promise<GenerateLogFeedbackOutput> {
   return generateLogFeedbackFlow(input);
 }
