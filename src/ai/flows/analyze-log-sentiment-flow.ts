@@ -24,7 +24,6 @@ export const AnalyzeLogSentimentOutputSchema = z.object({
 });
 export type AnalyzeLogSentimentOutput = z.infer<typeof AnalyzeLogSentimentOutputSchema>;
 
-
 const analyzeLogSentimentPrompt = ai.definePrompt({
   name: 'analyzeLogSentimentPrompt',
   input: { schema: AnalyzeLogSentimentInputSchema },

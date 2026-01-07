@@ -11,7 +11,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import type { DailyLog } from '@/types';
 
 // We don't need to define the whole DailyLog schema here, just the parts we use.
 const LogEntrySchema = z.object({
@@ -34,12 +33,6 @@ export const MonthlyReportOutputSchema = z.object({
 });
 export type MonthlyReportOutput = z.infer<typeof MonthlyReportOutputSchema>;
 
-// Define the main function that calls the flow
-export async function generateMonthlyReport(input: MonthlyReportInput): Promise<MonthlyReportOutput> {
-  return generateMonthlyReportFlow(input);
-}
-
-
 const generateMonthlyReportPrompt = ai.definePrompt({
   name: 'generateMonthlyReportPrompt',
   input: { schema: MonthlyReportInputSchema },
@@ -60,7 +53,6 @@ Analyze the provided daily logs for the month and generate content for the follo
 `,
 });
 
-// Define the flow
 const generateMonthlyReportFlow = ai.defineFlow(
   {
     name: 'generateMonthlyReportFlow',
@@ -79,3 +71,9 @@ const generateMonthlyReportFlow = ai.defineFlow(
     return output!;
   }
 );
+
+
+// Define the main function that calls the flow
+export async function generateMonthlyReport(input: MonthlyReportInput): Promise<MonthlyReportOutput> {
+  return generateMonthlyReportFlow(input);
+}
