@@ -17,13 +17,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import type { DailyLog } from "@/types";
+import type { DailyLog, MonthlyReport } from "@/types";
 import { useFirebase } from "@/firebase";
 import { useRouter } from "next/navigation";
-import { addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { collection, doc, serverTimestamp, runTransaction } from "firebase/firestore";
+import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { collection, doc, serverTimestamp, runTransaction, writeBatch, increment } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
 import { extractSkillsFromLog } from "@/ai/flows/extract-skills-from-log-flow";
+import { format } from 'date-fns';
 
 const logFormSchema = z.object({
   content: z.string().min(10, {
@@ -51,34 +52,71 @@ export function LogForm({ log, suggestion }: LogFormProps) {
     },
   });
 
-  const updateSkillsInFirestore = async (skills: string[]) => {
+  const updateSkillsAndReports = async (logContent: string, isNewLog: boolean) => {
     if (!user) return;
-
+    const now = new Date();
+    const monthId = format(now, 'yyyy-MM');
+    const monthlyReportRef = doc(firestore, `users/${user.uid}/monthlyReports`, monthId);
+    
     try {
-        await runTransaction(firestore, async (transaction) => {
-            for (const skillName of skills) {
-                const skillId = skillName.toLowerCase().replace(/\s+/g, '-');
-                const skillRef = doc(firestore, `users/${user.uid}/skills`, skillId);
-                const skillDoc = await transaction.get(skillRef);
-
-                if (skillDoc.exists()) {
-                    transaction.update(skillRef, { frequency: skillDoc.data().frequency + 1 });
-                } else {
-                    transaction.set(skillRef, {
-                        id: skillId,
-                        name: skillName,
-                        frequency: 1,
-                        userId: user.uid,
-                    });
-                }
+      // 1. Extract skills from log content
+      const { skills } = await extractSkillsFromLog({ logContent });
+  
+      // 2. Run a transaction to update skills and monthly report
+      await runTransaction(firestore, async (transaction) => {
+        // Update skills
+        if (skills && skills.length > 0) {
+          for (const skillName of skills) {
+            const skillId = skillName.toLowerCase().replace(/\s+/g, '-');
+            const skillRef = doc(firestore, `users/${user.uid}/skills`, skillId);
+            const skillDoc = await transaction.get(skillRef);
+            
+            if (skillDoc.exists()) {
+              transaction.update(skillRef, { frequency: increment(1) });
+            } else {
+              transaction.set(skillRef, {
+                id: skillId,
+                name: skillName,
+                frequency: 1,
+                userId: user.uid,
+              });
             }
-        });
+          }
+        }
+  
+        // Update monthly report only for new logs
+        if (isNewLog) {
+            const reportDoc = await transaction.get(monthlyReportRef);
+            if (reportDoc.exists()) {
+                transaction.update(monthlyReportRef, { 
+                    logCount: increment(1),
+                    lastUpdated: serverTimestamp() 
+                });
+            } else {
+                transaction.set(monthlyReportRef, {
+                    id: monthId,
+                    userId: user.uid,
+                    month: format(now, 'MMMM yyyy'),
+                    year: now.getFullYear(),
+                    logCount: 1,
+                    status: 'Draft',
+                    lastUpdated: serverTimestamp(),
+                } as MonthlyReport);
+            }
+        }
+      });
+  
     } catch (e) {
-        console.error("Failed to update skills:", e);
-        // Don't block user, fail silently
+      console.error("Failed to update skills and reports:", e);
+      // Non-blocking error for the user
+      toast({
+          variant: "destructive",
+          title: "Could not update skills/reports",
+          description: "Your log was saved, but there was an issue updating aggregated data."
+      })
     }
   };
-
+  
 
   async function onSubmit(data: LogFormValues) {
     if (!user) {
@@ -99,9 +137,11 @@ export function LogForm({ log, suggestion }: LogFormProps) {
                 title: "Log updated successfully!",
                 description: "Your daily progress has been updated.",
             });
+            // Don't navigate away, let user see the changes
         } else {
             // Create new log
             const logId = uuidv4();
+            const logRef = doc(firestore, `users/${user.uid}/dailyLogs`, logId);
             const newLog = {
                 id: logId,
                 content: data.content,
@@ -110,21 +150,19 @@ export function LogForm({ log, suggestion }: LogFormProps) {
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
             };
-            const logCollection = collection(firestore, `users/${user.uid}/dailyLogs`);
-            addDocumentNonBlocking(logCollection, newLog);
+             // Use a batch to ensure the primary document is created non-blockingly
+             const batch = writeBatch(firestore);
+             batch.set(logRef, newLog);
+             await batch.commit();
 
             toast({
                 title: "Log saved successfully!",
                 description: "Your daily progress has been recorded.",
             });
-            // Don't navigate away immediately, process skills first
         }
         
-        // After saving, extract and update skills
-        const { skills } = await extractSkillsFromLog({ logContent: data.content });
-        if (skills && skills.length > 0) {
-            await updateSkillsInFirestore(skills);
-        }
+        // After saving, extract skills and update monthly report
+        await updateSkillsAndReports(data.content, !log);
 
         if (!log) {
             router.push('/logs');

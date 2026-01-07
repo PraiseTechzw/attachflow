@@ -1,3 +1,4 @@
+'use server';
 
 export interface UserProfile {
   uid: string;
@@ -66,4 +67,14 @@ export interface Skill {
   userId: string;
   name: string;
   frequency: number;
+}
+
+export interface MonthlyReport {
+    id: string; // e.g., "2024-08"
+    userId: string;
+    month: string; // e.g., "August 2024"
+    year: number;
+    logCount: number;
+    status: 'Draft' | 'Finalized';
+    lastUpdated: any; // Firestore Timestamp
 }

@@ -111,7 +111,7 @@ service cloud.firestore {
        * @description Rules for a user's project documents.
        * @path /users/{userId}/projects/{projectId}
        * @allow (create) An authenticated user (auth.uid='user123') creating a new project at `/users/user123/projects/projXYZ`.
-       * @deny (delete) An anonymous user attempting to delete a project at `/users/user123/projects/projXYZ`.
+       * @deny (delete) An anonymous user attempting to delete a project at `/users/user12_2_3/projects/projXYZ`.
        * @principle Enforces document ownership for all operations within a user-specific subcollection.
        */
       match /projects/{projectId} {
@@ -150,6 +150,21 @@ service cloud.firestore {
         allow create: if isOwner(userId) && hasCorrectSubcollectionIdsOnCreate(userId, skillId);
         allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
         allow delete: if false; // Prevent accidental deletion
+      }
+      
+      /**
+       * @description Rules for a user's aggregated monthly reports.
+       * @path /users/{userId}/monthlyReports/{monthId}
+       * @allow (get, list, create, update) An authenticated user can manage their own monthly reports.
+       * @deny (delete) Deleting reports is not allowed to preserve historical data.
+       * @principle Enforces document ownership for the monthly report subcollection.
+       */
+      match /monthlyReports/{monthId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && hasCorrectSubcollectionIdsOnCreate(userId, monthId);
+        allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
+        allow delete: if false;
       }
     }
   }

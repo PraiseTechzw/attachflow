@@ -212,6 +212,53 @@
         "name",
         "frequency"
       ]
+    },
+    "MonthlyReport": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "MonthlyReport",
+      "type": "object",
+      "description": "An aggregation of a user's logs for a specific month.",
+      "properties": {
+        "id": {
+            "type": "string",
+            "description": "Unique identifier for the monthly report (e.g., '2024-08')."
+        },
+        "userId": {
+            "type": "string",
+            "description": "Reference to the user."
+        },
+        "month": {
+            "type": "string",
+            "description": "Formatted month string (e.g., 'August 2024')."
+        },
+        "year": {
+            "type": "number",
+            "description": "The year of the report."
+        },
+        "logCount": {
+            "type": "number",
+            "description": "Total number of logs for this month."
+        },
+        "status": {
+            "type": "string",
+            "enum": ["Draft", "Finalized"],
+            "description": "The status of the report."
+        },
+        "lastUpdated": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of the last update."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "month",
+        "year",
+        "logCount",
+        "status",
+        "lastUpdated"
+      ]
     }
   },
   "auth": {
@@ -314,6 +361,26 @@
             {
               "name": "skillId",
               "description": "The unique identifier for the skill."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/monthlyReports/{monthId}",
+        "definition": {
+          "entityName": "MonthlyReport",
+          "schema": {
+            "$ref": "#/backend/entities/MonthlyReport"
+          },
+          "description": "Stores aggregated monthly reports for each user. Authorization is based on path ownership.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "monthId",
+              "description": "The unique identifier for the monthly report (e.g., '2024-08')."
             }
           ]
         }
