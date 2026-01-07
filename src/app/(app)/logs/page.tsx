@@ -1,5 +1,6 @@
+'use client';
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
+import { Loader2, PlusCircle } from "lucide-react";
 import Link from "next/link";
 import {
   Table,
@@ -9,16 +10,26 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-
-const logs = [
-    { id: '1', date: '2024-07-22', snippet: 'Initial project setup and configuration...', feedback: 'Provided' },
-    { id: '2', date: '2024-07-21', snippet: 'Met with supervisor to discuss project goals...', feedback: 'Pending' },
-    { id: '3', date: '2024-07-20', snippet: 'Researched Next.js App Router features...', feedback: 'Provided' },
-    { id: '4', date: '2024-07-19', snippet: 'Drafted initial Firestore security rules...', feedback: 'Pending' },
-]
-
+import { useFirebase } from "@/firebase/provider";
+import { useCollection, useMemoFirebase } from "@/firebase";
+import { collection, query, orderBy } from "firebase/firestore";
+import type { DailyLog } from "@/types";
 
 export default function LogsPage() {
+    const { firestore, user } = useFirebase();
+
+    const logsQuery = useMemoFirebase(() => {
+        if (!user) return null;
+        return query(collection(firestore, `users/${user.uid}/dailyLogs`), orderBy('date', 'desc'));
+    }, [firestore, user]);
+
+    const { data: logs, isLoading } = useCollection<DailyLog>(logsQuery);
+
+    const formatDate = (timestamp: any) => {
+        if (!timestamp) return 'N/A';
+        return timestamp.toDate().toLocaleDateString('en-CA'); // YYYY-MM-DD
+    }
+
     return (
         <div className="container mx-auto py-8">
             <div className="flex items-center justify-between mb-8">
@@ -45,18 +56,32 @@ export default function LogsPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {logs.map((log) => (
-                        <TableRow key={log.id}>
-                            <TableCell className="font-medium">{log.date}</TableCell>
-                            <TableCell className="text-muted-foreground">{log.snippet}</TableCell>
-                            <TableCell>{log.feedback}</TableCell>
-                            <TableCell className="text-right">
-                                <Link href={`/logs/${log.id}`} passHref>
-                                    <Button variant="outline" size="sm">View</Button>
-                                </Link>
-                            </TableCell>
-                        </TableRow>
-                        ))}
+                        {isLoading ? (
+                            <TableRow>
+                                <TableCell colSpan={4} className="h-24 text-center">
+                                    <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+                                </TableCell>
+                            </TableRow>
+                        ) : logs && logs.length > 0 ? (
+                            logs.map((log) => (
+                            <TableRow key={log.id}>
+                                <TableCell className="font-medium">{formatDate(log.date)}</TableCell>
+                                <TableCell className="text-muted-foreground truncate max-w-sm">{log.content.substring(0, 100)}...</TableCell>
+                                <TableCell>{log.feedback ? 'Provided' : 'Pending'}</TableCell>
+                                <TableCell className="text-right">
+                                    <Link href={`/logs/${log.id}`} passHref>
+                                        <Button variant="outline" size="sm">View</Button>
+                                    </Link>
+                                </TableCell>
+                            </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={4} className="h-24 text-center">
+                                    No logs found.
+                                </TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
             </div>

@@ -1,29 +1,47 @@
+'use client';
+
 import { AIFeedback } from "@/components/logs/ai-feedback";
 import { LogForm } from "@/components/logs/log-form";
-
-// This is mock data. In a real app, you would fetch this based on the logId.
-const mockLog = {
-    id: '1',
-    userId: 'user123',
-    date: new Date(),
-    content: `Today, I focused on setting up the initial project structure for the Attachment Management System. I initialized a new Next.js project with the App Router and TypeScript. I also integrated Tailwind CSS and Shadcn/UI for styling.
-
-I spent a good amount of time drafting the Firestore security rules to ensure data ownership, which was a key requirement. For example, I made sure that a user can only read/write their own logs using 'request.auth.uid == resource.data.userId'.
-
-The next step is to set up Firebase Authentication and create the login/signup pages.`,
-    attachments: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-}
-
-const studentGoals = "My goals are to improve my full-stack development skills, specifically with Next.js and Firebase. I also want to learn how to model data effectively for NoSQL databases and implement robust security rules.";
+import { useFirebase } from "@/firebase/provider";
+import { useDoc, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
+import { Loader2 } from "lucide-react";
+import { useUserProfile } from "@/hooks/use-user-profile";
 
 export default function LogDetailPage({ params }: { params: { logId: string } }) {
-    const logDate = new Date(mockLog.date).toLocaleDateString('en-US', {
+    const { firestore, user } = useFirebase();
+    const { userProfile, isLoading: profileLoading } = useUserProfile();
+    
+    const logRef = useMemoFirebase(() => {
+        if (!user) return null;
+        return doc(firestore, `users/${user.uid}/dailyLogs`, params.logId);
+    }, [firestore, user, params.logId]);
+
+    const { data: log, isLoading: logLoading } = useDoc(logRef);
+
+    if (logLoading || profileLoading) {
+        return (
+            <div className="flex h-full items-center justify-center">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            </div>
+        )
+    }
+    
+    if (!log) {
+        return (
+            <div className="container mx-auto py-8 text-center">
+                <h1 className="text-2xl font-bold">Log not found</h1>
+                <p className="text-muted-foreground">The requested log could not be located.</p>
+            </div>
+        )
+    }
+
+    const logDate = log.date.toDate().toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
     });
+
   return (
     <div className="container mx-auto py-8">
       <div className="mb-8">
@@ -35,10 +53,10 @@ export default function LogDetailPage({ params }: { params: { logId: string } })
 
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
-            <LogForm log={mockLog as any}/>
+            <LogForm log={log as any}/>
         </div>
         <div className="lg:col-span-1">
-            <AIFeedback logText={mockLog.content} studentGoals={studentGoals} />
+            <AIFeedback logText={log.content} studentGoals={userProfile?.goals || "No goals set."} />
         </div>
       </div>
     </div>

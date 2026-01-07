@@ -5,13 +5,12 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  type IdTokenResult,
 } from 'firebase/auth';
-import { app } from './config';
+import { initializeFirebase } from '@/firebase';
 import { createUserProfile } from './firestore';
 import { createSessionCookie, clearSessionCookie } from './server-auth';
 
-const auth = getAuth(app);
+const { auth } = initializeFirebase();
 
 export const signInUser = async (email, password) => {
   const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -27,7 +26,11 @@ export const signUpUser = async (email, password) => {
     password
   );
   // Create user profile in Firestore
-  await createUserProfile(userCredential.user.uid, email, null);
+  await createUserProfile(userCredential.user.uid, {
+    email: userCredential.user.email,
+    displayName: userCredential.user.displayName,
+    role: 'student',
+  });
   const idToken = await userCredential.user.getIdToken();
   await createSessionCookie(idToken);
   return userCredential;

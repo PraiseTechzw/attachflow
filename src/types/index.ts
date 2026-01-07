@@ -1,4 +1,3 @@
-import type { Timestamp } from 'firebase/firestore';
 
 export interface UserProfile {
   uid: string;
@@ -6,18 +5,18 @@ export interface UserProfile {
   displayName: string | null;
   role: 'student' | 'supervisor' | 'admin';
   goals?: string;
-  createdAt: Timestamp;
+  createdAt: Date;
 }
 
 export interface DailyLog {
   id: string;
   userId: string;
-  date: Timestamp;
+  date: any; // Firestore Timestamp
   content: string;
-  attachments: DocumentReference[];
+  attachments?: any[]; // Document references
   feedback?: string;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: any; // Firestore Timestamp
+  updatedAt: any; // Firestore Timestamp
 }
 
 export interface Project {
@@ -25,20 +24,20 @@ export interface Project {
   userId: string;
   title: string;
   description: string;
-  proposalDoc: DocumentReference | null;
-  finalReportDoc: DocumentReference | null;
-  status: 'pending' | 'approved' | 'rejected' | 'completed';
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  proposalDoc?: any | null; // Document reference
+  finalReportDoc?: any | null; // Document reference
+  status: 'Pending' | 'Approved' | 'Rejected' | 'Completed';
+  createdAt: any; // Firestore Timestamp
+  updatedAt: any; // Firestore Timestamp
 }
 
-export interface DocumentReference {
+export interface Document {
   id: string;
   userId: string;
-  name: string;
+  filename: string;
   url: string;
-  path: string;
-  fileType: string;
+  storagePath: string;
+  mimeType: string;
   size: number;
-  createdAt: Timestamp;
+  createdAt: any; // Can be Date or Firestore Timestamp
 }

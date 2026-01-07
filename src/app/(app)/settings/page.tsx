@@ -1,5 +1,4 @@
-
-'use client'
+'use client';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -16,12 +15,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
+import { useFirebase } from "@/firebase";
 import { doc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase/config";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useUserProfile } from "@/hooks/use-user-profile";
 
 const settingsFormSchema = z.object({
     displayName: z.string().min(2, {
@@ -37,27 +36,37 @@ const settingsFormSchema = z.object({
 type SettingsFormValues = z.infer<typeof settingsFormSchema>;
 
 export default function SettingsPage() {
-    const { user, userProfile } = useAuth();
-    const [isLoading, setIsLoading] = useState(false);
+    const { user, firestore } = useFirebase();
+    const { userProfile, isLoading: isProfileLoading } = useUserProfile();
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const { toast } = useToast();
     
     const form = useForm<SettingsFormValues>({
         resolver: zodResolver(settingsFormSchema),
         defaultValues: {
-          displayName: userProfile?.displayName || "",
-          goals: userProfile?.goals || "",
+          displayName: "",
+          goals: "",
         },
         mode: "onChange",
       });
+
+    useEffect(() => {
+        if (userProfile) {
+            form.reset({
+                displayName: userProfile.displayName || "",
+                goals: userProfile.goals || "",
+            });
+        }
+    }, [userProfile, form]);
 
     async function onSubmit(data: SettingsFormValues) {
         if (!user) {
             toast({ variant: 'destructive', title: 'Not authenticated' });
             return;
         }
-        setIsLoading(true);
+        setIsSubmitting(true);
         try {
-            const userRef = doc(db, "users", user.uid);
+            const userRef = doc(firestore, "users", user.uid);
             await updateDoc(userRef, {
                 displayName: data.displayName,
                 goals: data.goals,
@@ -73,8 +82,16 @@ export default function SettingsPage() {
                 description: "Could not update your settings. Please try again.",
             });
         } finally {
-            setIsLoading(false);
+            setIsSubmitting(false);
         }
+    }
+
+    if (isProfileLoading) {
+        return (
+            <div className="flex h-full items-center justify-center">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            </div>
+        );
     }
 
     return (
@@ -125,8 +142,8 @@ export default function SettingsPage() {
                                     </FormItem>
                                 )}
                             />
-                            <Button type="submit" disabled={isLoading}>
-                                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            <Button type="submit" disabled={isSubmitting}>
+                                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Save Changes
                             </Button>
                         </form>

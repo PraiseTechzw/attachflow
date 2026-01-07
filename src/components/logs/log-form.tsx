@@ -13,11 +13,15 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import type { DailyLog } from "@/types";
+import { useFirebase } from "@/firebase";
+import { useRouter } from "next/navigation";
+import { addDoc, collection, doc, serverTimestamp, updateDoc } from "firebase/firestore";
+import { v4 as uuidv4 } from 'uuid';
 
 const logFormSchema = z.object({
   content: z.string().min(10, {
@@ -32,8 +36,10 @@ interface LogFormProps {
 }
 
 export function LogForm({ log }: LogFormProps) {
+  const { firestore, user } = useFirebase();
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
 
   const form = useForm<LogFormValues>({
     resolver: zodResolver(logFormSchema),
@@ -42,18 +48,53 @@ export function LogForm({ log }: LogFormProps) {
     },
   });
 
-  function onSubmit(data: LogFormValues) {
+  async function onSubmit(data: LogFormValues) {
+    if (!user) {
+        toast({ variant: 'destructive', title: 'You must be logged in.' });
+        return;
+    }
     setIsLoading(true);
-    console.log(data);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      toast({
-        title: `Log ${log ? "updated" : "saved"} successfully!`,
-        description: "Your daily progress has been recorded.",
-      });
-    }, 1500);
+    try {
+        if (log) {
+            // Update existing log
+            const logRef = doc(firestore, `users/${user.uid}/dailyLogs`, log.id);
+            await updateDoc(logRef, {
+                content: data.content,
+                updatedAt: serverTimestamp(),
+            });
+            toast({
+                title: "Log updated successfully!",
+                description: "Your daily progress has been updated.",
+            });
+        } else {
+            // Create new log
+            const newLog = {
+                content: data.content,
+                userId: user.uid,
+                date: serverTimestamp(),
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+            };
+            const logCollection = collection(firestore, `users/${user.uid}/dailyLogs`);
+            await addDoc(logCollection, newLog);
+
+            toast({
+                title: "Log saved successfully!",
+                description: "Your daily progress has been recorded.",
+            });
+            router.push('/logs');
+        }
+    } catch (error) {
+        console.error("Error saving log:", error);
+        toast({
+            variant: 'destructive',
+            title: `Error ${log ? 'updating' : 'saving'} log`,
+            description: "An unexpected error occurred. Please try again.",
+        });
+    } finally {
+        setIsLoading(false);
+    }
   }
 
   return (
@@ -78,7 +119,6 @@ export function LogForm({ log }: LogFormProps) {
                 </FormItem>
               )}
             />
-            {/* File upload component will go here */}
             <div className="flex justify-end">
               <Button type="submit" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

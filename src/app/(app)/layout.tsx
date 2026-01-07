@@ -1,24 +1,22 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/use-auth';
 import { SidebarProvider, Sidebar } from '@/components/ui/sidebar';
 import { SidebarNav } from '@/components/layout/sidebar-nav';
 import { UserNav } from '@/components/layout/user-nav';
 import { Logo } from '@/components/icons/logo';
 import { Button } from '@/components/ui/button';
 import { Loader2, Menu } from 'lucide-react';
+import { useFirebase } from '@/firebase';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, isUserLoading } = useFirebase();
   const router = useRouter();
   const [isSidebarOpen, setSidebarOpen] = React.useState(true);
   const [isMobileSidebarOpen, setMobileSidebarOpen] = React.useState(false);
 
-  // The middleware now handles redirection, so we can simplify this.
-  // We still want a loading screen while the initial auth state is resolved.
-  if (loading) {
+  if (isUserLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -27,7 +25,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
   
   if (!user) {
-    // This case should theoretically be handled by middleware, but as a fallback:
+     // This case should be handled by middleware, but as a fallback:
+     router.push('/');
      return (
       <div className="flex h-screen items-center justify-center bg-background">
         <p>Redirecting to login...</p>

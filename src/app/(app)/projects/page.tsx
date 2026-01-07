@@ -1,5 +1,6 @@
+'use client';
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
+import { Loader2, PlusCircle } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -9,12 +10,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { useFirebase } from "@/firebase/provider";
+import { useCollection, useMemoFirebase } from "@/firebase";
+import { collection, query, orderBy } from "firebase/firestore";
+import type { Project } from "@/types";
 
-const projects = [
-    { id: '1', title: 'Attachment Management System', submitted: '2024-07-15', status: 'Approved' },
-    { id: '2', title: 'Real-time Chat Application', submitted: '2024-06-20', status: 'Completed' },
-    { id: '3', title: 'E-commerce Platform API', submitted: '2024-07-22', status: 'Pending' },
-]
 
 const statusVariant = {
     Approved: 'secondary',
@@ -24,6 +24,20 @@ const statusVariant = {
 } as const;
 
 export default function ProjectsPage() {
+    const { firestore, user } = useFirebase();
+
+    const projectsQuery = useMemoFirebase(() => {
+        if (!user) return null;
+        return query(collection(firestore, `users/${user.uid}/projects`), orderBy('createdAt', 'desc'));
+    }, [firestore, user]);
+
+    const { data: projects, isLoading } = useCollection<Project>(projectsQuery);
+    
+    const formatDate = (timestamp: any) => {
+        if (!timestamp) return 'N/A';
+        return timestamp.toDate().toLocaleDateString('en-CA'); // YYYY-MM-DD
+    }
+
     return (
         <div className="container mx-auto py-8">
             <div className="flex items-center justify-between mb-8">
@@ -48,20 +62,34 @@ export default function ProjectsPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {projects.map((project) => (
-                        <TableRow key={project.id}>
-                            <TableCell className="font-medium">{project.title}</TableCell>
-                            <TableCell className="text-muted-foreground">{project.submitted}</TableCell>
-                            <TableCell>
-                                <Badge variant={statusVariant[project.status as keyof typeof statusVariant] || 'default'}>
-                                    {project.status}
-                                </Badge>
-                            </TableCell>
-                            <TableCell className="text-right">
-                                <Button variant="outline" size="sm">View</Button>
-                            </TableCell>
-                        </TableRow>
-                        ))}
+                        {isLoading ? (
+                            <TableRow>
+                                <TableCell colSpan={4} className="h-24 text-center">
+                                    <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+                                </TableCell>
+                            </TableRow>
+                        ) : projects && projects.length > 0 ? (
+                            projects.map((project) => (
+                            <TableRow key={project.id}>
+                                <TableCell className="font-medium">{project.title}</TableCell>
+                                <TableCell className="text-muted-foreground">{formatDate(project.createdAt)}</TableCell>
+                                <TableCell>
+                                    <Badge variant={statusVariant[project.status as keyof typeof statusVariant] || 'default'}>
+                                        {project.status}
+                                    </Badge>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    <Button variant="outline" size="sm">View</Button>
+                                </TableCell>
+                            </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={4} className="h-24 text-center">
+                                    No projects found.
+                                </TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
             </div>
