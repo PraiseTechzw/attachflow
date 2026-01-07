@@ -26,7 +26,8 @@ function getAdminApp(): App {
 
 export async function createSessionCookie(idToken: string) {
   const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
-  const sessionCookie = await auth(getAdminApp()).createSessionCookie(idToken, {expiresIn});
+  const { getAuth } = require('firebase-admin/auth');
+  const sessionCookie = await getAuth(getAdminApp()).createSessionCookie(idToken, {expiresIn});
   cookies().set('session', sessionCookie, {
     maxAge: expiresIn,
     httpOnly: true,
@@ -42,12 +43,14 @@ export async function verifySessionCookie(request: NextRequest) {
   }
 
   try {
-    const decodedClaims = await auth(getAdminApp()).verifySessionCookie(sessionCookie, true);
+    const { getAuth } = require('firebase-admin/auth');
+    const decodedClaims = await getAuth(getAdminApp()).verifySessionCookie(sessionCookie, true);
     return decodedClaims;
   } catch (error) {
     console.error('Error verifying session cookie:', error);
     // Clear the invalid cookie
-    cookies().delete('session');
+    const cookieStore = await cookies();
+    cookieStore.delete('session');
     return null;
   }
 }
