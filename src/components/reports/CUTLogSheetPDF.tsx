@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { Page, Text, View, Document, StyleSheet, Font, BlobProvider } from '@react-pdf/renderer';
+import React, { useEffect, useState } from 'react';
+import { Page, Text, View, Document, StyleSheet, Font, PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
 import type { DailyLog } from '@/types';
 import { format } from 'date-fns';
 
@@ -111,10 +111,11 @@ interface CUTLogSheetPDFProps {
   companyName: string;
   startDate: string;
   endDate: string;
-  onRendered: () => void;
+  onRendered?: () => void;
+  mode?: 'download' | 'view';
 }
 
-const MyDocument: React.FC<Omit<CUTLogSheetPDFProps, 'onRendered'>> = ({
+const MyDocument: React.FC<Omit<CUTLogSheetPDFProps, 'onRendered' | 'mode'>> = ({
   logs,
   studentName,
   regNumber,
@@ -178,30 +179,38 @@ const CUTLogSheetPDF: React.FC<CUTLogSheetPDFProps> = ({
   endDate,
   onRendered,
 }) => {
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+
+  const document = (
+    <MyDocument
+      logs={logs}
+      studentName={studentName}
+      regNumber={regNumber}
+      companyName={companyName}
+      startDate={startDate}
+      endDate={endDate}
+    />
+  );
+
+  useEffect(() => {
+    if (pdfUrl) {
+      const link = document.createElement('a');
+      link.href = pdfUrl;
+      link.download = `CUT_Log_Sheet_${studentName}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      onRendered();
+    }
+  }, [pdfUrl, studentName, onRendered]);
+
   return (
     <div style={{ display: 'none' }}>
-      <BlobProvider document={
-        <MyDocument
-          logs={logs}
-          studentName={studentName}
-          regNumber={regNumber}
-          companyName={companyName}
-          startDate={startDate}
-          endDate={endDate}
-        />
-      }>
+      <BlobProvider document={document}>
         {({ url, loading, error }) => {
-          useEffect(() => {
-            if (url && !loading && !error) {
-              const link = document.createElement('a');
-              link.href = url;
-              link.download = `CUT_Log_Sheet_${studentName}.pdf`;
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-              onRendered();
-            }
-          }, [url, loading, error]);
+          if (url && !loading && !error && url !== pdfUrl) {
+            setPdfUrl(url);
+          }
           return null;
         }}
       </BlobProvider>

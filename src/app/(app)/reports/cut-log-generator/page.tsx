@@ -77,26 +77,29 @@ export default function CutLogGeneratorPage() {
 
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">CUT Log Sheet Generator</h1>
-        <p className="text-muted-foreground">
-          Generate an official Chinhoyi University of Technology log sheet PDF.
+    <div className="container mx-auto py-8 space-y-8">
+      <div className="text-center space-y-4">
+        <h1 className="text-4xl font-bold tracking-tight gradient-text">CUT Log Sheet Generator</h1>
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          Generate an official Chinhoyi University of Technology log sheet PDF with beautiful formatting.
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Select Date Range</CardTitle>
-          <CardDescription>Choose the period for which you want to generate the log sheet.</CardDescription>
+      <Card className="card-hover">
+        <CardHeader className="space-y-2">
+          <CardTitle className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-primary animate-pulse"></div>
+            Select Date Range
+          </CardTitle>
+          <CardDescription>Choose the period for which you want to generate the log sheet</CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col gap-4 md:flex-row md:items-center">
+        <CardContent className="flex flex-col gap-6 md:flex-row md:items-center">
             <Popover>
                 <PopoverTrigger asChild>
                     <Button
                     id="date"
                     variant={"outline"}
-                    className="w-[300px] justify-start text-left font-normal"
+                    className="w-[300px] justify-start text-left font-normal transition-all duration-300 hover:border-primary/50 hover:bg-primary/5"
                     >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {dateRange?.from ? (
@@ -113,7 +116,7 @@ export default function CutLogGeneratorPage() {
                     )}
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0 backdrop-blur-sm bg-background/95 border-border/50" align="start">
                     <Calendar
                     initialFocus
                     mode="range"
@@ -125,7 +128,13 @@ export default function CutLogGeneratorPage() {
                 </PopoverContent>
             </Popover>
 
-          <Button onClick={handleDownload} disabled={isLoading || isProfileLoading}>
+          <Button 
+            onClick={handleDownload} 
+            disabled={isLoading || isProfileLoading}
+            variant="gradient"
+            size="lg"
+            className="min-w-[280px]"
+          >
             {isLoading || isProfileLoading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
