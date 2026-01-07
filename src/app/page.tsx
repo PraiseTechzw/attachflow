@@ -5,6 +5,7 @@ import { Logo } from '@/components/icons/logo';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
   const { user, loading } = useAuth();
@@ -19,7 +20,7 @@ export default function LoginPage() {
   if (loading || (!loading && user)) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
-        <Logo className="h-12 w-auto animate-pulse" />
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     );
   }
