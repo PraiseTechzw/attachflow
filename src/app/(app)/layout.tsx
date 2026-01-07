@@ -72,18 +72,4 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     </SidebarProvider>
   );
 
-       {/* Mobile Sidebar */}
-       <div className={`fixed inset-0 z-40 md:hidden ${isMobileSidebarOpen ? 'block' : 'hidden'}`}>
-        <div className="fixed inset-0 bg-black/60" onClick={() => setMobileSidebarOpen(false)}></div>
-        <div className="relative z-50 flex h-full w-72 max-w-[calc(100%-4rem)] flex-col bg-sidebar text-sidebar-foreground">
-          <div className="flex h-16 items-center border-b px-6">
-            <Logo className="h-8 w-auto" />
-          </div>
-          <div onClick={() => setMobileSidebarOpen(false)}>
-            <SidebarNav />
-          </div>
-        </div>
-      </div>
-    </SidebarProvider>
-  );
 }
