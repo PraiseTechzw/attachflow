@@ -22,7 +22,7 @@ const CUTLogSheetPDF = dynamic(() => import('@/components/reports/CUTLogSheetPDF
 export default function CutLogGeneratorPage() {
   const { toast } = useToast();
   const { firestore, user } = useFirebase();
-  const { userProfile } = useUserProfile();
+  const { userProfile, isLoading: isProfileLoading } = useUserProfile();
   const [isLoading, setIsLoading] = useState(false);
   const [logsForPdf, setLogsForPdf] = useState<DailyLog[] | null>(null);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -32,7 +32,7 @@ export default function CutLogGeneratorPage() {
 
   const handleDownload = async () => {
     if (!user || !userProfile) {
-      toast({ variant: 'destructive', title: 'User not found.' });
+      toast({ variant: 'destructive', title: 'User profile not loaded yet. Please wait.' });
       return;
     }
     if (!dateRange || !dateRange.from || !dateRange.to) {
@@ -54,6 +54,7 @@ export default function CutLogGeneratorPage() {
 
       if (fetchedLogs.length === 0) {
         toast({ title: 'No Logs Found', description: 'There are no logs in the selected date range.' });
+        setIsLoading(false); // Stop loading if no logs
         return;
       }
       
@@ -64,9 +65,16 @@ export default function CutLogGeneratorPage() {
       console.error("Failed to generate PDF:", error);
       toast({ variant: 'destructive', title: 'PDF Generation Failed' });
     } finally {
-      setIsLoading(false);
+      // setIsLoading(false); // Let this be handled by the PDF component side-effect
     }
   };
+  
+  // Callback to reset loading state after PDF is initiated
+  const onPdfRendered = () => {
+    setIsLoading(false);
+    setLogsForPdf(null); // Clear logs to hide the component and prevent re-downloads
+  }
+
 
   return (
     <div className="container mx-auto py-8">
@@ -117,8 +125,8 @@ export default function CutLogGeneratorPage() {
                 </PopoverContent>
             </Popover>
 
-          <Button onClick={handleDownload} disabled={isLoading}>
-            {isLoading ? (
+          <Button onClick={handleDownload} disabled={isLoading || isProfileLoading}>
+            {isLoading || isProfileLoading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
               <Download className="mr-2 h-4 w-4" />
@@ -128,7 +136,7 @@ export default function CutLogGeneratorPage() {
         </CardContent>
       </Card>
       
-      {logsForPdf && userProfile && dateRange?.from && dateRange?.to && (
+      {logsForPdf && !isProfileLoading && userProfile && dateRange?.from && dateRange?.to && (
         <CUTLogSheetPDF
             logs={logsForPdf}
             studentName={userProfile.displayName}
@@ -136,6 +144,7 @@ export default function CutLogGeneratorPage() {
             companyName={userProfile.companyName || 'N/A'}
             startDate={format(dateRange.from, 'dd/MM/yyyy')}
             endDate={format(dateRange.to, 'dd/MM/yyyy')}
+            onRendered={onPdfRendered}
         />
       )}
     </div>

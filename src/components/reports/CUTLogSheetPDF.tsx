@@ -110,6 +110,7 @@ interface CUTLogSheetPDFProps {
   companyName: string;
   startDate: string;
   endDate: string;
+  onRendered: () => void;
 }
 
 const CUTLogSheetPDF: React.FC<CUTLogSheetPDFProps> = ({
@@ -119,6 +120,7 @@ const CUTLogSheetPDF: React.FC<CUTLogSheetPDFProps> = ({
   companyName,
   startDate,
   endDate,
+  onRendered,
 }) => {
   const MyDocument = (
     <Document>
@@ -180,6 +182,7 @@ const CUTLogSheetPDF: React.FC<CUTLogSheetPDFProps> = ({
                         document.body.appendChild(link);
                         link.click();
                         document.body.removeChild(link);
+                        onRendered();
                     }
                 }, [url, loading, error]);
                 return null;
