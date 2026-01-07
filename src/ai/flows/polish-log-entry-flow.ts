@@ -57,4 +57,3 @@ const polishLogEntryFlow = ai.defineFlow(
 export async function polishLogEntry(input: PolishLogEntryInput): Promise<PolishLogEntryOutput> {
   return polishLogEntryFlow(input);
 }
-);
