@@ -192,36 +192,27 @@ const CUTLogSheetPDF: React.FC<CUTLogSheetPDFProps> = ({
   );
 
   useEffect(() => {
-    if (mode === 'download' && onRendered) {
+    if (onRendered) {
       // Small delay to ensure the component is rendered
       const timer = setTimeout(() => {
         onRendered();
-      }, 1000);
+      }, 500);
       return () => clearTimeout(timer);
     }
-  }, [mode, onRendered]);
+  }, [onRendered]);
 
   if (mode === 'view') {
     return (
-      <div className="w-full h-[800px] border rounded-lg overflow-hidden">
-        <PDFViewer width="100%" height="100%">
+      <div className="w-full h-[800px] border rounded-lg overflow-hidden shadow-lg">
+        <PDFViewer width="100%" height="100%" showToolbar={true}>
           {document}
         </PDFViewer>
       </div>
     );
   }
 
-  // Download mode
-  return (
-    <div className="hidden">
-      <PDFDownloadLink
-        document={document}
-        fileName={`CUT_Log_Sheet_${studentName}.pdf`}
-      >
-        {({ loading }) => (loading ? 'Preparing PDF...' : 'Download PDF')}
-      </PDFDownloadLink>
-    </div>
-  );
+  // For download mode, return the document for external use
+  return document;
 };
 
 export default CUTLogSheetPDF;
