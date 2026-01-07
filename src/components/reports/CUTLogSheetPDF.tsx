@@ -178,9 +178,8 @@ const CUTLogSheetPDF: React.FC<CUTLogSheetPDFProps> = ({
   startDate,
   endDate,
   onRendered,
+  mode = 'download',
 }) => {
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-
   const document = (
     <MyDocument
       logs={logs}
@@ -193,27 +192,34 @@ const CUTLogSheetPDF: React.FC<CUTLogSheetPDFProps> = ({
   );
 
   useEffect(() => {
-    if (pdfUrl) {
-      const link = document.createElement('a');
-      link.href = pdfUrl;
-      link.download = `CUT_Log_Sheet_${studentName}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      onRendered();
+    if (mode === 'download' && onRendered) {
+      // Small delay to ensure the component is rendered
+      const timer = setTimeout(() => {
+        onRendered();
+      }, 1000);
+      return () => clearTimeout(timer);
     }
-  }, [pdfUrl, studentName, onRendered]);
+  }, [mode, onRendered]);
 
+  if (mode === 'view') {
+    return (
+      <div className="w-full h-[800px] border rounded-lg overflow-hidden">
+        <PDFViewer width="100%" height="100%">
+          {document}
+        </PDFViewer>
+      </div>
+    );
+  }
+
+  // Download mode
   return (
-    <div style={{ display: 'none' }}>
-      <BlobProvider document={document}>
-        {({ url, loading, error }) => {
-          if (url && !loading && !error && url !== pdfUrl) {
-            setPdfUrl(url);
-          }
-          return null;
-        }}
-      </BlobProvider>
+    <div className="hidden">
+      <PDFDownloadLink
+        document={document}
+        fileName={`CUT_Log_Sheet_${studentName}.pdf`}
+      >
+        {({ loading }) => (loading ? 'Preparing PDF...' : 'Download PDF')}
+      </PDFDownloadLink>
     </div>
   );
 };
