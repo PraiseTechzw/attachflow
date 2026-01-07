@@ -7,6 +7,8 @@ export interface UserProfile {
   role: 'student' | 'supervisor' | 'admin';
   goals?: string;
   createdAt: Date;
+  regNumber?: string;
+  companyName?: string;
 }
 
 export interface DailyLog {

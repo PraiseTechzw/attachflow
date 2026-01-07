@@ -28,6 +28,8 @@ const settingsFormSchema = z.object({
     }).max(50, {
         message: "Display name must not be longer than 50 characters.",
     }),
+    regNumber: z.string().optional(),
+    companyName: z.string().optional(),
     goals: z.string().max(500, {
         message: "Goals must not be longer than 500 characters.",
     }).optional(),
@@ -45,6 +47,8 @@ export default function SettingsPage() {
         resolver: zodResolver(settingsFormSchema),
         defaultValues: {
           displayName: "",
+          regNumber: "",
+          companyName: "",
           goals: "",
         },
         mode: "onChange",
@@ -54,6 +58,8 @@ export default function SettingsPage() {
         if (userProfile) {
             form.reset({
                 displayName: userProfile.displayName || "",
+                regNumber: userProfile.regNumber || "",
+                companyName: userProfile.companyName || "",
                 goals: userProfile.goals || "",
             });
         }
@@ -69,6 +75,8 @@ export default function SettingsPage() {
             const userRef = doc(firestore, "users", user.uid);
             await updateDoc(userRef, {
                 displayName: data.displayName,
+                regNumber: data.regNumber,
+                companyName: data.companyName,
                 goals: data.goals,
             });
             toast({
@@ -118,6 +126,34 @@ export default function SettingsPage() {
                                             <Input placeholder="Your Name" {...field} />
                                         </FormControl>
                                         <FormDescription>This is your public display name.</FormDescription>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="regNumber"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Registration Number</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="e.g. C12345678" {...field} />
+                                        </FormControl>
+                                        <FormDescription>Your official university registration number.</FormDescription>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="companyName"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Company Name</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="e.g. Google" {...field} />
+                                        </FormControl>
+                                        <FormDescription>The company where you are attached.</FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
