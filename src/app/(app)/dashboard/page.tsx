@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlusCircle, Book, FolderKanban, Loader2, Info } from "lucide-react";
+import { PlusCircle, Book, FolderKanban, Loader2, Info, Cloud } from "lucide-react";
 import Link from "next/link";
 import {
   ChartContainer,
@@ -14,7 +14,7 @@ import { useFirebase } from "@/firebase/provider";
 import { useMemo, useState, useEffect } from "react";
 import { collection, query, orderBy } from "firebase/firestore";
 import { subMonths, format, differenceInHours } from 'date-fns';
-import type { DailyLog, Project } from "@/types";
+import type { DailyLog, Project, Skill } from "@/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const chartConfig = {
@@ -37,9 +37,15 @@ export default function DashboardPage() {
     if (!user) return null;
     return collection(firestore, 'users', user.uid, 'projects');
   }, [firestore, user]);
+  
+  const skillsQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(collection(firestore, 'users', user.uid, 'skills'), orderBy('frequency', 'desc'));
+  }, [firestore, user]);
 
   const { data: logs, isLoading: logsLoading } = useCollection<DailyLog>(logsQuery);
   const { data: projects, isLoading: projectsLoading } = useCollection<Project>(projectsQuery);
+  const { data: skills, isLoading: skillsLoading } = useCollection<Skill>(skillsQuery);
 
   useEffect(() => {
     if (logs) {
@@ -91,7 +97,7 @@ export default function DashboardPage() {
   const totalProjects = projects?.length ?? 0;
   const pendingProjects = projects?.filter(p => p.status === 'Pending').length ?? 0;
 
-  const isLoading = logsLoading || projectsLoading;
+  const isLoading = logsLoading || projectsLoading || skillsLoading;
 
   if (isLoading) {
     return (
@@ -100,6 +106,16 @@ export default function DashboardPage() {
         </div>
     )
   }
+
+  const getFontSize = (frequency: number, maxFrequency: number) => {
+    if (maxFrequency === 0) return '1rem';
+    const minFontSize = 0.8; // rem
+    const maxFontSize = 2.5; // rem
+    const scale = (maxFontSize - minFontSize) / maxFrequency;
+    return `${minFontSize + (frequency * scale)}rem`;
+  }
+
+  const maxSkillFrequency = skills && skills.length > 0 ? Math.max(...skills.map(s => s.frequency)) : 0;
 
   return (
     <div className="container mx-auto py-8">
@@ -149,7 +165,7 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <div className="mt-8 grid gap-6">
+      <div className="mt-8 grid gap-6 lg:grid-cols-2">
         <Card>
             <CardHeader>
                 <CardTitle>Log Activity</CardTitle>
@@ -173,6 +189,30 @@ export default function DashboardPage() {
                     <Bar dataKey="logs" fill="var(--color-logs)" radius={4} />
                 </BarChart>
             </ChartContainer>
+            </CardContent>
+        </Card>
+        <Card>
+            <CardHeader>
+                <CardTitle>Skills Word Cloud</CardTitle>
+                <CardDescription>Skills identified from your logs.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-wrap items-center justify-center gap-4 min-h-[248px]">
+              {skills && skills.length > 0 ? (
+                skills.map((skill) => (
+                  <span 
+                    key={skill.id}
+                    className="text-foreground/80"
+                    style={{ fontSize: getFontSize(skill.frequency, maxSkillFrequency), fontWeight: 500 }}
+                  >
+                    {skill.name}
+                  </span>
+                ))
+              ) : (
+                <div className="text-center text-muted-foreground">
+                  <Cloud className="h-10 w-10 mx-auto mb-2" />
+                  <p>No skills logged yet. Start adding daily logs to see your skills grow!</p>
+                </div>
+              )}
             </CardContent>
         </Card>
       </div>

@@ -182,6 +182,36 @@
         "size",
         "createdAt"
       ]
+    },
+    "Skill": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Skill",
+      "type": "object",
+      "description": "Represents a skill extracted from a user's daily log.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the skill (e.g., 'react-js')."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who has the skill."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the skill (e.g., 'React.js')."
+        },
+        "frequency": {
+          "type": "number",
+          "description": "How many times this skill has been logged."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "name",
+        "frequency"
+      ]
     }
   },
   "auth": {
@@ -199,7 +229,7 @@
           "schema": {
             "$ref": "#/backend/entities/User"
           },
-          "description": "Stores user profiles.  Authorization is based on user ID. Only the user can read or write their own profile.",
+          "description": "Stores user profiles. Authorization is based on user ID. Only the user can read or write their own profile.",
           "params": [
             {
               "name": "userId",
@@ -267,8 +297,28 @@
             }
           ]
         }
+      },
+      {
+        "path": "/users/{userId}/skills/{skillId}",
+        "definition": {
+          "entityName": "Skill",
+          "schema": {
+            "$ref": "#/backend/entities/Skill"
+          },
+          "description": "Stores aggregated skills for each user, extracted from their logs. Authorization is based on path ownership.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "skillId",
+              "description": "The unique identifier for the skill."
+            }
+          ]
+        }
       }
     ],
-    "reasoning": "The Firestore structure is designed to ensure Authorization Independence, support required QAPs (Queries are not Filters), and maintain data integrity using denormalization and structural segregation.  The structure uses path-based ownership for `DailyLogs`, `Projects`, and `Documents` associated with a user. This approach eliminates the need for `get()` calls in security rules, enabling atomic operations and simpler debugging.  Authorization independence is achieved through path-based ownership, as security rules can directly validate `request.auth.uid` against the document's location without needing to read parent documents. Structural segregation is applied by storing different entities (users, logs, projects, documents) in separate collections with homogeneous security postures."
+    "reasoning": "The Firestore structure is designed to ensure Authorization Independence, support required QAPs (Queries are not Filters), and maintain data integrity using denormalization and structural segregation.  The structure uses path-based ownership for `DailyLogs`, `Projects`, `Documents`, and `Skills` associated with a user. This approach eliminates the need for `get()` calls in security rules, enabling atomic operations and simpler debugging.  Authorization independence is achieved through path-based ownership, as security rules can directly validate `request.auth.uid` against the document's location without needing to read parent documents. Structural segregation is applied by storing different entities (users, logs, projects, documents, skills) in separate collections with homogeneous security postures."
   }
 }

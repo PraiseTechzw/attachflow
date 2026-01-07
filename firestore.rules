@@ -91,52 +91,66 @@ service cloud.firestore {
       allow create: if isOwner(userId) && hasCorrectIdOnCreate(userId);
       allow update: if isExistingOwner(userId) && hasImmutableId();
       allow delete: if isExistingOwner(userId);
-    }
-    
-    /**
-     * @description Rules for a user's daily log documents.
-     * @path /users/{userId}/dailyLogs/{logId}
-     * @allow (list) An authenticated user (auth.uid='user123') listing their own logs at `/users/user123/dailyLogs`.
-     * @deny (update) A user (auth.uid='user456') attempting to update a log at `/users/user123/dailyLogs/logABC`.
-     * @principle Enforces document ownership for all operations within a user-specific subcollection.
-     */
-    match /users/{userId}/dailyLogs/{logId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && hasCorrectSubcollectionIdsOnCreate(userId, logId);
-      allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
-      allow delete: if isExistingOwner(userId);
-    }
-    
-    /**
-     * @description Rules for a user's project documents.
-     * @path /users/{userId}/projects/{projectId}
-     * @allow (create) An authenticated user (auth.uid='user123') creating a new project at `/users/user123/projects/projXYZ`.
-     * @deny (delete) An anonymous user attempting to delete a project at `/users/user123/projects/projXYZ`.
-     * @principle Enforces document ownership for all operations within a user-specific subcollection.
-     */
-    match /users/{userId}/projects/{projectId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && hasCorrectSubcollectionIdsOnCreate(userId, projectId);
-      allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
-      allow delete: if isExistingOwner(userId);
-    }
-    
-    /**
-     * @description Rules for a user's uploaded documents.
-     * @path /users/{userId}/documents/{documentId}
-     * @allow (get) An authenticated user (auth.uid='user123') fetching their document at `/users/user123/documents/docABC`.
-     * @deny (list) A user (auth.uid='user456') attempting to list all documents at `/users/user123/documents`.
-     * @principle Enforces document ownership for all operations within a user-specific subcollection.
-     */
-    match /users/{userId}/documents/{documentId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && hasCorrectSubcollectionIdsOnCreate(userId, documentId);
-      allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
-      allow delete: if isExistingOwner(userId);
-    }
 
+      /**
+       * @description Rules for a user's daily log documents.
+       * @path /users/{userId}/dailyLogs/{logId}
+       * @allow (list) An authenticated user (auth.uid='user123') listing their own logs at `/users/user123/dailyLogs`.
+       * @deny (update) A user (auth.uid='user456') attempting to update a log at `/users/user123/dailyLogs/logABC`.
+       * @principle Enforces document ownership for all operations within a user-specific subcollection.
+       */
+      match /dailyLogs/{logId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && hasCorrectSubcollectionIdsOnCreate(userId, logId);
+        allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
+        allow delete: if isExistingOwner(userId);
+      }
+      
+      /**
+       * @description Rules for a user's project documents.
+       * @path /users/{userId}/projects/{projectId}
+       * @allow (create) An authenticated user (auth.uid='user123') creating a new project at `/users/user123/projects/projXYZ`.
+       * @deny (delete) An anonymous user attempting to delete a project at `/users/user123/projects/projXYZ`.
+       * @principle Enforces document ownership for all operations within a user-specific subcollection.
+       */
+      match /projects/{projectId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && hasCorrectSubcollectionIdsOnCreate(userId, projectId);
+        allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
+        allow delete: if isExistingOwner(userId);
+      }
+      
+      /**
+       * @description Rules for a user's uploaded documents.
+       * @path /users/{userId}/documents/{documentId}
+       * @allow (get) An authenticated user (auth.uid='user123') fetching their document at `/users/user123/documents/docABC`.
+       * @deny (list) A user (auth.uid='user456') attempting to list all documents at `/users/user123/documents`.
+       * @principle Enforces document ownership for all operations within a user-specific subcollection.
+       */
+      match /documents/{documentId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && hasCorrectSubcollectionIdsOnCreate(userId, documentId);
+        allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
+        allow delete: if isExistingOwner(userId);
+      }
+
+      /**
+       * @description Rules for a user's aggregated skills.
+       * @path /users/{userId}/skills/{skillId}
+       * @allow (create, update) An authenticated user can manage their own skills.
+       * @deny (delete) Deleting skills is not allowed to preserve historical data.
+       * @principle Enforces document ownership and data integrity for the skills subcollection.
+       */
+      match /skills/{skillId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && hasCorrectSubcollectionIdsOnCreate(userId, skillId);
+        allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
+        allow delete: if false; // Prevent accidental deletion
+      }
+    }
   }
 }

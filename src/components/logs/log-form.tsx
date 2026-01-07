@@ -21,8 +21,9 @@ import type { DailyLog } from "@/types";
 import { useFirebase } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { collection, doc, serverTimestamp } from "firebase/firestore";
+import { collection, doc, serverTimestamp, runTransaction } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
+import { extractSkillsFromLog } from "@/ai/flows/extract-skills-from-log-flow";
 
 const logFormSchema = z.object({
   content: z.string().min(10, {
@@ -49,6 +50,35 @@ export function LogForm({ log, suggestion }: LogFormProps) {
       content: log?.content || "",
     },
   });
+
+  const updateSkillsInFirestore = async (skills: string[]) => {
+    if (!user) return;
+
+    try {
+        await runTransaction(firestore, async (transaction) => {
+            for (const skillName of skills) {
+                const skillId = skillName.toLowerCase().replace(/\s+/g, '-');
+                const skillRef = doc(firestore, `users/${user.uid}/skills`, skillId);
+                const skillDoc = await transaction.get(skillRef);
+
+                if (skillDoc.exists()) {
+                    transaction.update(skillRef, { frequency: skillDoc.data().frequency + 1 });
+                } else {
+                    transaction.set(skillRef, {
+                        id: skillId,
+                        name: skillName,
+                        frequency: 1,
+                        userId: user.uid,
+                    });
+                }
+            }
+        });
+    } catch (e) {
+        console.error("Failed to update skills:", e);
+        // Don't block user, fail silently
+    }
+  };
+
 
   async function onSubmit(data: LogFormValues) {
     if (!user) {
@@ -87,8 +117,19 @@ export function LogForm({ log, suggestion }: LogFormProps) {
                 title: "Log saved successfully!",
                 description: "Your daily progress has been recorded.",
             });
+            // Don't navigate away immediately, process skills first
+        }
+        
+        // After saving, extract and update skills
+        const { skills } = await extractSkillsFromLog({ logContent: data.content });
+        if (skills && skills.length > 0) {
+            await updateSkillsInFirestore(skills);
+        }
+
+        if (!log) {
             router.push('/logs');
         }
+
     } catch (error) {
         console.error("Error saving log:", error);
         toast({
@@ -126,7 +167,7 @@ export function LogForm({ log, suggestion }: LogFormProps) {
             <div className="flex justify-end">
               <Button type="submit" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {log ? "Update Log" : "Save Log"}
+                {log ? "Update Log & Skills" : "Save Log & Update Skills"}
               </Button>
             </div>
           </form>

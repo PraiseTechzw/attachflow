@@ -60,3 +60,10 @@ export interface FinalReportAIStructure {
     technologiesUsed: string[];
     conclusion: string;
 }
+
+export interface Skill {
+  id: string;
+  userId: string;
+  name: string;
+  frequency: number;
+}
