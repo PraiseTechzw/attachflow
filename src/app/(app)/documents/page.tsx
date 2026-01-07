@@ -133,7 +133,7 @@ export default function DocumentsPage() {
             {!isLoading && documents && documents.length > 0 ? (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {documents.map((doc) => (
-                         <Card key={doc.id} className="group relative">
+                         <Card key={doc.id} className="group relative card-hover">
                          <CardHeader>
                            <div className="flex items-start justify-between">
                                 <FileText className="h-8 w-8 text-muted-foreground" />

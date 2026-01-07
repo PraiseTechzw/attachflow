@@ -92,13 +92,13 @@ export default function ReportsPage() {
       </div>
       
       <div className="mb-12">
-        <Card>
+        <Card className='bg-gradient-to-br from-primary/80 to-accent/80 text-primary-foreground'>
           <CardHeader>
             <CardTitle>AI-Powered Final Report</CardTitle>
-            <CardDescription>Let AI structure and summarize all your logs into a professional Word document.</CardDescription>
+            <CardDescription className='text-primary-foreground/80'>Let AI structure and summarize all your logs into a professional Word document.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={handleDownloadFinalReport} disabled={isDocxLoading}>
+            <Button onClick={handleDownloadFinalReport} disabled={isDocxLoading} variant='secondary'>
                 {isDocxLoading ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
@@ -133,7 +133,7 @@ export default function ReportsPage() {
         {!isReportsLoading && monthlyReports && monthlyReports.length > 0 && (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {monthlyReports.map(report => (
-                    <Card key={report.id} className={report.id === currentMonthId ? 'border-primary' : ''}>
+                    <Card key={report.id} className={`card-hover ${report.id === currentMonthId ? 'border-primary' : ''}`}>
                         <CardHeader>
                             <CardTitle>{report.month}</CardTitle>
                             <CardDescription>Status: {report.status}</CardDescription>

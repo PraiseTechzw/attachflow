@@ -49,7 +49,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
         </Sidebar>
         <div className="flex flex-1 flex-col">
-          <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
+          <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-md sm:px-6">
             <Button
                 variant="ghost"
                 size="icon"

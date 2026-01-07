@@ -135,7 +135,7 @@ export default function DashboardPage() {
       )}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
+        <Card className="card-hover">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Logs</CardTitle>
             <Book className="h-4 w-4 text-muted-foreground" />
@@ -144,7 +144,7 @@ export default function DashboardPage() {
             <div className="text-2xl font-bold">{totalLogs}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="card-hover">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Projects Submitted</CardTitle>
             <FolderKanban className="h-4 w-4 text-muted-foreground" />
@@ -154,7 +154,7 @@ export default function DashboardPage() {
             <p className="text-xs text-muted-foreground">{pendingProjects} pending approval</p>
           </CardContent>
         </Card>
-        <Card className="flex flex-col items-center justify-center bg-primary/5 border-dashed">
+        <Card className="flex flex-col items-center justify-center bg-card border-dashed card-hover">
             <Link href="/logs/new" className="w-full h-full">
                 <CardContent className="flex flex-col items-center justify-center p-6 h-full text-center">
                     <PlusCircle className="h-8 w-8 text-primary mb-2" />
