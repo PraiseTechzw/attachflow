@@ -77,6 +77,12 @@ export interface MonthlyReport {
     month: string; // e.g., "August 2024"
     year: number;
     logCount: number;
-    status: 'Draft' | 'Finalized';
+    status: 'Draft' | 'Submitted' | 'Finalized';
     lastUpdated: any; // Firestore Timestamp
+    // AI Generated content
+    introduction?: string;
+    duties?: string;
+    problems?: string;
+    analysis?: string;
+    conclusion?: string;
 }
