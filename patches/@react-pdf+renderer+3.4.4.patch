@@ -1,0 +1,36 @@
+diff --git a/node_modules/@react-pdf/renderer/package.json b/node_modules/@react-pdf/renderer/package.json
+index 3314841..473c9f2 100644
+--- a/node_modules/@react-pdf/renderer/package.json
++++ b/node_modules/@react-pdf/renderer/package.json
+@@ -14,6 +14,10 @@
+   "bugs": "https://github.com/diegomura/react-pdf/issues",
+   "main": "lib/react-pdf.cjs.js",
+   "module": "lib/react-pdf.es.js",
++  "browser": {
++    "./lib/react-pdf.es.js": "./lib/react-pdf.browser.es.js",
++    "./lib/react-pdf.cjs.js": "./lib/react-pdf.browser.cjs.js"
++  },
+   "style": "lib/react-pdf.css",
+   "types": "lib/index.d.ts",
+   "files": [
+diff --git a/node_modules/@react-pdf/renderer/lib/react-pdf.browser.cjs.js b/node_modules/@react-pdf/renderer/lib/react-pdf.browser.cjs.js
+new file mode 100644
+index 0000000..f356396
+--- /dev/null
++++ b/node_modules/@react-pdf/renderer/lib/react-pdf.browser.cjs.js
+@@ -0,0 +1,6 @@
++'use strict';
++
++if (process.env.NODE_ENV === 'production') {
++  module.exports = require('./react-pdf.browser.cjs.prod.js');
++} else {
++  module.exports = require('./react-pdf.browser.cjs.dev.js');
++}
+diff --git a/node_modules/@react-pdf/renderer/lib/react-pdf.browser.es.js b/node_modules/@react-pdf/renderer/lib/react-pdf.browser.es.js
+new file mode 100644
+index 0000000..35c7075
+--- /dev/null
++++ b/node_modules/@react-pdf/renderer/lib/react-pdf.browser.es.js
+@@ -0,0 +1 @@
++export * from './react-pdf.es.js'
+\ No newline at end of file
