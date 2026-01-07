@@ -12,15 +12,14 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    console.log('LoginPage user:', user, 'isUserLoading:', isUserLoading);
     if (!isUserLoading && user) {
       router.replace('/dashboard');
     }
   }, [user, isUserLoading, router]);
 
-  if (isUserLoading) {
+  if (isUserLoading || user) {
     return (
-      <div className="flex h-screen w-full items-center justify-center">
+      <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     );
