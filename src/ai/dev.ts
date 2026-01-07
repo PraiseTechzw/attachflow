@@ -9,3 +9,4 @@ import '@/ai/flows/extract-skills-from-log-flow.ts';
 import '@/ai/flows/generate-monthly-report-flow.ts';
 import '@/ai/flows/polish-log-entry-flow.ts';
 import '@/ai/flows/analyze-log-sentiment-flow.ts';
+import '@/ai/flows/improve-log-entry-flow.ts';

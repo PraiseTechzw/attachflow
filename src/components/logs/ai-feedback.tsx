@@ -4,12 +4,15 @@ import { useState } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Progress } from "../ui/progress";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2, WandSparkles } from "lucide-react";
 import { generateLogFeedback, type GenerateLogFeedbackOutput } from "@/ai/flows/generate-log-feedback";
+import { improveLogEntry } from "@/ai/flows/improve-log-entry-flow";
 import { Label } from "../ui/label";
+import { useFormContext } from "react-hook-form";
+import type { DailyLog } from "@/types";
 
 interface AIFeedbackProps {
-    logText: string;
+    log: DailyLog;
     studentGoals: string;
 }
 
@@ -25,10 +28,14 @@ const ScorecardItem = ({ title, score, feedback }: { title: string, score: numbe
 );
 
 
-export function AIFeedback({ logText, studentGoals }: AIFeedbackProps) {
+export function AIFeedback({ log, studentGoals }: AIFeedbackProps) {
     const [feedback, setFeedback] = useState<GenerateLogFeedbackOutput | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [isImproving, setIsImproving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const form = useFormContext(); // Access the form context
+
+    const logText = log.activitiesRaw;
 
     const handleGenerateFeedback = async () => {
         setIsLoading(true);
@@ -42,6 +49,24 @@ export function AIFeedback({ logText, studentGoals }: AIFeedbackProps) {
             console.error(err);
         } finally {
             setIsLoading(false);
+        }
+    }
+
+    const handleImproveLog = async () => {
+        if (!feedback) return;
+        setIsImproving(true);
+        try {
+            const result = await improveLogEntry({
+                logContent: logText,
+                critique: feedback,
+            });
+            // Use setValue from react-hook-form to update the parent form's field
+            form.setValue('activitiesRaw', result.improvedContent, { shouldValidate: true, shouldDirty: true });
+        } catch (err) {
+            setError("Failed to improve the log. Please try again.");
+            console.error(err);
+        } finally {
+            setIsImproving(false);
         }
     }
 
@@ -74,10 +99,16 @@ export function AIFeedback({ logText, studentGoals }: AIFeedbackProps) {
                     </div>
                 )}
             </CardContent>
-            <CardFooter>
-                <Button onClick={handleGenerateFeedback} disabled={isLoading || !logText} className="w-full">
+            <CardFooter className="flex flex-col gap-2">
+                <Button onClick={handleGenerateFeedback} disabled={isLoading || isImproving || !logText} className="w-full">
                     {isLoading ? "Generating Critique..." : "Critique My Log"}
                 </Button>
+                {feedback && (
+                    <Button onClick={handleImproveLog} disabled={isImproving || isLoading} variant="secondary" className="w-full">
+                        {isImproving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <WandSparkles className="mr-2 h-4 w-4"/>}
+                        Improve My Log with AI
+                    </Button>
+                )}
             </CardFooter>
         </Card>
     )
