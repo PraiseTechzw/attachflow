@@ -25,12 +25,13 @@ export default function CutLogGeneratorPage() {
   const { userProfile, isLoading: isProfileLoading } = useUserProfile();
   const [isLoading, setIsLoading] = useState(false);
   const [logsForPdf, setLogsForPdf] = useState<DailyLog[] | null>(null);
+  const [viewMode, setViewMode] = useState<'download' | 'view'>('download');
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: startOfMonth(new Date()),
     to: new Date(),
   });
 
-  const handleDownload = async () => {
+  const handleGenerate = async (mode: 'download' | 'view') => {
     if (!user || !userProfile) {
       toast({ variant: 'destructive', title: 'User profile not loaded yet. Please wait.' });
       return;
@@ -42,6 +43,8 @@ export default function CutLogGeneratorPage() {
 
     setIsLoading(true);
     setLogsForPdf(null); // Reset previous PDF data
+    setViewMode(mode);
+    
     try {
       const logsQuery = query(
         collection(firestore, `users/${user.uid}/dailyLogs`),
@@ -54,18 +57,22 @@ export default function CutLogGeneratorPage() {
 
       if (fetchedLogs.length === 0) {
         toast({ title: 'No Logs Found', description: 'There are no logs in the selected date range.' });
-        setIsLoading(false); // Stop loading if no logs
+        setIsLoading(false);
         return;
       }
       
-      toast({ title: "Preparing PDF...", description: "Your log sheet is being prepared for download." });
+      if (mode === 'download') {
+        toast({ title: "Preparing PDF...", description: "Your log sheet is being prepared for download." });
+      } else {
+        toast({ title: "Loading Preview...", description: "Your log sheet is being prepared for viewing." });
+      }
+      
       setLogsForPdf(fetchedLogs);
 
     } catch (error) {
       console.error("Failed to generate PDF:", error);
       toast({ variant: 'destructive', title: 'PDF Generation Failed' });
-    } finally {
-      // setIsLoading(false); // Let this be handled by the PDF component side-effect
+      setIsLoading(false);
     }
   };
   
