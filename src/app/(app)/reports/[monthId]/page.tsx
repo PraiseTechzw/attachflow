@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { FileDown, Loader2, Lock, Unlock, Eye, EyeOff } from 'lucide-react';
+import { FileDown, Loader2, Lock, Unlock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase } from '@/firebase';
 import { collection, query, where, doc, updateDoc } from 'firebase/firestore';
@@ -13,13 +13,6 @@ import { useCollection, useDoc, useMemoFirebase } from '@/firebase';
 import type { DailyLog, MonthlyReport } from '@/types';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { format, parse } from 'date-fns';
-import dynamic from 'next/dynamic';
-
-const MonthlyReportPDF = dynamic(() => import('@/components/reports/MonthlyReportPDF').then(mod => mod.MonthlyReportPDF), {
-  ssr: false,
-  loading: () => <div className="flex justify-center items-center h-40"><Loader2 className="h-8 w-8 animate-spin" /></div>
-});
-
 
 export default function MonthlyReportPage({ params }: { params: { monthId: string } }) {
   const { monthId } = params; // e.g., "2024-08"
@@ -28,7 +21,6 @@ export default function MonthlyReportPage({ params }: { params: { monthId: strin
   const { userProfile } = useUserProfile();
   
   const [isLocking, setIsLocking] = useState(false);
-  const [showPdfPreview, setShowPdfPreview] = useState(false);
 
   // Parse month and year from monthId
   const reportDate = parse(monthId, 'yyyy-MM', new Date());
@@ -57,9 +49,7 @@ export default function MonthlyReportPage({ params }: { params: { monthId: strin
   const isLoading = isReportLoading || areLogsLoading;
 
   const handleDownloadClick = () => {
-    // For print-to-pdf. Keeping this as a fallback.
-    // window.print();
-    setShowPdfPreview(!showPdfPreview);
+    window.print();
   }
   
   const handleToggleLock = async () => {
@@ -117,51 +107,47 @@ export default function MonthlyReportPage({ params }: { params: { monthId: strin
                 {report.status === 'Draft' ? 'Finalize' : 'Unlock'}
             </Button>
             <Button onClick={handleDownloadClick}>
-                {showPdfPreview ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
-                {showPdfPreview ? 'Hide PDF Preview' : 'Preview PDF'}
+                <FileDown className="mr-2 h-4 w-4" />
+                Download PDF
             </Button>
         </div>
       </div>
 
-      {!showPdfPreview ? (
-        <Card id="report-content">
-            <CardHeader>
-                <CardTitle>Daily Log Entries</CardTitle>
-                <CardDescription>This is a live preview of the logs for {report.month}.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-lg border">
-                  <Table>
-                      <TableHeader>
-                          <TableRow>
-                              <TableHead className="w-[180px]">Date</TableHead>
-                              <TableHead>Log Content</TableHead>
-                          </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                          {areLogsLoading ? (
-                              <TableRow><TableCell colSpan={2} className="h-24 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></TableCell></TableRow>
-                          ) : logs && logs.length > 0 ? (
-                              logs.sort((a,b) => a.date.seconds - b.date.seconds).map(log => (
-                                  <TableRow key={log.id}>
-                                      <TableCell className="font-medium">{format(log.date.toDate(), 'EEEE, MMMM d, yyyy')}</TableCell>
-                                      <TableCell className="text-muted-foreground whitespace-pre-wrap">{log.content}</TableCell>
-                                  </TableRow>
-                              ))
-                          ) : (
-                              <TableRow><TableCell colSpan={2} className="h-24 text-center">No logs found for this month.</TableCell></TableRow>
-                          )}
-                      </TableBody>
-                  </Table>
-              </div>
-            </CardContent>
-            <CardFooter>
-                <p className="text-sm text-muted-foreground">Total logs for this month: {report.logCount}</p>
-            </CardFooter>
-        </Card>
-      ) : (
-        logs && userProfile && <MonthlyReportPDF report={report} logs={logs} userProfile={userProfile} />
-      )}
+      <Card id="report-content">
+          <CardHeader>
+              <CardTitle>Daily Log Entries for {userProfile?.displayName}</CardTitle>
+              <CardDescription>This is a live preview of the logs for {report.month}.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-lg border">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="w-[180px]">Date</TableHead>
+                            <TableHead>Log Content</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {areLogsLoading ? (
+                            <TableRow><TableCell colSpan={2} className="h-24 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></TableCell></TableRow>
+                        ) : logs && logs.length > 0 ? (
+                            logs.sort((a,b) => a.date.seconds - b.date.seconds).map(log => (
+                                <TableRow key={log.id}>
+                                    <TableCell className="font-medium">{format(log.date.toDate(), 'EEEE, MMMM d, yyyy')}</TableCell>
+                                    <TableCell className="text-muted-foreground whitespace-pre-wrap">{log.content}</TableCell>
+                                </TableRow>
+                            ))
+                        ) : (
+                            <TableRow><TableCell colSpan={2} className="h-24 text-center">No logs found for this month.</TableCell></TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
+          </CardContent>
+          <CardFooter>
+              <p className="text-sm text-muted-foreground">Total logs for this month: {report.logCount}</p>
+          </CardFooter>
+      </Card>
     </div>
   );
 }
