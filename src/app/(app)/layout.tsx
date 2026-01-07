@@ -71,12 +71,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </div>
     </SidebarProvider>
   );
-            <div className="flex-1"></div>
-            <UserNav />
-          </header>
-          <main className="flex-1 p-4 sm:p-6">{children}</main>
-        </div>
-      </div>
 
        {/* Mobile Sidebar */}
        <div className={`fixed inset-0 z-40 md:hidden ${isMobileSidebarOpen ? 'block' : 'hidden'}`}>
