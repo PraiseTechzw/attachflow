@@ -10,20 +10,16 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
 
-// Define the input schema for the flow
-export const PolishLogEntryInputSchema = z.object({
-  logContent: z.string().describe('The raw, unedited text of the daily log entry.'),
-});
-export type PolishLogEntryInput = z.infer<typeof PolishLogEntryInputSchema>;
+'use server';
 
-// Define the output schema for the flow
-export const PolishLogEntryOutputSchema = z.object({
-  polishedContent: z.string().describe('The polished, professional version of the log entry. It should be well-structured, clear, and use professional language.'),
-});
-export type PolishLogEntryOutput = z.infer<typeof PolishLogEntryOutputSchema>;
-
+import { ai } from '@/ai/genkit';
+import {
+  PolishLogEntryInputSchema,
+  PolishLogEntryOutputSchema,
+  PolishLogEntryInput,
+  PolishLogEntryOutput
+} from './polish-log-entry-flow-shared';
 
 const polishLogEntryPrompt = ai.definePrompt({
   name: 'polishLogEntryPrompt',
@@ -46,7 +42,6 @@ Rewrite this content into a polished, professional version.
 `,
 });
 
-// Define the flow
 const polishLogEntryFlow = ai.defineFlow(
   {
     name: 'polishLogEntryFlow',
@@ -59,8 +54,7 @@ const polishLogEntryFlow = ai.defineFlow(
   }
 );
 
-
-// Define the main function that calls the flow
 export async function polishLogEntry(input: PolishLogEntryInput): Promise<PolishLogEntryOutput> {
   return polishLogEntryFlow(input);
 }
+);
