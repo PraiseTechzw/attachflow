@@ -30,7 +30,16 @@ Your task is to rewrite a student's raw daily log entry into a polished, profess
 1.  **Correct Grammar and Spelling:** Fix any grammatical errors, spelling mistakes, and typos.
 2.  **Improve Clarity and Conciseness:** Rephrase sentences to be clearer and more direct.
 3.  **Use Professional Terminology:** Replace casual language with industry-standard terminology. For example, change "fixed a bug" to "resolved a software defect" or "debugged an issue."
-4.  **Structure the Content:** This is crucial. Organize the text into a logical flow. Identify separate activities, tasks, or challenges and format them using a **bulleted list** for maximum readability. Each bullet point should clearly describe a specific action or observation.
+4.  **Structure the Content:** This is crucial. Format the output as a well-indented, multi-level bulleted list. Each main task should be a top-level bullet point. Sub-tasks or further details should be nested and indented underneath the main bullet.
+
+**Example of desired format:**
+- Implemented the user authentication backend endpoint.
+  - Developed the API route for user sign-up and login.
+  - Integrated JWT for session management.
+- Debugged a critical issue in the payment processing module.
+  - Traced the error to a third-party API rate limit.
+  - Implemented a retry mechanism with exponential backoff.
+
 5.  **Maintain Key Information:** Ensure all original activities, accomplishments, and challenges are retained. Do not add new information.
 
 **Raw Log Content:**
