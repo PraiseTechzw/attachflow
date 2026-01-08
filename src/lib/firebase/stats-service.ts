@@ -51,7 +51,10 @@ export class StatsService {
   async getUserStats(userId: string): Promise<UserStats | null> {
     try {
       const db = this.getFirestore();
-      const statsDoc = await getDoc(doc(db, 'userStats', userId));
+      // Stats will be stored as a single document in a subcollection of the user
+      const statsDocRef = doc(db, `users/${userId}/stats`, 'summary');
+      const statsDoc = await getDoc(statsDocRef);
+      
       if (statsDoc.exists()) {
         return { userId, ...statsDoc.data() } as UserStats;
       }
@@ -69,21 +72,18 @@ export class StatsService {
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
       const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
+      // Define collection paths for the specific user
+      const logsCollection = collection(db, `users/${userId}/dailyLogs`);
+      const projectsCollection = collection(db, `users/${userId}/projects`);
+      const documentsCollection = collection(db, `users/${userId}/documents`);
+
       // Fetch current counts
       const [logsSnapshot, projectsSnapshot, documentsSnapshot, thisMonthLogsSnapshot, thisWeekLogsSnapshot] = await Promise.all([
-        getDocs(query(collection(db, 'logs'), where('userId', '==', userId))),
-        getDocs(query(collection(db, 'projects'), where('userId', '==', userId))),
-        getDocs(query(collection(db, 'documents'), where('userId', '==', userId))),
-        getDocs(query(
-          collection(db, 'logs'),
-          where('userId', '==', userId),
-          where('createdAt', '>=', Timestamp.fromDate(monthStart))
-        )),
-        getDocs(query(
-          collection(db, 'logs'),
-          where('userId', '==', userId),
-          where('createdAt', '>=', Timestamp.fromDate(weekStart))
-        ))
+        getDocs(query(logsCollection)),
+        getDocs(query(projectsCollection)),
+        getDocs(query(documentsCollection)),
+        getDocs(query(logsCollection, where('date', '>=', Timestamp.fromDate(monthStart)))),
+        getDocs(query(logsCollection, where('date', '>=', Timestamp.fromDate(weekStart))))
       ]);
 
       // Calculate streak
@@ -102,7 +102,8 @@ export class StatsService {
       };
 
       // Update or create stats document
-      await setDoc(doc(db, 'userStats', userId), stats, { merge: true });
+      const statsDocRef = doc(db, `users/${userId}/stats`, 'summary');
+      await setDoc(statsDocRef, stats, { merge: true });
       
       return stats;
     } catch (error) {
@@ -114,25 +115,29 @@ export class StatsService {
   async incrementStat(userId: string, statName: keyof Pick<UserStats, 'totalLogs' | 'totalProjects' | 'totalDocuments'>, amount: number = 1): Promise<void> {
     try {
       const db = this.getFirestore();
-      const statsRef = doc(db, 'userStats', userId);
+      const statsRef = doc(db, `users/${userId}/stats`, 'summary');
       await updateDoc(statsRef, {
         [statName]: increment(amount),
         lastUpdated: Timestamp.now()
       });
     } catch (error) {
       console.error('Error incrementing stat:', error);
-      throw error;
+      // If the doc doesn't exist, create it
+      if (error.code === 'not-found') {
+        await this.updateUserStats(userId);
+      } else {
+        throw error;
+      }
     }
   }
 
   private async calculateStreak(userId: string): Promise<{ streakDays: number; longestStreak: number }> {
     try {
       const db = this.getFirestore();
-      // Get all logs ordered by date
+      // Get all logs ordered by date for the specific user
       const logsQuery = query(
-        collection(db, 'logs'),
-        where('userId', '==', userId),
-        orderBy('createdAt', 'desc')
+        collection(db, `users/${userId}/dailyLogs`),
+        orderBy('date', 'desc')
       );
       const logsSnapshot = await getDocs(logsQuery);
       
@@ -142,10 +147,9 @@ export class StatsService {
 
       const logs = logsSnapshot.docs.map(doc => ({
         id: doc.id,
-        createdAt: doc.data().createdAt?.toDate() || new Date()
+        createdAt: doc.data().date?.toDate() || new Date()
       }));
 
-      // Calculate current streak
       let currentStreak = 0;
       let longestStreak = 0;
       let tempStreak = 0;
@@ -153,45 +157,40 @@ export class StatsService {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
-      // Group logs by date
       const logsByDate = new Map<string, number>();
       logs.forEach(log => {
         const dateKey = log.createdAt.toDateString();
         logsByDate.set(dateKey, (logsByDate.get(dateKey) || 0) + 1);
       });
 
-      // Check for current streak
       let checkDate = new Date(today);
-      while (true) {
-        const dateKey = checkDate.toDateString();
-        if (logsByDate.has(dateKey)) {
+      if (logsByDate.has(checkDate.toDateString())) {
+        currentStreak++;
+        checkDate.setDate(checkDate.getDate() - 1);
+        while (logsByDate.has(checkDate.toDateString())) {
           currentStreak++;
           checkDate.setDate(checkDate.getDate() - 1);
-        } else {
-          break;
         }
       }
 
-      // Calculate longest streak
       const sortedDates = Array.from(logsByDate.keys()).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
       
-      for (let i = 0; i < sortedDates.length; i++) {
+      if (sortedDates.length > 0) {
         tempStreak = 1;
-        
-        for (let j = i + 1; j < sortedDates.length; j++) {
-          const currentDate = new Date(sortedDates[j]);
-          const prevDate = new Date(sortedDates[j - 1]);
+        longestStreak = 1;
+        for (let i = 1; i < sortedDates.length; i++) {
+          const currentDate = new Date(sortedDates[i]);
+          const prevDate = new Date(sortedDates[i - 1]);
           const diffTime = currentDate.getTime() - prevDate.getTime();
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
           
           if (diffDays === 1) {
             tempStreak++;
           } else {
-            break;
+            tempStreak = 1;
           }
+          longestStreak = Math.max(longestStreak, tempStreak);
         }
-        
-        longestStreak = Math.max(longestStreak, tempStreak);
       }
 
       return { streakDays: currentStreak, longestStreak };
@@ -201,14 +200,13 @@ export class StatsService {
     }
   }
 
-  async getRecentActivity(userId: string, limit: number = 10): Promise<any[]> {
+  async getRecentActivity(userId: string, count: number = 10): Promise<any[]> {
     try {
       const db = this.getFirestore();
       const recentLogsQuery = query(
-        collection(db, 'logs'),
-        where('userId', '==', userId),
-        orderBy('createdAt', 'desc'),
-        limit(limit)
+        collection(db, `users/${userId}/dailyLogs`),
+        orderBy('date', 'desc'),
+        limit(count)
       );
       
       const snapshot = await getDocs(recentLogsQuery);
@@ -216,7 +214,7 @@ export class StatsService {
         id: doc.id,
         type: 'log',
         ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate()
+        date: doc.data().date?.toDate()
       }));
     } catch (error) {
       console.error('Error fetching recent activity:', error);
@@ -227,27 +225,28 @@ export class StatsService {
   async getProjectStats(userId: string): Promise<{
     active: number;
     completed: number;
-    paused: number;
+    pending: number;
     total: number;
   }> {
     try {
       const db = this.getFirestore();
-      const [activeSnapshot, completedSnapshot, pausedSnapshot, totalSnapshot] = await Promise.all([
-        getDocs(query(collection(db, 'projects'), where('userId', '==', userId), where('status', '==', 'active'))),
-        getDocs(query(collection(db, 'projects'), where('userId', '==', userId), where('status', '==', 'completed'))),
-        getDocs(query(collection(db, 'projects'), where('userId', '==', userId), where('status', '==', 'paused'))),
-        getDocs(query(collection(db, 'projects'), where('userId', '==', userId)))
+      const projectsCollection = collection(db, `users/${userId}/projects`);
+      const [activeSnapshot, completedSnapshot, pendingSnapshot, totalSnapshot] = await Promise.all([
+        getDocs(query(projectsCollection, where('status', '==', 'Approved'))),
+        getDocs(query(projectsCollection, where('status', '==', 'Completed'))),
+        getDocs(query(projectsCollection, where('status', '==', 'Pending'))),
+        getDocs(query(projectsCollection))
       ]);
 
       return {
         active: activeSnapshot.size,
         completed: completedSnapshot.size,
-        paused: pausedSnapshot.size,
+        pending: pendingSnapshot.size,
         total: totalSnapshot.size
       };
     } catch (error) {
       console.error('Error fetching project stats:', error);
-      return { active: 0, completed: 0, paused: 0, total: 0 };
+      return { active: 0, completed: 0, pending: 0, total: 0 };
     }
   }
 }
