@@ -41,9 +41,10 @@ type LogFormValues = z.infer<typeof logFormSchema>;
 interface LogFormProps {
   log?: DailyLog;
   suggestion?: string;
+  logDate?: Date;
 }
 
-export function LogForm({ log, suggestion }: LogFormProps) {
+export function LogForm({ log, suggestion, logDate }: LogFormProps) {
   const { firestore, user } = useFirebase();
   const [isSaving, setIsSaving] = useState(false);
   const [isPolishing, setIsPolishing] = useState(false);
@@ -120,11 +121,10 @@ export function LogForm({ log, suggestion }: LogFormProps) {
     }
   };
 
-  const updateMonthlyReport = async (isNewLog: boolean) => {
-    if (!user || !isNewLog) return;
+  const updateMonthlyReport = async (date: Date) => {
+    if (!user) return;
     
-    const now = new Date();
-    const monthId = format(now, 'yyyy-MM');
+    const monthId = format(date, 'yyyy-MM');
     const monthlyReportRef = doc(firestore, `users/${user.uid}/monthlyReports`, monthId);
 
     try {
@@ -139,8 +139,8 @@ export function LogForm({ log, suggestion }: LogFormProps) {
                 transaction.set(monthlyReportRef, {
                     id: monthId,
                     userId: user.uid,
-                    month: format(now, 'MMMM yyyy'),
-                    year: now.getFullYear(),
+                    month: format(date, 'MMMM yyyy'),
+                    year: date.getFullYear(),
                     logCount: 1,
                     status: 'Draft',
                     lastUpdated: serverTimestamp(),
@@ -164,18 +164,23 @@ export function LogForm({ log, suggestion }: LogFormProps) {
     try {
         const isNewLog = !log;
         let logRef;
+        const dateForLog = isNewLog ? (logDate || new Date()) : log.date.toDate();
 
         if (isNewLog) {
+            if (!logDate) {
+                toast({ variant: 'destructive', title: 'Please select a date for the log.' });
+                setIsSaving(false);
+                return;
+            }
             const logId = uuidv4();
-            const now = new Date();
             logRef = doc(firestore, `users/${user.uid}/dailyLogs`, logId);
             const newLogData = {
                 id: logId,
                 userId: user.uid,
                 ...data,
-                date: serverTimestamp(),
-                monthYear: format(now, 'MMMM yyyy'),
-                weekNumber: getWeek(now),
+                date: dateForLog,
+                monthYear: format(dateForLog, 'MMMM yyyy'),
+                weekNumber: getWeek(dateForLog),
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
             };
@@ -194,8 +199,10 @@ export function LogForm({ log, suggestion }: LogFormProps) {
         // Run AI tasks in the background
         runAIAugmentation(data.activitiesRaw, logRef);
 
-        // Update monthly report count
-        updateMonthlyReport(isNewLog);
+        // Update monthly report count only for new logs
+        if (isNewLog) {
+            updateMonthlyReport(dateForLog);
+        }
 
         if (isNewLog) {
             router.push('/logs');
