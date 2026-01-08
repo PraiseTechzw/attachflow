@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useFirebase } from '@/firebase';
 import { statsService } from '@/lib/firebase/stats-service';
-import { FolderKanban, Calendar, Activity, FileText, Users, TrendingUp } from 'lucide-react';
+import { FolderKanban, Calendar, Activity, FileText } from 'lucide-react';
 
 export interface QuickStat {
   label: string;
@@ -39,17 +39,15 @@ export function useQuickStats() {
       return;
     }
 
-    // Initialize the stats service with Firestore
+    // Initialize the service with the firestore instance
     statsService.setFirestore(firestore);
 
     const fetchStats = async () => {
       try {
         setIsLoading(true);
         
-        // Try to get cached stats first
         let userStats = await statsService.getUserStats(user.uid);
         
-        // If no cached stats or stats are old (more than 5 minutes), update them
         const now = new Date();
         const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
         
@@ -57,17 +55,14 @@ export function useQuickStats() {
           userStats = await statsService.updateUserStats(user.uid);
         }
 
-        // Get project stats
         const projectStats = await statsService.getProjectStats(user.uid);
 
-        // Calculate trends (simple mock for now - in real app, you'd compare with previous period)
         const logsTrend = userStats.thisWeekLogs > 0 ? 
           Math.min(Math.round((userStats.thisWeekLogs / 7) * 10), 99) : 0;
         
         const projectsTrend = projectStats.active > 0 ? 
           Math.min(Math.round(projectStats.active * 5), 99) : 0;
 
-        // Update stats
         setQuickStats([
           { 
             label: 'Active Projects', 
@@ -113,7 +108,6 @@ export function useQuickStats() {
 
       } catch (error) {
         console.error('Error fetching quick stats:', error);
-        // Keep default values on error
       } finally {
         setIsLoading(false);
       }
@@ -123,72 +117,4 @@ export function useQuickStats() {
   }, [user, firestore]);
 
   return { quickStats, isLoading };
-}
-
-// Hook for more detailed stats used in dashboard
-export function useDetailedStats() {
-  const { user, firestore } = useFirebase();
-  const [stats, setStats] = useState({
-    totalLogs: 0,
-    totalProjects: 0,
-    totalDocuments: 0,
-    thisMonthLogs: 0,
-    thisWeekLogs: 0,
-    streakDays: 0,
-    longestStreak: 0,
-    projectStats: {
-      active: 0,
-      completed: 0,
-      paused: 0,
-      total: 0
-    },
-    recentActivity: [] as any[],
-  });
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    if (!user || !firestore) {
-      setIsLoading(false);
-      return;
-    }
-
-    // Initialize the stats service with Firestore
-    statsService.setFirestore(firestore);
-
-    const fetchDetailedStats = async () => {
-      try {
-        setIsLoading(true);
-        
-        // Get user stats
-        const userStats = await statsService.updateUserStats(user.uid);
-        
-        // Get project stats
-        const projectStats = await statsService.getProjectStats(user.uid);
-        
-        // Get recent activity
-        const recentActivity = await statsService.getRecentActivity(user.uid, 10);
-
-        setStats({
-          totalLogs: userStats.totalLogs,
-          totalProjects: userStats.totalProjects,
-          totalDocuments: userStats.totalDocuments,
-          thisMonthLogs: userStats.thisMonthLogs,
-          thisWeekLogs: userStats.thisWeekLogs,
-          streakDays: userStats.streakDays,
-          longestStreak: userStats.longestStreak,
-          projectStats,
-          recentActivity,
-        });
-
-      } catch (error) {
-        console.error('Error fetching detailed stats:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchDetailedStats();
-  }, [user, firestore]);
-
-  return { stats, isLoading };
 }
