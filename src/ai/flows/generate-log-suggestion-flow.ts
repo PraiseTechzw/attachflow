@@ -1,12 +1,11 @@
-
 'use server';
 
 import { ai } from '@/ai/genkit';
 import {
   GenerateLogSuggestionInputSchema,
   GenerateLogSuggestionOutputSchema,
-  GenerateLogSuggestionInput,
-  GenerateLogSuggestionOutput
+  type GenerateLogSuggestionInput,
+  type GenerateLogSuggestionOutput
 } from './generate-log-suggestion-flow-shared';
 
 const generateLogSuggestionPrompt = ai.definePrompt({

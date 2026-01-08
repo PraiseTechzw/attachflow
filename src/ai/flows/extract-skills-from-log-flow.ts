@@ -1,12 +1,11 @@
-
 'use server';
 
 import { ai } from '@/ai/genkit';
 import {
   ExtractSkillsInputSchema,
   ExtractSkillsOutputSchema,
-  ExtractSkillsInput,
-  ExtractSkillsOutput
+  type ExtractSkillsInput,
+  type ExtractSkillsOutput
 } from './extract-skills-from-log-flow-shared';
 
 const extractSkillsPrompt = ai.definePrompt({

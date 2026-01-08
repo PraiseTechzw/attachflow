@@ -1,12 +1,11 @@
-
 'use server';
 
 import { ai } from '@/ai/genkit';
 import {
   AnalyzeLogSentimentInputSchema,
   AnalyzeLogSentimentOutputSchema,
-  AnalyzeLogSentimentInput,
-  AnalyzeLogSentimentOutput
+  type AnalyzeLogSentimentInput,
+  type AnalyzeLogSentimentOutput
 } from './analyze-log-sentiment-flow-shared';
 
 const analyzeLogSentimentPrompt = ai.definePrompt({

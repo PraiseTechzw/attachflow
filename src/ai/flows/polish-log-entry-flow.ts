@@ -1,5 +1,5 @@
-
 'use server';
+
 /**
  * @fileOverview This file defines a Genkit flow for polishing a raw daily log entry
  * into a professional and well-written version.
@@ -11,13 +11,11 @@
  */
 
 import { ai } from '@/ai/genkit';
-
-
 import {
   PolishLogEntryInputSchema,
   PolishLogEntryOutputSchema,
-  PolishLogEntryInput,
-  PolishLogEntryOutput
+  type PolishLogEntryInput,
+  type PolishLogEntryOutput
 } from './polish-log-entry-flow-shared';
 
 const polishLogEntryPrompt = ai.definePrompt({

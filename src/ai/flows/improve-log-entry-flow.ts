@@ -1,12 +1,11 @@
-
 'use server';
 
 import { ai } from '@/ai/genkit';
 import {
   ImproveLogEntryInputSchema,
   ImproveLogEntryOutputSchema,
-  ImproveLogEntryInput,
-  ImproveLogEntryOutput
+  type ImproveLogEntryInput,
+  type ImproveLogEntryOutput
 } from './improve-log-entry-flow-shared';
 
 const improveLogEntryPrompt = ai.definePrompt({

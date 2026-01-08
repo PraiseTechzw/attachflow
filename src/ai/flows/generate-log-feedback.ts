@@ -1,12 +1,11 @@
-
 'use server';
 
 import { ai } from '@/ai/genkit';
 import {
   GenerateLogFeedbackInputSchema,
   GenerateLogFeedbackOutputSchema,
-  GenerateLogFeedbackInput,
-  GenerateLogFeedbackOutput
+  type GenerateLogFeedbackInput,
+  type GenerateLogFeedbackOutput
 } from './generate-log-feedback-shared';
 
 const generateLogFeedbackPrompt = ai.definePrompt({
