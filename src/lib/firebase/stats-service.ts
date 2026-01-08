@@ -58,6 +58,7 @@ export class StatsService {
       if (statsDoc.exists()) {
         return { userId, ...statsDoc.data() } as UserStats;
       }
+      
       // If no stats doc exists, create one by calculating from scratch.
       // This handles new user creation gracefully.
       return this.updateUserStats(userId);

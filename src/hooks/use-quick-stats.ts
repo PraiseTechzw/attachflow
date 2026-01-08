@@ -33,7 +33,7 @@ export function useQuickStats() {
     return doc(firestore, `users/${user.uid}/stats`, 'summary');
   }, [user, firestore]);
 
-  const { data: userStats, isLoading } = useDoc<UserStats>(statsDocRef);
+  const { data: userStats, isLoading, error } = useDoc<UserStats>(statsDocRef);
 
   useEffect(() => {
     if (userStats) {
@@ -74,10 +74,13 @@ export function useQuickStats() {
         },
       ]);
     } else if (!isLoading) {
-      // If there are no stats, show zeros but don't show loading.
+      // If there are no stats (e.g., new user) or an error occurred, show zeros.
       setQuickStats(initialStats);
+      if (error) {
+          console.error("Error fetching quick stats:", error);
+      }
     }
-  }, [userStats, isLoading]);
+  }, [userStats, isLoading, error]);
 
   return { quickStats, isLoading };
 }
