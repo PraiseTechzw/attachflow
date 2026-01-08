@@ -1,7 +1,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { SidebarProvider, Sidebar } from '@/components/ui/sidebar';
 import { SidebarNav } from '@/components/layout/sidebar-nav';
@@ -14,9 +14,11 @@ import { Toaster } from '@/components/ui/toaster';
 import { ActivityLogger } from '@/components/logging/activity-logger';
 import { NotificationPermissionRequester } from '@/components/notifications/NotificationPermissionRequester';
 import { useUserProfile } from '@/hooks/use-user-profile';
+import { doc, getDoc } from 'firebase/firestore';
+import { statsService } from '@/lib/firebase/stats-service';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, isUserLoading } = useFirebase();
+  const { user, isUserLoading, firestore } = useFirebase();
   const { userProfile, isLoading: isProfileLoading } = useUserProfile();
   const router = useRouter();
   const pathname = usePathname();
@@ -24,6 +26,25 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [isMobileSidebarOpen, setMobileSidebarOpen] = React.useState(false);
 
   const isLoading = isUserLoading || isProfileLoading;
+
+  useEffect(() => {
+    // This effect ensures the stats document exists for the current user.
+    const ensureStatsDocExists = async () => {
+      if (user && firestore) {
+        const statsDocRef = doc(firestore, `users/${user.uid}/stats`, 'summary');
+        const statsDoc = await getDoc(statsDocRef);
+
+        if (!statsDoc.exists()) {
+          console.log('Stats document not found for existing user. Creating now...');
+          statsService.setFirestore(firestore);
+          await statsService.createInitialStats(user.uid);
+          console.log('Stats document created.');
+        }
+      }
+    };
+
+    ensureStatsDocExists();
+  }, [user, firestore]);
 
   if (isLoading) {
     return (
