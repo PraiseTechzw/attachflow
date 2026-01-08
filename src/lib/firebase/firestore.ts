@@ -5,7 +5,8 @@ import { initializeFirebase } from '@/firebase';
 import type { UserProfile, DailyLog, Project, Document } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 
-const { firestore, storage } = initializeFirebase();
+const { firestore } = initializeFirebase();
+const { storage } = initializeFirebase();
 
 // User Profile Functions
 export const createUserProfile = async (uid: string, data: Partial<Omit<UserProfile, 'createdAt'>>) => {
