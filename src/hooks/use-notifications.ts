@@ -34,7 +34,7 @@ const triggerBrowserNotification = (title: string, description: string) => {
   }
   new Notification(title, {
     body: description,
-    icon: '/logo.svg' // Make sure you have a logo file at this path in your public folder
+    icon: '/logo.png' // Use a .png or other standard image format for better compatibility
   });
 };
 

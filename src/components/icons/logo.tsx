@@ -1,3 +1,4 @@
+
 import { cn } from "@/lib/utils";
 import React from "react";
 
@@ -11,7 +12,7 @@ export const Logo = ({ className, ...props }: React.SVGProps<SVGSVGElement>) => 
     <defs>
       <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
         <stop offset="0%" style={{ stopColor: "hsl(var(--primary))", stopOpacity: 1 }} />
-        <stop offset="100%" style={{ stopColor: "hsl(var(--accent))", stopOpacity: 1 }} />
+        <stop offset="100%" style={{ stopColor: "hsl(var(--chart-4))", stopOpacity: 1 }} />
       </linearGradient>
     </defs>
     <path d="M10 40 L30 10 L50 40 M30 10 L30 25" fill="none" stroke="url(#grad1)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
