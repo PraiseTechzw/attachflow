@@ -2,10 +2,13 @@
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 
+const STABLE_FLASH_MODEL = 'googleai/gemini-1.5-flash-001';
+const STABLE_PRO_MODEL = 'googleai/gemini-1.5-pro-001';
+
 // Configure the main AI instance with proper error handling
 export const ai = genkit({
   plugins: [googleAI()],
-  model: 'm"gemini-3-flash-preview', // Stable and reliable model
+  model: STABLE_FLASH_MODEL, // Stable and reliable model
 });
 
 // ============================================
@@ -15,16 +18,16 @@ export const ai = genkit({
 // 1. GEMINI 1.5 FLASH (RECOMMENDED - Fast & Reliable)
 export const flashAI = genkit({
   plugins: [googleAI()],
-  model: 'gemini-1.5-flash',
+  model: STABLE_FLASH_MODEL,
 });
 
 // 2. GEMINI 1.5 PRO (Best for Complex Tasks)
 export const proAI = genkit({
   plugins: [googleAI()],
-  model: 'googleai/gemini-1.5-pro',
+  model: STABLE_PRO_MODEL,
 });
 
-// 3. GEMINI 1.5 FLASH-8B (Ultra-Fast, Lightweight)
+// 3. GEMINI 1.5 FLASH-8B (Ultra-Fast, Lightweight) - Assuming this model exists, if not, fallback to flash
 export const flash8bAI = genkit({
   plugins: [googleAI()],
   model: 'googleai/gemini-1.5-flash-8b',
@@ -51,7 +54,7 @@ export const creativeAI = genkit({
   plugins: [googleAI({
     apiKey: process.env.GEMINI_API_KEY,
   })],
-  model: 'googleai/gemini-1.5-flash',
+  model: STABLE_FLASH_MODEL,
 });
 
 // Deterministic/Precise Configuration
@@ -59,7 +62,7 @@ export const preciseAI = genkit({
   plugins: [googleAI({
     apiKey: process.env.GEMINI_API_KEY,
   })],
-  model: 'googleai/gemini-1.5-pro',
+  model: STABLE_PRO_MODEL,
 });
 
 // Long Context Configuration (for large documents)
@@ -67,7 +70,7 @@ export const longContextAI = genkit({
   plugins: [googleAI({
     apiKey: process.env.GEMINI_API_KEY,
   })],
-  model: 'googleai/gemini-1.5-pro',
+  model: STABLE_PRO_MODEL,
 });
 
 // Code Generation Configuration
@@ -75,7 +78,7 @@ export const codeAI = genkit({
   plugins: [googleAI({
     apiKey: process.env.GEMINI_API_KEY,
   })],
-  model: 'googleai/gemini-1.5-flash',
+  model: STABLE_FLASH_MODEL,
 });
 
 // Quick Response Configuration (fastest)
@@ -194,7 +197,7 @@ export async function generateStructured<T>(
 // ============================================
 
 export const MODEL_SPECS = {
-  'gemini-1.5-flash': {
+  'gemini-1.5-flash-001': {
     speed: 'Very Fast',
     quality: 'Excellent',
     contextWindow: '1M tokens',
@@ -202,7 +205,7 @@ export const MODEL_SPECS = {
     costEfficiency: 'High',
     status: 'Stable',
   },
-  'gemini-1.5-pro': {
+  'gemini-1.5-pro-001': {
     speed: 'Medium',
     quality: 'Exceptional',
     contextWindow: '2M tokens',
