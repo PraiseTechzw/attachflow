@@ -20,7 +20,7 @@ export interface QuickStat {
 
 const initialStats: QuickStat[] = [
     { label: 'Active Projects', value: '0', icon: FolderKanban, color: 'text-blue-500' },
-    { label: 'This Month', value: '0', icon: Calendar, color: 'text-green-500' },
+    { label: 'This Week', value: '0', icon: Calendar, color: 'text-green-500' },
     { label: 'Total Logs', value: '0', icon: Activity, color: 'text-purple-500' },
     { label: 'Documents', value: '0', icon: FileText, color: 'text-orange-500' },
 ];
@@ -34,77 +34,61 @@ export function useQuickStats() {
     return doc(firestore, `users/${user.uid}/stats`, 'summary');
   }, [user, firestore]);
 
-  const { data: userStats, isLoading, error } = useDoc<UserStats>(statsDocRef);
+  const { data: userStats, isLoading: isStatsLoading, error: statsError } = useDoc<UserStats>(statsDocRef);
 
   useEffect(() => {
-    // This effect ensures the stats document exists for the current user.
-    const ensureStatsDocExists = async () => {
-      if (user && !isLoading && !userStats && !error) {
-        console.log("Stats document not found for user, creating one...");
-        try {
+    const ensureAndFetchStats = async () => {
+      if (user && !isStatsLoading) {
+        if (!userStats) {
+          // If doc doesn't exist, create it. `useDoc` will refetch.
+          console.log("Stats document not found, creating...");
           statsService.setFirestore(firestore);
           await statsService.createInitialStats(user.uid);
-          // The useDoc hook will automatically pick up the new document.
-        } catch (e) {
-          console.error("Failed to create initial stats document:", e);
+        } else {
+          // If doc exists, format it for the UI
+          const logsTrend = userStats.thisWeekLogs > 0 ? Math.min(Math.round((userStats.thisWeekLogs / 7) * 100), 99) : 0;
+          const projectsTrend = userStats.totalProjects > 0 ? Math.min(userStats.totalProjects * 10, 99) : 0;
+          
+          setQuickStats([
+            { 
+              label: 'Active Projects', 
+              value: userStats.totalProjects.toString(), 
+              icon: FolderKanban, 
+              color: 'text-blue-500',
+              trend: { value: projectsTrend, isPositive: userStats.totalProjects > 0 }
+            },
+            { 
+              label: 'This Week', 
+              value: userStats.thisWeekLogs.toString(), 
+              icon: Calendar, 
+              color: 'text-green-500',
+              trend: { value: logsTrend, isPositive: true }
+            },
+            { 
+              label: 'Total Logs', 
+              value: userStats.totalLogs.toString(), 
+              icon: Activity, 
+              color: 'text-purple-500',
+              trend: { value: Math.min(userStats.streakDays || 0, 99), isPositive: (userStats.streakDays || 0) > 0 }
+            },
+            { 
+              label: 'Documents', 
+              value: userStats.totalDocuments.toString(), 
+              icon: FileText, 
+              color: 'text-orange-500',
+              trend: { value: Math.min(Math.round(userStats.totalDocuments * 10), 99), isPositive: userStats.totalDocuments > 0 }
+            },
+          ]);
         }
       }
     };
-    ensureStatsDocExists();
-  }, [user, firestore, isLoading, userStats, error]);
+    
+    ensureAndFetchStats();
+  }, [user, firestore, userStats, isStatsLoading]);
 
+  if (statsError) {
+    console.error("Error loading quick stats:", statsError);
+  }
 
-  useEffect(() => {
-    if (isLoading) {
-      // While loading, we can show skeleton state or stick to initial
-      return;
-    }
-
-    if (userStats) {
-      const logsTrend = userStats.thisWeekLogs > 0 ? 
-          Math.min(Math.round((userStats.thisWeekLogs / 7) * 10), 99) : 0;
-      
-      const projectsTrend = userStats.totalProjects > 0 ? 
-        Math.min(Math.round(userStats.totalProjects * 5), 99) : 0;
-
-      setQuickStats([
-        { 
-          label: 'Active Projects', 
-          value: userStats.totalProjects.toString(), 
-          icon: FolderKanban, 
-          color: 'text-blue-500',
-          trend: { value: projectsTrend, isPositive: userStats.totalProjects > 0 }
-        },
-        { 
-          label: 'This Month', 
-          value: userStats.thisMonthLogs.toString(), 
-          icon: Calendar, 
-          color: 'text-green-500',
-          trend: { value: logsTrend, isPositive: true }
-        },
-        { 
-          label: 'Total Logs', 
-          value: userStats.totalLogs.toString(), 
-          icon: Activity, 
-          color: 'text-purple-500',
-          trend: { value: Math.min(userStats.streakDays || 0, 99), isPositive: (userStats.streakDays || 0) > 0 }
-        },
-        { 
-          label: 'Documents', 
-          value: userStats.totalDocuments.toString(), 
-          icon: FileText, 
-          color: 'text-orange-500',
-          trend: { value: Math.min(Math.round(userStats.totalDocuments * 2), 99), isPositive: userStats.totalDocuments > 0 }
-        },
-      ]);
-    } else {
-      // If there are no stats or an error occurred, show zeros.
-      setQuickStats(initialStats);
-      if (error) {
-          console.error("Error fetching quick stats:", error.message);
-      }
-    }
-  }, [userStats, isLoading, error]);
-
-  return { quickStats, isLoading };
+  return { quickStats, isLoading: isStatsLoading };
 }
