@@ -142,11 +142,11 @@ export interface MonthlyReport {
     status: 'Draft' | 'Finalized';
     lastUpdated: any; // Firestore Timestamp
     // AI Generated content
-    introduction?: string;
-    duties?: string;
-    problems?: string;
-    analysis?: string;
-    conclusion?: string;
+    introduction: string;
+    duties: string;
+    problems: string;
+    analysis: string;
+    conclusion: string;
 }
 
 export interface PolishLogEntryOutput {
