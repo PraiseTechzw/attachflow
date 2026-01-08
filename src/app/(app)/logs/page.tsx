@@ -74,7 +74,7 @@ export default function LogsPage() {
                     <Loader2 className="h-12 w-12 animate-spin text-primary" />
                 </div>
             ) : logs && logs.length > 0 ? (
-                <Accordion type="single" collapsible className="w-full" defaultValue={sortedWeeks[0]}>
+                <Accordion type="single" collapsible className="w-full" defaultValue={sortedWeeks.length > 0 ? sortedWeeks[0] : undefined}>
                     {sortedWeeks.map(week => (
                         <AccordionItem value={week} key={week}>
                             <AccordionTrigger className="text-lg font-semibold">{week}</AccordionTrigger>
