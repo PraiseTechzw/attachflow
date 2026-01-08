@@ -1,97 +1,38 @@
-// Test file for AI configuration
-// Run this to verify your AI setup is working
+'use server';
+import { config } from 'dotenv';
+config();
 
-import { generateText, getAIForTask, MODEL_SPECS } from './genkit';
+import { ai } from '@/ai/genkit';
+import { genkit } from 'genkit';
+import { googleAI } from '@genkit-ai/google-genai';
 
-/**
- * Test basic AI functionality
- */
-export async function testBasicAI() {
-  try {
-    console.log('Testing basic AI generation...');
-    const response = await generateText('Say hello in a friendly way');
-    console.log('✅ Basic AI test successful:', response);
-    return true;
-  } catch (error) {
-    console.error('❌ Basic AI test failed:', error);
-    return false;
-  }
-}
-
-/**
- * Test different AI models
- */
-export async function testDifferentModels() {
-  const tests = [
-    { name: 'Quick AI', model: 'quick' },
-    { name: 'Code AI', model: 'code' },
-    { name: 'Creative AI', model: 'creative' },
-  ];
-
-  for (const test of tests) {
-    try {
-      console.log(`Testing ${test.name}...`);
-      const response = await generateText('Write a short greeting', { model: test.model });
-      console.log(`✅ ${test.name} test successful:`, response.substring(0, 100) + '...');
-    } catch (error) {
-      console.error(`❌ ${test.name} test failed:`, error);
-    }
-  }
-}
-
-/**
- * Test task-specific AI
- */
-export async function testTaskSpecificAI() {
-  try {
-    console.log('Testing task-specific AI...');
-    const codeAI = getAIForTask('code');
-    const response = await codeAI.generate({
-      prompt: 'Write a simple TypeScript function that adds two numbers',
-      config: { temperature: 0.3, maxOutputTokens: 500 }
-    });
-    console.log('✅ Task-specific AI test successful:', response.text().substring(0, 100) + '...');
-    return true;
-  } catch (error) {
-    console.error('❌ Task-specific AI test failed:', error);
-    return false;
-  }
-}
-
-/**
- * Display model specifications
- */
-export function displayModelSpecs() {
-  console.log('\n📊 Available AI Models:');
-  console.log('========================');
+async function runTest() {
+  console.log('Running AI configuration test...');
   
-  Object.entries(MODEL_SPECS).forEach(([model, specs]) => {
-    console.log(`\n🤖 ${model}:`);
-    console.log(`   Speed: ${specs.speed}`);
-    console.log(`   Quality: ${specs.quality}`);
-    console.log(`   Context: ${specs.contextWindow}`);
-    console.log(`   Best for: ${specs.bestFor}`);
-    console.log(`   Cost: ${specs.costEfficiency}`);
-    console.log(`   Status: ${specs.status}`);
+  // Use a separate instance for testing to ensure config is clean
+  const testAi = genkit({
+    plugins: [googleAI({ apiKey: process.env.GEMINI_API_KEY })],
   });
+
+  try {
+    const response = await testAi.generate({
+      model: 'googleai/gemini-pro',
+      prompt: 'Say "Hello, World!" in a friendly and encouraging tone.',
+      config: {
+        temperature: 0.7,
+      },
+    });
+
+    console.log('✅ AI Test Successful!');
+    console.log('Model Response:', response.text);
+    console.log('\nYour API key and model configuration are working correctly.');
+  } catch (error) {
+    console.error('❌ AI Test Failed!');
+    console.error('There was an error connecting to the AI model. Please check the following:');
+    console.error('1. Ensure you have replaced "YOUR_API_KEY_HERE" in the .env file with your actual Gemini API key.');
+    console.error('2. Verify that your API key is valid and has the necessary permissions.');
+    console.error('Full error details:', error);
+  }
 }
 
-/**
- * Run all tests
- */
-export async function runAllTests() {
-  console.log('🚀 Starting AI Configuration Tests...\n');
-  
-  displayModelSpecs();
-  
-  console.log('\n🧪 Running functionality tests...');
-  
-  await testBasicAI();
-  await testDifferentModels();
-  await testTaskSpecificAI();
-  
-  console.log('\n✅ AI Configuration tests completed!');
-}
-
-// Uncomment to run tests
-// runAllTests();
+runTest();
