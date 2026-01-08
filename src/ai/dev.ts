@@ -1,3 +1,4 @@
+
 'use server';
 import { config } from 'dotenv';
 config();
@@ -10,3 +11,4 @@ import '@/ai/flows/generate-monthly-report-flow.ts';
 import '@/ai/flows/polish-log-entry-flow.ts';
 import '@/ai/flows/analyze-log-sentiment-flow.ts';
 import '@/ai/flows/improve-log-entry-flow.ts';
+import '@/ai/flows/summarize-document-flow.ts';
