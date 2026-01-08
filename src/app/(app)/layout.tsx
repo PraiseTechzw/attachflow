@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -11,6 +12,7 @@ import { Loader2, Menu } from 'lucide-react';
 import { useFirebase } from '@/firebase';
 import { Toaster } from '@/components/ui/toaster';
 import { ActivityLogger } from '@/components/logging/activity-logger';
+import { NotificationPermissionRequester } from '@/components/notifications/NotificationPermissionRequester';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useFirebase();
@@ -101,6 +103,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </div>
       <Toaster />
+      <NotificationPermissionRequester />
     </SidebarProvider>
     </ActivityLogger>
   );
