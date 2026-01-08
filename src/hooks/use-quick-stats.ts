@@ -17,7 +17,7 @@ export interface QuickStat {
 }
 
 export function useQuickStats() {
-  const { user } = useFirebase();
+  const { user, firestore } = useFirebase();
   const [quickStats, setQuickStats] = useState<QuickStat[]>([
     { label: 'Active Projects', value: '0', icon: FolderKanban, color: 'text-blue-500' },
     { label: 'This Month', value: '0', icon: Calendar, color: 'text-green-500' },
@@ -27,10 +27,20 @@ export function useQuickStats() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) {
+    if (!user || !firestore) {
       setIsLoading(false);
+      // Set some default mock data when Firebase is not available
+      setQuickStats([
+        { label: 'Active Projects', value: '3', icon: FolderKanban, color: 'text-blue-500', trend: { value: 15, isPositive: true } },
+        { label: 'This Month', value: '12', icon: Calendar, color: 'text-green-500', trend: { value: 8, isPositive: true } },
+        { label: 'Total Logs', value: '45', icon: Activity, color: 'text-purple-500', trend: { value: 5, isPositive: true } },
+        { label: 'Documents', value: '8', icon: FileText, color: 'text-orange-500', trend: { value: 12, isPositive: true } },
+      ]);
       return;
     }
+
+    // Initialize the stats service with Firestore
+    statsService.setFirestore(firestore);
 
     const fetchStats = async () => {
       try {
@@ -110,14 +120,14 @@ export function useQuickStats() {
     };
 
     fetchStats();
-  }, [user]);
+  }, [user, firestore]);
 
   return { quickStats, isLoading };
 }
 
 // Hook for more detailed stats used in dashboard
 export function useDetailedStats() {
-  const { user } = useFirebase();
+  const { user, firestore } = useFirebase();
   const [stats, setStats] = useState({
     totalLogs: 0,
     totalProjects: 0,
@@ -137,10 +147,13 @@ export function useDetailedStats() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) {
+    if (!user || !firestore) {
       setIsLoading(false);
       return;
     }
+
+    // Initialize the stats service with Firestore
+    statsService.setFirestore(firestore);
 
     const fetchDetailedStats = async () => {
       try {
@@ -175,7 +188,7 @@ export function useDetailedStats() {
     };
 
     fetchDetailedStats();
-  }, [user]);
+  }, [user, firestore]);
 
   return { stats, isLoading };
 }

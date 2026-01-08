@@ -6,22 +6,24 @@ import { statsService } from '@/lib/firebase/stats-service';
 import { notificationHelpers } from '@/hooks/use-notifications';
 
 export function useStatsUpdater() {
-  const { user } = useFirebase();
+  const { user, firestore } = useFirebase();
 
   const updateStats = useCallback(async () => {
-    if (!user) return;
+    if (!user || !firestore) return;
     
     try {
+      statsService.setFirestore(firestore);
       await statsService.updateUserStats(user.uid);
     } catch (error) {
       console.error('Error updating stats:', error);
     }
-  }, [user]);
+  }, [user, firestore]);
 
   const incrementLogCount = useCallback(async () => {
-    if (!user) return;
+    if (!user || !firestore) return;
     
     try {
+      statsService.setFirestore(firestore);
       await statsService.incrementStat(user.uid, 'totalLogs');
       notificationHelpers.success(
         'Log Entry Created',
@@ -31,12 +33,13 @@ export function useStatsUpdater() {
     } catch (error) {
       console.error('Error incrementing log count:', error);
     }
-  }, [user]);
+  }, [user, firestore]);
 
   const incrementProjectCount = useCallback(async () => {
-    if (!user) return;
+    if (!user || !firestore) return;
     
     try {
+      statsService.setFirestore(firestore);
       await statsService.incrementStat(user.uid, 'totalProjects');
       notificationHelpers.success(
         'Project Created',
@@ -46,12 +49,13 @@ export function useStatsUpdater() {
     } catch (error) {
       console.error('Error incrementing project count:', error);
     }
-  }, [user]);
+  }, [user, firestore]);
 
   const incrementDocumentCount = useCallback(async () => {
-    if (!user) return;
+    if (!user || !firestore) return;
     
     try {
+      statsService.setFirestore(firestore);
       await statsService.incrementStat(user.uid, 'totalDocuments');
       notificationHelpers.success(
         'Document Uploaded',
@@ -61,7 +65,7 @@ export function useStatsUpdater() {
     } catch (error) {
       console.error('Error incrementing document count:', error);
     }
-  }, [user]);
+  }, [user, firestore]);
 
   return {
     updateStats,
