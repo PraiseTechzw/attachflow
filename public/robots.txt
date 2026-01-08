@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Host
+Host: https://attachflow.com
+
+# Sitemaps
+Sitemap: https://attachflow.com/sitemap.xml
