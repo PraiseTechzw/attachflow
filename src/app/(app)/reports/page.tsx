@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase } from '@/firebase';
 import { collection, query, getDocs, orderBy } from 'firebase/firestore';
-import type { Project, MonthlyReport, FinalReportAIStructure } from '@/types';
+import type { Project, MonthlyReport, DailyLog, FinalReportAIStructure } from '@/types';
 import { Packer } from 'docx';
 import { saveAs } from 'file-saver';
 import { generateFinalReportDoc } from '@/lib/docx-generator';
@@ -59,7 +59,7 @@ export default function ReportsPage() {
 
         // For simplicity, we'll use the first project found.
         const project = projectSnapshot.docs[0]?.data() as Project | undefined;
-        const logs = logSnapshot.docs.map(doc => doc.data());
+        const logs = logSnapshot.docs.map(doc => doc.data() as DailyLog);
 
         if (!project) {
             toast({ title: 'No Project Found', description: 'Create a project before generating a final report.' });
@@ -69,9 +69,18 @@ export default function ReportsPage() {
 
         toast({ title: "AI is structuring your report...", description: "This might take a moment. Please wait." });
 
+        // Map logs to the simplified schema expected by the AI flow
+        const mappedLogs = logs.map(log => ({
+          content: log.content ?? log.activitiesRaw ?? '',
+          date: log.date
+        }));
+
         const aiGeneratedContent = await generateFinalReport({
-            project,
-            logs,
+            project: {
+                title: project.title,
+                description: project.description,
+            },
+            logs: mappedLogs,
             studentName: userProfile.displayName || 'Student',
         });
         

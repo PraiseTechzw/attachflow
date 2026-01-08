@@ -27,10 +27,10 @@ export type MonthlyReportInput = z.infer<typeof MonthlyReportInputSchema>;
 
 // Define the output schema for the flow
 export const MonthlyReportOutputSchema = z.object({
-  introduction: z.string().describe('A summary introduction for the month. If provided, it should continue from the previous month\'s conclusion. It should cover the main themes and achievements of the month.'),
+  introduction: z.string().describe('A summary introduction for the month. It should cover the main themes and achievements of the month and show continuation from the previous month if its conclusion is provided.'),
   duties: z.string().describe('A summarized paragraph of all relevant duties and activities performed during the month, written in a professional tone.'),
   problems: z.string().describe('A bulleted or numbered list of specific problems and challenges encountered, extracted directly from the logs. If no challenges are mentioned, state that.'),
-  analysis: z.string().describe('An analysis of the problems encountered, discussing their impact on the project or learning process. If no problems, this can be a general reflection.'),
+  analysis: z.string().describe('An analysis of the problems encountered, discussing their impact on the project or learning process. If no problems, this can be a general reflection on why the month went smoothly.'),
   conclusion: z.string().describe('A concise conclusion summarizing the months achievements and setting the stage for the next month.'),
 });
 export type MonthlyReportOutput = z.infer<typeof MonthlyReportOutputSchema>;
@@ -39,15 +39,15 @@ const generateMonthlyReportPrompt = ai.definePrompt({
   name: 'generateMonthlyReportPrompt',
   input: { schema: MonthlyReportInputSchema },
   output: { schema: MonthlyReportOutputSchema },
-  prompt: `You are an AI assistant tasked with creating a draft for a student's monthly industrial attachment report, following Chinhoyi University of Technology (CUT) guidelines.
+  prompt: `You are an AI assistant creating a student's monthly industrial attachment report based on Chinhoyi University of Technology (CUT) guidelines.
 
 Analyze the provided daily logs for the month and generate content for the following five sections:
 
-1.  **Introduction / Summary**: Write a summary of the month's work. {{#if previousConclusion}}Start by reflecting on the conclusion of the previous month: "{{previousConclusion}}".{{/if}} Briefly introduce the key themes, projects, or major milestones achieved during this month.
-2.  **Relevant Duties and Activities**: Synthesize all the log entries into a cohesive summary. Describe the tasks performed, technologies used, and progress made. Write it as a professional narrative.
-3.  **Problems Encountered**: Scan the logs for any mention of "challenges," "issues," "errors," "bugs," or "problems." List them clearly. If none are found, state "No significant problems were encountered this month."
-4.  **Analysis of Problems**: Based on the problems you identified, provide a brief analysis. What was the impact of these issues? How were they resolved? This should reflect critical thinking. If there were no problems, provide a short reflection on why the month went smoothly.
-5.  **Conclusion**: Write a brief, forward-looking conclusion. Summarize the key accomplishments and state what the focus for the next month will likely be.
+1.  **Introduction/Summary**: Write a summary of the month's work. {{#if previousConclusion}}It must show continuation from the previous month's conclusion, which was: "{{previousConclusion}}".{{/if}} Introduce the key themes, projects, and major milestones achieved this month.
+2.  **Relevant Duties and/or Activities**: Synthesize all log entries into a cohesive narrative detailing tasks performed, technologies used, and progress made.
+3.  **Problems**: Scan the logs for mentions of "challenges," "issues," "errors," "bugs," or "problems." List them clearly. If none are found, state "No significant problems were encountered this month."
+4.  **Analysis**: Analyze the problems identified. Discuss their impact and how they were resolved. If there were no problems, provide a short reflection on why the month went smoothly.
+5.  **Conclusion**: Write a brief, forward-looking conclusion summarizing key accomplishments and stating the likely focus for the next month.
 
 **Daily Logs for the Month:**
 {{#each logs}}

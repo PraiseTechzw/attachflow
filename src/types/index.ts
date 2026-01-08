@@ -120,16 +120,11 @@ export interface Document {
 }
 
 
-export interface ReportChapter {
-    title: string;
-    summary: string;
-}
-
 export interface FinalReportAIStructure {
     introduction: string;
-    chapters: ReportChapter[];
+    mainBody: string;
+    conclusionAndRecommendations: string;
     technologiesUsed: string[];
-    conclusion: string;
 }
 
 export interface Skill {

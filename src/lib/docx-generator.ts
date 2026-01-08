@@ -3,7 +3,7 @@ import type { Project, FinalReportAIStructure } from "@/types";
 import { format } from "date-fns";
 
 export const generateFinalReportDoc = (
-    project: Project,
+    project: Pick<Project, 'title'>, // Only need title from project
     studentName: string,
     aiContent: FinalReportAIStructure
 ): Document => {
@@ -64,44 +64,35 @@ export const generateFinalReportDoc = (
                 alignment: AlignmentType.CENTER,
                 style: "normalPara"
             }),
+            new PageBreak(),
         ],
     });
 
-    doc.addSection({
-        children: [new PageBreak()]
-    });
 
     // --- MAIN CONTENT ---
     const createSection = (title: string, content: string | undefined, headingLevel: HeadingLevel = HeadingLevel.HEADING_1) => {
         if (!content) return [];
+        // Split content by newline and create paragraphs for each line
         const paragraphs = content.split('\n').filter(p => p.trim() !== '').map(p => new Paragraph({ text: p, style: "normalPara", spacing: { after: 150 } }));
         return [
             new Paragraph({
                 text: title,
                 heading: headingLevel,
-                spacing: { after: 200 }
+                spacing: { after: 200, before: 300 }
             }),
             ...paragraphs,
             new Paragraph({ text: "" }), // spacing
         ];
     }
     
-    // Abstract / Introduction
+    // Using the new AI structure
     const introSection = createSection("Introduction", aiContent.introduction);
-
-    // AI-Generated Chapters
-    const aiChapters = aiContent.chapters.flatMap(chapter => 
-        createSection(chapter.title, chapter.summary, HeadingLevel.HEADING_2)
-    );
-    
-    const dutiesSection = [
-        new Paragraph({ text: "Duties and Responsibilities", heading: HeadingLevel.HEADING_1, spacing: { after: 200 }}),
-        ...aiChapters
-    ];
+    const mainBodySection = createSection("Main Body", aiContent.mainBody);
+    const conclusionSection = createSection("Conclusion and Recommendations", aiContent.conclusionAndRecommendations);
 
     // Technologies Used
     const technologiesSection = [
-        new Paragraph({ text: "Technologies Used", heading: HeadingLevel.HEADING_1, spacing: { after: 200 } }),
+        new Paragraph({ text: "Technologies Used", heading: HeadingLevel.HEADING_1, spacing: { after: 200, before: 300 } }),
         ...aiContent.technologiesUsed.map(tech => new Paragraph({
             text: tech,
             bullet: { level: 0 },
@@ -110,29 +101,12 @@ export const generateFinalReportDoc = (
          new Paragraph({ text: "" }),
     ];
 
-    // Conclusion
-    const conclusionSection = createSection("Conclusion", aiContent.conclusion);
-
-    // Detailed project sections from the form
-    const detailedProjectSections = [
-        ...createSection("Project Background", project.introduction_background),
-        ...createSection("Problem Definition", project.introduction_problemDefinition),
-        ...createSection("Project Justification", project.introduction_justification),
-        ...createSection("Feasibility Study", `${project.planning_feasibility_technical}\n${project.planning_feasibility_operational}\n${project.planning_feasibility_economic}`),
-        ...createSection("System Analysis", `${project.analysis_currentSystem}\n${project.analysis_processData}\n${project.analysis_weaknesses}`),
-        ...createSection("System Requirements", `Functional:\n${project.analysis_functionalRequirements}\n\nNon-Functional:\n${project.analysis_nonFunctionalRequirements}`),
-        ...createSection("System Design", `${project.design_system}\n${project.design_architectural}`),
-        ...createSection("Implementation Details", project.implementation_coding),
-        ...createSection("Testing Strategy", `${project.implementation_testing_unit}\n${project.implementation_testing_modular}\n${project.implementation_testing_acceptance}`),
-    ];
-
 
     doc.addSection({
         children: [
             ...introSection,
-            ...dutiesSection,
+            ...mainBodySection,
             ...technologiesSection,
-            ...detailedProjectSections,
             ...conclusionSection
         ]
     });
