@@ -23,9 +23,10 @@ import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import type { Project } from "@/types";
 import { useFirebase } from "@/firebase";
 import { useRouter } from "next/navigation";
-import { addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { collection, doc, serverTimestamp } from "firebase/firestore";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
+import { useStatsUpdater } from "@/hooks/use-stats-updater";
+import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 const projectFormSchema = z.object({
   title: z.string().min(5, { message: "Title must be at least 5 characters." }),
@@ -106,6 +107,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const { toast } = useToast();
   const router = useRouter();
+  const { incrementProjectCount } = useStatsUpdater();
 
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectFormSchema),
@@ -129,12 +131,13 @@ export function ProjectForm({ project }: ProjectFormProps) {
             toast({ title: "Project updated successfully!" });
         } else {
             const projectId = uuidv4();
-            const newProject = {
+            const projectRef = doc(firestore, `users/${user.uid}/projects`, projectId);
+            const newProject: Omit<Project, 'createdAt' | 'updatedAt'> & { createdAt: any, updatedAt: any } = {
                 id: projectId, ...data, userId: user.uid, status: 'Pending',
                 createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
             };
-            addDocumentNonBlocking(collection(firestore, `users/${user.uid}/projects`), newProject);
-            toast({ title: "Project created successfully!" });
+            await setDoc(projectRef, newProject);
+            await incrementProjectCount(); // This will also show a toast
         }
         router.push('/projects');
     } catch (error) {

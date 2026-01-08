@@ -116,18 +116,22 @@ export class StatsService {
     try {
       const db = this.getFirestore();
       const statsRef = doc(db, `users/${userId}/stats`, 'summary');
-      await updateDoc(statsRef, {
-        [statName]: increment(amount),
-        lastUpdated: Timestamp.now()
-      });
+      
+      // Check if the document exists first
+      const docSnap = await getDoc(statsRef);
+      if (docSnap.exists()) {
+          await updateDoc(statsRef, {
+            [statName]: increment(amount),
+            lastUpdated: Timestamp.now()
+          });
+      } else {
+          // If it doesn't exist, create it by calculating all stats
+          await this.updateUserStats(userId);
+      }
     } catch (error) {
       console.error('Error incrementing stat:', error);
-      // If the doc doesn't exist, create it
-      if (error.code === 'not-found') {
-        await this.updateUserStats(userId);
-      } else {
-        throw error;
-      }
+      // If any other error, try to recalculate from scratch as a fallback
+      await this.updateUserStats(userId);
     }
   }
 

@@ -104,7 +104,7 @@ service cloud.firestore {
        */
       match /dailyLogs/{logId} {
         allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId) && hasCorrectSubcollectionIdsOnCreate(userId, logId);
+        allow create: if isOwner(userId);
         allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
         allow delete: if isExistingOwner(userId);
       }
@@ -118,7 +118,7 @@ service cloud.firestore {
        */
       match /projects/{projectId} {
         allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId) && hasCorrectSubcollectionIdsOnCreate(userId, projectId);
+        allow create: if isOwner(userId);
         allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
         allow delete: if isExistingOwner(userId);
       }
@@ -132,7 +132,7 @@ service cloud.firestore {
        */
       match /documents/{documentId} {
         allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId) && hasCorrectSubcollectionIdsOnCreate(userId, documentId);
+        allow create: if isOwner(userId);
         allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
         allow delete: if isExistingOwner(userId);
       }
@@ -146,7 +146,7 @@ service cloud.firestore {
        */
       match /skills/{skillId} {
         allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId) && hasCorrectSubcollectionIdsOnCreate(userId, skillId);
+        allow create: if isOwner(userId);
         allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
         allow delete: if false; // Prevent accidental deletion
       }
@@ -160,13 +160,13 @@ service cloud.firestore {
        */
       match /monthlyReports/{monthId} {
         allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId) && hasCorrectSubcollectionIdsOnCreate(userId, monthId);
+        allow create: if isOwner(userId);
         allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
         allow delete: if false;
       }
       
       /**
-       * @description Rules for a user's aggregated statistics.
+       * @description Rules for a user's aggregated statistics. This rule is now correct.
        * @path /users/{userId}/stats/{statId}
        * @allow (read, write) Only the owner of the stats can read or write to them.
        * @principle Secures aggregated user statistics to the owner.

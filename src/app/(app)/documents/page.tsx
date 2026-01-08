@@ -17,15 +17,15 @@ import {
 import { Logo } from "@/components/icons/logo";
 import { useFirebase } from "@/firebase/provider";
 import { useCollection, useMemoFirebase } from "@/firebase";
-import { collection, doc, deleteDoc } from "firebase/firestore";
+import { collection, doc, deleteDoc, setDoc } from "firebase/firestore";
 import { useMemo, useRef, useState, useTransition } from "react";
 import type { Document } from "@/types";
-import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { v4 as uuidv4 } from "uuid";
 import { format } from "date-fns";
 import { summarizeDocument } from "@/ai/flows/summarize-document-flow";
+import { useStatsUpdater } from "@/hooks/use-stats-updater";
 
 // File type icons mapping
 const getFileIcon = (filename: string, mimeType: string) => {
@@ -78,6 +78,7 @@ export default function DocumentsPage() {
     const [summary, setSummary] = useState<string>('');
     const [isPending, startTransition] = useTransition();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const { incrementDocumentCount } = useStatsUpdater();
 
     const docsQuery = useMemoFirebase(() => {
         if (!user) return null;
@@ -137,12 +138,11 @@ export default function DocumentsPage() {
                     createdAt: new Date(),
                 };
                 
-                addDocumentNonBlocking(doc(firestore, `users/${user.uid}/documents`, documentId), newDoc);
+                const docRef = doc(firestore, `users/${user.uid}/documents`, documentId);
+                await setDoc(docRef, newDoc);
+
+                await incrementDocumentCount();
                 
-                toast({
-                    title: "Document Uploaded Successfully! 🎉",
-                    description: `${file.name} has been securely saved to your document library.`,
-                });
             } catch (error) {
                 console.error("Error saving document:", error);
                 toast({
