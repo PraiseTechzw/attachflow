@@ -53,11 +53,11 @@ export function AIFeedback({ log, studentGoals }: AIFeedbackProps) {
             const result = await generateLogFeedback({ logText: logText, studentGoals });
             setFeedback(result);
 
-            // Format and save the feedback to Firestore
-            const formattedFeedback = `Technical Depth: ${result.technicalDepth.score}/10 - ${result.technicalDepth.feedback}\n\nProfessional Tone: ${result.professionalTone.score}/10 - ${result.professionalTone.feedback}\n\nProblem-Solving Clarity: ${result.problemSolvingClarity.score}/10 - ${result.problemSolvingClarity.feedback}`;
+            // ONLY save the supervisor's short comment to Firestore
+            const supervisorComment = result.supervisorComment;
 
             const logRef = doc(firestore, `users/${user.uid}/dailyLogs`, log.id);
-            updateDocumentNonBlocking(logRef, { feedback: formattedFeedback });
+            updateDocumentNonBlocking(logRef, { feedback: supervisorComment });
 
             toast({
                 title: "Critique Generated & Saved",
@@ -82,7 +82,7 @@ export function AIFeedback({ log, studentGoals }: AIFeedbackProps) {
             });
             // Use setValue from react-hook-form to update the parent form's field
             form.setValue('activitiesRaw', result.improvedContent, { shouldValidate: true, shouldDirty: true });
-        } catch (err) {
+        } catch (err) => {
             setError("Failed to improve the log. Please try again.");
             console.error(err);
         } finally {
@@ -115,7 +115,7 @@ export function AIFeedback({ log, studentGoals }: AIFeedbackProps) {
                 )}
                  {!isLoading && !feedback && !error && log.feedback && (
                     <div className="space-y-4 text-sm text-muted-foreground">
-                        <p className="font-semibold">Previous Feedback:</p>
+                        <p className="font-semibold">Supervisor's Comment:</p>
                         <p className="whitespace-pre-wrap border-l-2 border-primary pl-3">{log.feedback}</p>
                     </div>
                 )}
