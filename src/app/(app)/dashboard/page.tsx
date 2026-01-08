@@ -1,7 +1,23 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlusCircle, Book, FolderKanban, Loader2, Info, Cloud, AlertCircle, TrendingUp, Award, Target, Sparkles, Brain, Code, Zap } from "lucide-react";
+import { 
+  PlusCircle, Book, FolderKanban, Loader2, Info, Cloud, AlertCircle, TrendingUp, Award, Target, Sparkles, Brain, Code, Zap,
+  // Programming Languages
+  FileCode2, Terminal, Braces, Hash, Coffee, Gem, 
+  // Frontend Technologies
+  Palette, Layout, Smartphone, Monitor, Paintbrush, Eye, MousePointer, Layers,
+  // Backend Technologies
+  Server, Database, Globe, Shield, Key, Cpu, HardDrive, Network,
+  // Databases
+  Archive, Table, Search, Lock, FileSpreadsheet, Cylinder,
+  // DevOps & Tools
+  Container, Cloud as CloudIcon, Settings, Wrench, GitBranch, Package, Rocket, Activity,
+  // Design & UI
+  Figma, Pen, Image, Crop, Type, Grid, Brush, Scissors,
+  // General Tech
+  Laptop, Wifi, Bug, TestTube, FileText, Folder, Download, Upload
+} from "lucide-react";
 import Link from "next/link";
 import {
   ChartContainer,
