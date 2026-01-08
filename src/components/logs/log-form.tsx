@@ -1,7 +1,8 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, FormProvider } from "react-hook-form";
+import { useForm, useFormContext } from "react-hook-form";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,13 +50,7 @@ export function LogForm({ log, suggestion }: LogFormProps) {
   const { toast } = useToast();
   const router = useRouter();
 
-  const form = useForm<LogFormValues>({
-    resolver: zodResolver(logFormSchema),
-    defaultValues: {
-      activitiesRaw: log?.activitiesRaw || "",
-      activitiesProfessional: log?.activitiesProfessional || "",
-    },
-  });
+  const form = useFormContext<LogFormValues>();
 
   const handlePolish = async () => {
     const rawContent = form.getValues("activitiesRaw");
@@ -101,8 +96,7 @@ export function LogForm({ log, suggestion }: LogFormProps) {
           // In a batched write, we can't read first, so we use increment.
           // This requires a more complex transaction if we need to set initial value.
           // For simplicity here, we assume a transaction in a real scenario
-          // or handle creation separately. Let's use a transaction for correctness.
-          // This non-transactional approach is a simplification.
+          // or handle creation separately. This non-transactional approach is a simplification.
           const skillDoc = {
               id: skillId,
               name: skillName,
@@ -220,65 +214,63 @@ export function LogForm({ log, suggestion }: LogFormProps) {
   }
 
   return (
-    <FormProvider {...form}>
-        <Card>
-        <CardContent className="pt-6">
-            <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                <div className="grid gap-4 md:grid-cols-2">
-                    <FormField
-                    control={form.control}
-                    name="activitiesRaw"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Today's Activities (Raw)</FormLabel>
-                        <FormControl>
-                            <Textarea
-                            placeholder={suggestion || "Describe your tasks, progress, and any challenges you faced today."}
-                            className="min-h-[200px]"
-                            {...field}
-                            />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                    <FormField
-                    control={form.control}
-                    name="activitiesProfessional"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel className="flex items-center justify-between">
-                            AI Polished Version
-                            <Button type="button" size="sm" variant="outline" onClick={handlePolish} disabled={isPolishing}>
-                                {isPolishing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Sparkles className="mr-2 h-4 w-4"/>}
-                                Smart Pen
-                            </Button>
-                        </FormLabel>
-                        <FormControl>
-                            <Textarea
-                            placeholder="Click 'Smart Pen' to generate a professional version of your log."
-                            className="min-h-[200px] bg-secondary/50"
-                            readOnly
-                            {...field}
-                            />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                </div>
-                
-                <div className="flex justify-end">
-                <Button type="submit" disabled={isSaving}>
-                    {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {log ? "Update Log" : "Save Log"}
-                </Button>
-                </div>
-            </form>
-            </Form>
-        </CardContent>
-        </Card>
-    </FormProvider>
+    <Card>
+    <CardContent className="pt-6">
+        <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <div className="grid gap-4 md:grid-cols-2">
+                <FormField
+                control={form.control}
+                name="activitiesRaw"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Today's Activities (Raw)</FormLabel>
+                    <FormControl>
+                        <Textarea
+                        placeholder={suggestion || "Describe your tasks, progress, and any challenges you faced today."}
+                        className="min-h-[200px]"
+                        {...field}
+                        />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="activitiesProfessional"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel className="flex items-center justify-between">
+                        AI Polished Version
+                        <Button type="button" size="sm" variant="outline" onClick={handlePolish} disabled={isPolishing}>
+                            {isPolishing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Sparkles className="mr-2 h-4 w-4"/>}
+                            Smart Pen
+                        </Button>
+                    </FormLabel>
+                    <FormControl>
+                        <Textarea
+                        placeholder="Click 'Smart Pen' to generate a professional version of your log."
+                        className="min-h-[200px] bg-secondary/50"
+                        readOnly
+                        {...field}
+                        />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+            </div>
+            
+            <div className="flex justify-end">
+            <Button type="submit" disabled={isSaving}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {log ? "Update Log" : "Save Log"}
+            </Button>
+            </div>
+        </form>
+        </Form>
+    </CardContent>
+    </Card>
   );
 }
