@@ -5,7 +5,7 @@ import { googleAI } from '@genkit-ai/google-genai';
 // Configure the main AI instance with proper error handling
 export const ai = genkit({
   plugins: [googleAI()],
-  model: 'models/gemini-flash-lite-latest', // Stable and reliable model
+  model: 'm"gemini-3-flash-preview', // Stable and reliable model
 });
 
 // ============================================
@@ -15,7 +15,7 @@ export const ai = genkit({
 // 1. GEMINI 1.5 FLASH (RECOMMENDED - Fast & Reliable)
 export const flashAI = genkit({
   plugins: [googleAI()],
-  model: 'googleai/gemini-1.5-flash',
+  model: 'gemini-1.5-flash',
 });
 
 // 2. GEMINI 1.5 PRO (Best for Complex Tasks)
