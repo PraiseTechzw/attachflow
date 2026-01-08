@@ -54,25 +54,210 @@ const sentimentToScore = {
   'Negative': -1,
 }
 
-// Skill categories with icons and colors
+// Comprehensive skill-specific icon mapping
+const getSkillIcon = (skillName: string) => {
+  const skill = skillName.toLowerCase();
+  
+  // Programming Languages
+  if (skill.includes('javascript') || skill.includes('js')) return FileCode2;
+  if (skill.includes('typescript') || skill.includes('ts')) return Braces;
+  if (skill.includes('python')) return Terminal;
+  if (skill.includes('java') && !skill.includes('javascript')) return Coffee;
+  if (skill.includes('c++') || skill.includes('cpp')) return Hash;
+  if (skill.includes('c#') || skill.includes('csharp')) return Hash;
+  if (skill.includes('php')) return Code;
+  if (skill.includes('ruby')) return Gem;
+  if (skill.includes('go') || skill.includes('golang')) return Zap;
+  if (skill.includes('rust')) return Settings;
+  if (skill.includes('swift')) return Smartphone;
+  if (skill.includes('kotlin')) return Smartphone;
+  
+  // Frontend Frameworks & Libraries
+  if (skill.includes('react')) return Layers;
+  if (skill.includes('vue')) return Eye;
+  if (skill.includes('angular')) return Target;
+  if (skill.includes('svelte')) return Sparkles;
+  if (skill.includes('next')) return Rocket;
+  if (skill.includes('nuxt')) return Rocket;
+  if (skill.includes('gatsby')) return Globe;
+  
+  // Frontend Technologies
+  if (skill.includes('html')) return Layout;
+  if (skill.includes('css')) return Palette;
+  if (skill.includes('sass') || skill.includes('scss')) return Paintbrush;
+  if (skill.includes('tailwind')) return Brush;
+  if (skill.includes('bootstrap')) return Grid;
+  if (skill.includes('jquery')) return MousePointer;
+  if (skill.includes('webpack')) return Package;
+  if (skill.includes('vite')) return Zap;
+  
+  // Backend Frameworks & Technologies
+  if (skill.includes('node') || skill.includes('nodejs')) return Server;
+  if (skill.includes('express')) return Network;
+  if (skill.includes('django')) return Shield;
+  if (skill.includes('flask')) return Server;
+  if (skill.includes('spring')) return Coffee;
+  if (skill.includes('laravel')) return Globe;
+  if (skill.includes('rails')) return Gem;
+  if (skill.includes('asp.net') || skill.includes('dotnet')) return Hash;
+  if (skill.includes('fastapi')) return Zap;
+  
+  // Databases
+  if (skill.includes('mysql')) return Database;
+  if (skill.includes('postgresql') || skill.includes('postgres')) return Cylinder;
+  if (skill.includes('mongodb') || skill.includes('mongo')) return Archive;
+  if (skill.includes('redis')) return HardDrive;
+  if (skill.includes('sqlite')) return FileSpreadsheet;
+  if (skill.includes('firebase')) return CloudIcon;
+  if (skill.includes('supabase')) return Database;
+  if (skill.includes('prisma')) return Table;
+  if (skill.includes('sql')) return Search;
+  
+  // Cloud & DevOps
+  if (skill.includes('aws')) return CloudIcon;
+  if (skill.includes('azure')) return CloudIcon;
+  if (skill.includes('gcp') || skill.includes('google cloud')) return CloudIcon;
+  if (skill.includes('docker')) return Container;
+  if (skill.includes('kubernetes') || skill.includes('k8s')) return Settings;
+  if (skill.includes('jenkins')) return Activity;
+  if (skill.includes('github')) return GitBranch;
+  if (skill.includes('gitlab')) return GitBranch;
+  if (skill.includes('git')) return GitBranch;
+  if (skill.includes('ci/cd') || skill.includes('cicd')) return Rocket;
+  if (skill.includes('terraform')) return Settings;
+  if (skill.includes('ansible')) return Wrench;
+  
+  // Design & UI/UX
+  if (skill.includes('figma')) return Pen;
+  if (skill.includes('sketch')) return Pen;
+  if (skill.includes('adobe') || skill.includes('photoshop')) return Image;
+  if (skill.includes('illustrator')) return Brush;
+  if (skill.includes('xd')) return Layout;
+  if (skill.includes('ui') || skill.includes('user interface')) return Monitor;
+  if (skill.includes('ux') || skill.includes('user experience')) return Eye;
+  if (skill.includes('design')) return Palette;
+  if (skill.includes('prototype')) return Layers;
+  
+  // Testing & Quality
+  if (skill.includes('jest')) return TestTube;
+  if (skill.includes('cypress')) return Bug;
+  if (skill.includes('selenium')) return Bug;
+  if (skill.includes('testing')) return TestTube;
+  if (skill.includes('unit test')) return TestTube;
+  if (skill.includes('e2e')) return TestTube;
+  
+  // Mobile Development
+  if (skill.includes('react native')) return Smartphone;
+  if (skill.includes('flutter')) return Smartphone;
+  if (skill.includes('ionic')) return Smartphone;
+  if (skill.includes('xamarin')) return Smartphone;
+  if (skill.includes('mobile')) return Smartphone;
+  if (skill.includes('ios')) return Smartphone;
+  if (skill.includes('android')) return Smartphone;
+  
+  // Data & Analytics
+  if (skill.includes('pandas')) return Table;
+  if (skill.includes('numpy')) return Hash;
+  if (skill.includes('matplotlib')) return TrendingUp;
+  if (skill.includes('tensorflow')) return Brain;
+  if (skill.includes('pytorch')) return Brain;
+  if (skill.includes('machine learning') || skill.includes('ml')) return Brain;
+  if (skill.includes('data science')) return TrendingUp;
+  if (skill.includes('analytics')) return TrendingUp;
+  
+  // API & Integration
+  if (skill.includes('rest') || skill.includes('api')) return Network;
+  if (skill.includes('graphql')) return Globe;
+  if (skill.includes('websocket')) return Wifi;
+  if (skill.includes('oauth')) return Key;
+  if (skill.includes('jwt')) return Shield;
+  
+  // Content Management
+  if (skill.includes('wordpress')) return FileText;
+  if (skill.includes('drupal')) return FileText;
+  if (skill.includes('strapi')) return Folder;
+  if (skill.includes('contentful')) return FileText;
+  
+  // General categories fallback
+  if (skill.includes('programming') || skill.includes('coding')) return Code;
+  if (skill.includes('frontend') || skill.includes('front-end')) return Monitor;
+  if (skill.includes('backend') || skill.includes('back-end')) return Server;
+  if (skill.includes('database') || skill.includes('db')) return Database;
+  if (skill.includes('devops') || skill.includes('deployment')) return Rocket;
+  if (skill.includes('design')) return Palette;
+  if (skill.includes('web')) return Globe;
+  if (skill.includes('development')) return Laptop;
+  
+  // Default fallback
+  return Brain;
+};
+
+// Enhanced skill categories with more specific categorization
 const skillCategories = {
-  'Programming': { icon: Code, color: 'from-blue-500/20 to-blue-600/20 border-blue-500/30', textColor: 'text-blue-600' },
-  'Frontend': { icon: Sparkles, color: 'from-purple-500/20 to-purple-600/20 border-purple-500/30', textColor: 'text-purple-600' },
-  'Backend': { icon: Brain, color: 'from-green-500/20 to-green-600/20 border-green-500/30', textColor: 'text-green-600' },
-  'Database': { icon: Target, color: 'from-orange-500/20 to-orange-600/20 border-orange-500/30', textColor: 'text-orange-600' },
-  'DevOps': { icon: Zap, color: 'from-red-500/20 to-red-600/20 border-red-500/30', textColor: 'text-red-600' },
-  'Design': { icon: Award, color: 'from-pink-500/20 to-pink-600/20 border-pink-500/30', textColor: 'text-pink-600' },
-  'Default': { icon: Brain, color: 'from-gray-500/20 to-gray-600/20 border-gray-500/30', textColor: 'text-gray-600' }
+  'Programming': { color: 'from-blue-500/20 to-blue-600/20 border-blue-500/30', textColor: 'text-blue-600' },
+  'Frontend': { color: 'from-purple-500/20 to-purple-600/20 border-purple-500/30', textColor: 'text-purple-600' },
+  'Backend': { color: 'from-green-500/20 to-green-600/20 border-green-500/30', textColor: 'text-green-600' },
+  'Database': { color: 'from-orange-500/20 to-orange-600/20 border-orange-500/30', textColor: 'text-orange-600' },
+  'DevOps': { color: 'from-red-500/20 to-red-600/20 border-red-500/30', textColor: 'text-red-600' },
+  'Design': { color: 'from-pink-500/20 to-pink-600/20 border-pink-500/30', textColor: 'text-pink-600' },
+  'Mobile': { color: 'from-indigo-500/20 to-indigo-600/20 border-indigo-500/30', textColor: 'text-indigo-600' },
+  'Data': { color: 'from-teal-500/20 to-teal-600/20 border-teal-500/30', textColor: 'text-teal-600' },
+  'Testing': { color: 'from-yellow-500/20 to-yellow-600/20 border-yellow-500/30', textColor: 'text-yellow-600' },
+  'Default': { color: 'from-gray-500/20 to-gray-600/20 border-gray-500/30', textColor: 'text-gray-600' }
 };
 
 function getSkillCategory(skillName: string): keyof typeof skillCategories {
   const skill = skillName.toLowerCase();
-  if (skill.includes('react') || skill.includes('vue') || skill.includes('angular') || skill.includes('html') || skill.includes('css') || skill.includes('frontend')) return 'Frontend';
-  if (skill.includes('node') || skill.includes('express') || skill.includes('api') || skill.includes('backend') || skill.includes('server')) return 'Backend';
-  if (skill.includes('database') || skill.includes('sql') || skill.includes('mongodb') || skill.includes('firebase') || skill.includes('mysql')) return 'Database';
-  if (skill.includes('docker') || skill.includes('kubernetes') || skill.includes('aws') || skill.includes('deploy') || skill.includes('devops')) return 'DevOps';
-  if (skill.includes('design') || skill.includes('ui') || skill.includes('ux') || skill.includes('figma') || skill.includes('photoshop')) return 'Design';
-  if (skill.includes('javascript') || skill.includes('python') || skill.includes('java') || skill.includes('typescript') || skill.includes('programming')) return 'Programming';
+  
+  // Mobile Development
+  if (skill.includes('react native') || skill.includes('flutter') || skill.includes('ionic') || 
+      skill.includes('xamarin') || skill.includes('mobile') || skill.includes('ios') || 
+      skill.includes('android') || skill.includes('swift') || skill.includes('kotlin')) return 'Mobile';
+  
+  // Data Science & Analytics
+  if (skill.includes('pandas') || skill.includes('numpy') || skill.includes('matplotlib') || 
+      skill.includes('tensorflow') || skill.includes('pytorch') || skill.includes('machine learning') || 
+      skill.includes('data science') || skill.includes('analytics') || skill.includes('ml')) return 'Data';
+  
+  // Testing
+  if (skill.includes('jest') || skill.includes('cypress') || skill.includes('selenium') || 
+      skill.includes('testing') || skill.includes('unit test') || skill.includes('e2e')) return 'Testing';
+  
+  // Frontend
+  if (skill.includes('react') || skill.includes('vue') || skill.includes('angular') || 
+      skill.includes('html') || skill.includes('css') || skill.includes('frontend') || 
+      skill.includes('javascript') || skill.includes('typescript') || skill.includes('tailwind') || 
+      skill.includes('bootstrap') || skill.includes('sass') || skill.includes('next') || 
+      skill.includes('nuxt') || skill.includes('svelte')) return 'Frontend';
+  
+  // Backend
+  if (skill.includes('node') || skill.includes('express') || skill.includes('api') || 
+      skill.includes('backend') || skill.includes('server') || skill.includes('django') || 
+      skill.includes('flask') || skill.includes('spring') || skill.includes('laravel') || 
+      skill.includes('rails') || skill.includes('asp.net') || skill.includes('fastapi')) return 'Backend';
+  
+  // Database
+  if (skill.includes('database') || skill.includes('sql') || skill.includes('mongodb') || 
+      skill.includes('firebase') || skill.includes('mysql') || skill.includes('postgresql') || 
+      skill.includes('redis') || skill.includes('sqlite') || skill.includes('prisma') || 
+      skill.includes('supabase')) return 'Database';
+  
+  // DevOps
+  if (skill.includes('docker') || skill.includes('kubernetes') || skill.includes('aws') || 
+      skill.includes('deploy') || skill.includes('devops') || skill.includes('ci/cd') || 
+      skill.includes('jenkins') || skill.includes('terraform') || skill.includes('ansible') || 
+      skill.includes('azure') || skill.includes('gcp')) return 'DevOps';
+  
+  // Design
+  if (skill.includes('design') || skill.includes('ui') || skill.includes('ux') || 
+      skill.includes('figma') || skill.includes('photoshop') || skill.includes('sketch') || 
+      skill.includes('adobe') || skill.includes('prototype')) return 'Design';
+  
+  // Programming Languages
+  if (skill.includes('python') || skill.includes('java') || skill.includes('c++') || 
+      skill.includes('c#') || skill.includes('php') || skill.includes('ruby') || 
+      skill.includes('go') || skill.includes('rust') || skill.includes('programming')) return 'Programming';
+  
   return 'Default';
 }
 
@@ -164,7 +349,7 @@ export default function DashboardPage() {
 
   }, [logs]);
 
-  // Enhanced skills processing
+  // Enhanced skills processing with specific icons
   const processedSkills = useMemo(() => {
     if (!skills || skills.length === 0) return [];
     
@@ -173,12 +358,14 @@ export default function DashboardPage() {
     return skills.map(skill => {
       const category = getSkillCategory(skill.name);
       const categoryInfo = skillCategories[category];
+      const skillIcon = getSkillIcon(skill.name);
       const progressPercentage = (skill.frequency / maxFrequency) * 100;
       
       return {
         ...skill,
         category,
         categoryInfo,
+        skillIcon,
         progressPercentage,
         level: skill.frequency >= maxFrequency * 0.8 ? 'Expert' : 
                skill.frequency >= maxFrequency * 0.5 ? 'Advanced' : 
@@ -381,7 +568,7 @@ export default function DashboardPage() {
               {processedSkills && processedSkills.length > 0 ? (
                 <div className="space-y-4 max-h-[280px] overflow-y-auto pr-2 custom-scrollbar">
                   {processedSkills.slice(0, 8).map((skill, index) => {
-                    const IconComponent = skill.categoryInfo.icon;
+                    const SkillIcon = skill.skillIcon;
                     return (
                       <div 
                         key={skill.id}
@@ -394,7 +581,7 @@ export default function DashboardPage() {
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
                             <div className={`p-1.5 rounded-lg bg-white/80 ${skill.categoryInfo.textColor}`}>
-                              <IconComponent className="h-4 w-4" />
+                              <SkillIcon className="h-4 w-4" />
                             </div>
                             <span className="font-semibold text-foreground group-hover:text-primary transition-colors">
                               {skill.name}
