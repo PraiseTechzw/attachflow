@@ -9,11 +9,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Upload, FileText, Loader2, Trash2, Search, LayoutGrid, List, Sparkles, 
-  File, FileImage, FileVideo, FileAudio, Archive, Download, Eye, Calendar,
-  FolderOpen, CloudUpload, Zap, Star, Filter, SortAsc, MoreVertical,
-  FileCheck, Clock, TrendingUp
+    Upload, FileText, Loader2, Trash2, Search, LayoutGrid, List, Sparkles, 
+    File, FileImage, FileVideo, FileAudio, Archive, Download, Eye, Calendar,
+    FolderOpen, CloudUpload, Zap, Star, Filter, SortAsc, MoreVertical,
+    FileCheck, Clock, TrendingUp
 } from "lucide-react";
+import { Logo } from "@/components/icons/logo";
 import { useFirebase } from "@/firebase/provider";
 import { useCollection, useMemoFirebase } from "@/firebase";
 import { collection, doc, deleteDoc } from "firebase/firestore";
@@ -247,13 +248,14 @@ export default function DocumentsPage() {
             {/* Hero Section */}
             <div className="text-center space-y-6 relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-chart-4/5 rounded-3xl -z-10"></div>
-                <div className="py-12">
-                    <h1 className="text-5xl font-bold tracking-tight gradient-text mb-4">
-                        Document Library 📚
-                    </h1>
-                    <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                        Securely store, organize, and analyze all your attachment-related documents with AI-powered insights.
-                    </p>
+                <div className="flex flex-col items-center justify-center py-8">
+                  <Logo className="h-14 w-auto mb-4 floating" />
+                  <h1 className="text-5xl font-bold tracking-tight gradient-text mb-4">
+                      Document Library
+                  </h1>
+                  <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+                      Securely store, organize, and analyze all your attachment-related documents with AI-powered insights.
+                  </p>
                 </div>
             </div>
 
