@@ -10,35 +10,65 @@ service cloud.firestore {
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
+    
+    // Helper function for create operations
+    function hasCorrectIdsOnCreate(userId, docId) {
+        // For the main user document, check its own ID.
+        if (docId == null) {
+             return request.resource.data.id == userId;
+        }
+        // For subcollection documents, check both userId and the document's own id.
+        return request.resource.data.userId == userId && request.resource.data.id == docId;
+    }
+
+    // Helper function for update operations
+    function hasImmutableIds() {
+        // The 'id' and 'userId' fields, if they exist in the incoming data, must not change.
+        return (!('id' in request.resource.data) || request.resource.data.id == resource.data.id) &&
+               (!('userId' in request.resource.data) || request.resource.data.userId == resource.data.userId);
+    }
 
     match /users/{userId} {
       allow get, update, delete: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow create: if isOwner(userId) && hasCorrectIdsOnCreate(userId, null);
 
       match /dailyLogs/{logId} {
-        allow read, write: if isOwner(userId);
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update, delete: if isOwner(userId) && hasImmutableIds();
       }
       
       match /projects/{projectId} {
-        allow read, write: if isOwner(userId);
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update, delete: if isOwner(userId) && hasImmutableIds();
       }
       
       match /documents/{documentId} {
-        allow read, write: if isOwner(userId);
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update, delete: if isOwner(userId) && hasImmutableIds();
       }
 
       match /skills/{skillId} {
-        allow read, write: if isOwner(userId);
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId) && hasImmutableIds();
         allow delete: if false; 
       }
       
       match /monthlyReports/{monthId} {
-        allow read, write: if isOwner(userId);
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId) && hasImmutableIds();
         allow delete: if false;
       }
       
+      // Corrected rule for the stats subcollection
       match /stats/{statId} {
-        allow read, write: if isOwner(userId);
+        allow get, list: if isOwner(userId);
+        allow create, update: if isOwner(userId);
+        allow delete: if isOwner(userId); // Allow delete if needed for resets
       }
     }
   }
