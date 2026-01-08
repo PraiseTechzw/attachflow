@@ -13,15 +13,19 @@ import { useFirebase } from '@/firebase';
 import { Toaster } from '@/components/ui/toaster';
 import { ActivityLogger } from '@/components/logging/activity-logger';
 import { NotificationPermissionRequester } from '@/components/notifications/NotificationPermissionRequester';
+import { useUserProfile } from '@/hooks/use-user-profile';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useFirebase();
+  const { userProfile, isLoading: isProfileLoading } = useUserProfile();
   const router = useRouter();
   const pathname = usePathname();
   const [isSidebarOpen, setSidebarOpen] = React.useState(true);
   const [isMobileSidebarOpen, setMobileSidebarOpen] = React.useState(false);
 
-  if (isUserLoading) {
+  const isLoading = isUserLoading || isProfileLoading;
+
+  if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -81,7 +85,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               {/* Welcome Message */}
               <div className="hidden lg:flex flex-col items-end">
                 <p className="text-sm font-medium text-foreground">
-                  Welcome back, {user?.displayName?.split(' ')[0] || 'User'}!
+                  Welcome back, {userProfile?.displayName?.split(' ')[0] || 'User'}!
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {new Date().toLocaleDateString('en-US', { 

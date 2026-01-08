@@ -1,3 +1,4 @@
+
 'use client';
 
 import { create } from 'zustand';
@@ -26,6 +27,16 @@ interface NotificationStore {
   clearAll: () => void;
   getUnreadCount: () => number;
 }
+
+const triggerBrowserNotification = (title: string, description: string) => {
+  if (!('Notification' in window) || Notification.permission !== 'granted') {
+    return;
+  }
+  new Notification(title, {
+    body: description,
+    icon: '/logo.svg' // Make sure you have a logo file at this path in your public folder
+  });
+};
 
 export const useNotifications = create<NotificationStore>((set, get) => ({
   notifications: [
@@ -75,12 +86,15 @@ export const useNotifications = create<NotificationStore>((set, get) => ({
       notifications: [newNotification, ...state.notifications]
     }));
 
-    // Also show as toast
+    // Show toast for immediate feedback
     toast({
       title: notification.title,
       description: notification.description,
       variant: notification.type === 'error' ? 'destructive' : 'default',
     });
+
+    // Also trigger native browser notification
+    triggerBrowserNotification(notification.title, notification.description);
   },
 
   markAsRead: (id) => {
