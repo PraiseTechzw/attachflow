@@ -66,9 +66,7 @@ service cloud.firestore {
       
       // Corrected rule for the stats subcollection
       match /stats/{statId} {
-        allow get, list: if isOwner(userId);
-        allow create, update: if isOwner(userId);
-        allow delete: if isOwner(userId); // Allow delete if needed for resets
+        allow read, write: if isOwner(userId);
       }
     }
   }
