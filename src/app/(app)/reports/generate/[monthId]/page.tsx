@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase } from '@/firebase';
-import { collection, query, where, getDocs, doc, setDoc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import type { DailyLog, MonthlyReport } from '@/types';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { Loader2, FileDown, Sparkles, AlertTriangle, FileText } from 'lucide-react';
@@ -15,12 +15,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { generateMonthlyReport } from '@/ai/flows/generate-monthly-report-flow';
+import { useRouter } from 'next/navigation';
 
 export default function GenerateMonthlyReportPage({ params }: { params: Promise<{ monthId: string }> }) {
   const { monthId } = React.use(params);
   const { toast } = useToast();
   const { firestore, user } = useFirebase();
   const { userProfile } = useUserProfile();
+  const router = useRouter();
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -110,11 +112,7 @@ export default function GenerateMonthlyReportPage({ params }: { params: Promise<
 
       setReportData(prev => ({
         ...prev,
-        introduction: result.introduction,
-        duties: result.duties,
-        problems: result.problems,
-        analysis: result.analysis,
-        conclusion: result.conclusion,
+        ...result,
       }));
       toast({ title: 'Draft Generated', description: 'AI has generated the report draft. Please review and edit.' });
     } catch (error) {
@@ -147,6 +145,7 @@ export default function GenerateMonthlyReportPage({ params }: { params: Promise<
 
         await setDoc(reportRef, finalReportData, { merge: true });
         toast({ title: 'Report Saved', description: 'Your monthly report has been saved as a draft.' });
+        router.push(`/reports/${monthId}`);
       } catch (error) {
           console.error("Failed to save report:", error);
           toast({ variant: 'destructive', title: 'Save Failed', description: 'Could not save report to database.' });

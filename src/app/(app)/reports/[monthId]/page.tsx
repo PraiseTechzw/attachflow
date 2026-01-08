@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileDown, Loader2, Lock, Unlock, FileSignature } from 'lucide-react';
+import { FileDown, Loader2, Lock, Unlock, FileSignature, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase } from '@/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
@@ -101,6 +101,12 @@ export default function MonthlyReportPage({ params }: { params: Promise<{ monthI
           </div>
         </div>
         <div className="flex gap-2">
+            <Link href={`/reports/generate/${monthId}`}>
+              <Button variant="secondary" disabled={isLocking}>
+                  <Edit className="mr-2 h-4 w-4"/>
+                  Edit
+              </Button>
+            </Link>
             <Button onClick={handleToggleLock} variant="outline" disabled={isLocking}>
                 {isLocking ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (
                     report.status === 'Draft' ? <Lock className="mr-2 h-4 w-4"/> : <Unlock className="mr-2 h-4 w-4"/>
