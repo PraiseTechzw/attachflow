@@ -164,7 +164,7 @@ service cloud.firestore {
         allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
         allow delete: if false;
       }
-      
+
       /**
        * @description Rules for a user's aggregated statistics. This rule is now correct.
        * @path /users/{userId}/stats/{statId}
