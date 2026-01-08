@@ -1,176 +1,42 @@
-/**
- * Core Philosophy: This ruleset enforces a strict user-ownership model where all data is private to the user who created it.
- * Access is granted based on the user's authenticated UID matching the `userId` in the document path.
- *
- * Data Structure: The data is organized hierarchically under a `/users/{userId}` path. Each user has their own "data tree" containing
- * their profile, daily logs, projects, and documents in separate subcollections. This structure naturally isolates user data.
- *
- * Key Security Decisions:
- * - User Isolation: Users can only access documents within their own data tree (e.g., `/users/THEIR_OWN_ID/...`). Cross-user access is strictly forbidden.
- * - No Public Listing: It is not possible to list all users in the system. Listing is only permitted within a user's own subcollections.
- * - Path-Based Authorization: Security decisions are made using the document's path, which is fast and efficient. This avoids costly `get()` or `exists()` calls to other documents for authorization checks.
- *
- * Denormalization for Authorization: The entire security model relies on using the `userId` as part of the document path. This acts as a
- * form of denormalization, placing the necessary authorization information (the owner's ID) directly into the path of the resource being secured.
- * For documents within subcollections, we also enforce that an internal `userId` field matches the `userId` from the path, ensuring relational integrity.
- *
- * Structural Segregation: User-specific data like `dailyLogs`, `projects`, and `documents` are stored in dedicated subcollections under the
- * user's primary document. This segregation ensures that queries for one type of data do not inadvertently access another and simplifies security logic,
- * as each subcollection has a uniform, owner-only security posture.
- */
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper Functions
-    
-    /**
-     * Checks if the user is authenticated.
-     */
     function isSignedIn() {
       return request.auth != null;
     }
     
-    /**
-     * Checks if the currently authenticated user's ID matches the provided userId.
-     * This is the core function for verifying ownership.
-     */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /**
-     * Verifies ownership for an existing document. Used for update and delete operations
-     * to prevent acting on documents that don't exist.
-     */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-
-    /**
-     * On create, validates that the user document's internal 'id' field
-     * matches the document ID in the path.
-     */
-    function hasCorrectIdOnCreate(userId) {
-      return request.resource.data.id == userId;
-    }
-
-    /**
-     * On update, ensures the user document's internal 'id' field is immutable.
-     * This rule only applies if the 'id' field is present in the request.
-     */
-    function hasImmutableId() {
-      return !('id' in request.resource.data) || request.resource.data.id == resource.data.id;
-    }
-    
-    /**
-     * On create, validates that a subcollection document's internal 'userId' and 'id'
-     * fields match the IDs from the document path.
-     */
-    function hasCorrectSubcollectionIdsOnCreate(userId, docId) {
-      return request.resource.data.userId == userId && request.resource.data.id == docId;
-    }
-
-    /**
-     * On update, ensures that a subcollection document's 'userId' and 'id' fields
-     * are immutable, preserving the original ownership and identity.
-     * This rule only applies if 'id' or 'userId' are present in the request.
-     */
-    function hasImmutableSubcollectionIds() {
-        return (!('id' in request.resource.data) || request.resource.data.id == resource.data.id) &&
-               (!('userId' in request.resource.data) || request.resource.data.userId == resource.data.userId);
-    }
-    
-    /**
-     * @description Rules for a user's own profile document.
-     * @path /users/{userId}
-     * @allow (create) An authenticated user (auth.uid='user123') creating their own profile at `/users/user123`.
-     * @deny (get) A user (auth.uid='user456') attempting to read another user's profile at `/users/user123`.
-     * @principle Restricts access to a user's own data tree and enforces self-creation of a profile.
-     */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false;
-      allow create: if isOwner(userId) && hasCorrectIdOnCreate(userId);
-      allow update: if isExistingOwner(userId) && hasImmutableId();
-      allow delete: if isExistingOwner(userId);
+      allow get, update, delete: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
 
-      /**
-       * @description Rules for a user's daily log documents.
-       * @path /users/{userId}/dailyLogs/{logId}
-       * @allow (list) An authenticated user (auth.uid='user123') listing their own logs at `/users/user123/dailyLogs`.
-       * @deny (update) A user (auth.uid='user456') attempting to update a log at `/users/user123/dailyLogs/logABC`.
-       * @principle Enforces document ownership for all operations within a user-specific subcollection.
-       */
       match /dailyLogs/{logId} {
-        allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId);
-        allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
-        allow delete: if isExistingOwner(userId);
+        allow read, write: if isOwner(userId);
       }
       
-      /**
-       * @description Rules for a user's project documents.
-       * @path /users/{userId}/projects/{projectId}
-       * @allow (create) An authenticated user (auth.uid='user123') creating a new project at `/users/user123/projects/projXYZ`.
-       * @deny (delete) An anonymous user attempting to delete a project at `/users/user12_2_3/projects/projXYZ`.
-       * @principle Enforces document ownership for all operations within a user-specific subcollection.
-       */
       match /projects/{projectId} {
-        allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId);
-        allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
-        allow delete: if isExistingOwner(userId);
+        allow read, write: if isOwner(userId);
       }
       
-      /**
-       * @description Rules for a user's uploaded documents.
-       * @path /users/{userId}/documents/{documentId}
-       * @allow (get) An authenticated user (auth.uid='user123') fetching their document at `/users/user123/documents/docABC`.
-       * @deny (list) A user (auth.uid='user456') attempting to list all documents at `/users/user123/documents`.
-       * @principle Enforces document ownership for all operations within a user-specific subcollection.
-       */
       match /documents/{documentId} {
-        allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId);
-        allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
-        allow delete: if isExistingOwner(userId);
+        allow read, write: if isOwner(userId);
       }
 
-      /**
-       * @description Rules for a user's aggregated skills.
-       * @path /users/{userId}/skills/{skillId}
-       * @allow (create, update) An authenticated user can manage their own skills.
-       * @deny (delete) Deleting skills is not allowed to preserve historical data.
-       * @principle Enforces document ownership and data integrity for the skills subcollection.
-       */
       match /skills/{skillId} {
-        allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId);
-        allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
-        allow delete: if false; // Prevent accidental deletion
+        allow read, write: if isOwner(userId);
+        allow delete: if false; 
       }
       
-      /**
-       * @description Rules for a user's aggregated monthly reports.
-       * @path /users/{userId}/monthlyReports/{monthId}
-       * @allow (get, list, create, update) An authenticated user can manage their own monthly reports.
-       * @deny (delete) Deleting reports is not allowed to preserve historical data.
-       * @principle Enforces document ownership for the monthly report subcollection.
-       */
       match /monthlyReports/{monthId} {
-        allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId);
-        allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
+        allow read, write: if isOwner(userId);
         allow delete: if false;
       }
       
-      /**
-       * @description Rules for a user's aggregated statistics.
-       * @path /users/{userId}/stats/{statId}
-       * @allow (read, write) Only the owner of the stats can read or write to them.
-       * @principle Secures aggregated user statistics to the owner.
-       */
       match /stats/{statId} {
         allow read, write: if isOwner(userId);
       }

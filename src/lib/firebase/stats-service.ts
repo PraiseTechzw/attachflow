@@ -49,6 +49,23 @@ export class StatsService {
     return this.firestore;
   }
 
+  async createInitialStats(userId: string): Promise<void> {
+    const db = this.getFirestore();
+    const statsDocRef = doc(db, `users/${userId}/stats`, 'summary');
+    const initialStats: UserStats = {
+      userId,
+      totalLogs: 0,
+      totalProjects: 0,
+      totalDocuments: 0,
+      thisMonthLogs: 0,
+      thisWeekLogs: 0,
+      lastUpdated: Timestamp.now(),
+      streakDays: 0,
+      longestStreak: 0,
+    };
+    await setDoc(statsDocRef, initialStats);
+  }
+
   async getUserStats(userId: string): Promise<UserStats | null> {
     try {
       const db = this.getFirestore();
@@ -59,8 +76,7 @@ export class StatsService {
         return { userId, ...statsDoc.data() } as UserStats;
       }
       
-      // If no stats doc exists, create one by calculating from scratch.
-      // This handles new user creation gracefully.
+      // If doc doesn't exist (e.g., for a user created before this logic was added), create it.
       return this.updateUserStats(userId);
     } catch (error) {
       console.error('Error fetching user stats:', error);
@@ -75,12 +91,10 @@ export class StatsService {
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
       const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-      // Define collection paths for the specific user
       const logsCollection = collection(db, `users/${userId}/dailyLogs`);
       const projectsCollection = collection(db, `users/${userId}/projects`);
       const documentsCollection = collection(db, `users/${userId}/documents`);
 
-      // Fetch current counts
       const [logsSnapshot, projectsSnapshot, documentsSnapshot, thisMonthLogsSnapshot, thisWeekLogsSnapshot] = await Promise.all([
         getDocs(query(logsCollection)),
         getDocs(query(projectsCollection)),
@@ -89,7 +103,6 @@ export class StatsService {
         getDocs(query(logsCollection, where('date', '>=', Timestamp.fromDate(weekStart))))
       ]);
 
-      // Calculate streak
       const { streakDays, longestStreak } = await this.calculateStreak(userId);
 
       const stats: UserStats = {
@@ -104,7 +117,6 @@ export class StatsService {
         longestStreak,
       };
 
-      // Update or create stats document
       const statsDocRef = doc(db, `users/${userId}/stats`, 'summary');
       await setDoc(statsDocRef, stats, { merge: true });
       
@@ -120,7 +132,6 @@ export class StatsService {
       const db = this.getFirestore();
       const statsRef = doc(db, `users/${userId}/stats`, 'summary');
       
-      // Check if the document exists first
       const docSnap = await getDoc(statsRef);
       if (docSnap.exists()) {
           await updateDoc(statsRef, {
@@ -128,12 +139,10 @@ export class StatsService {
             lastUpdated: Timestamp.now()
           });
       } else {
-          // If it doesn't exist, create it by calculating all stats
           await this.updateUserStats(userId);
       }
     } catch (error) {
       console.error('Error incrementing stat:', error);
-      // If any other error, try to recalculate from scratch as a fallback
       await this.updateUserStats(userId);
     }
   }

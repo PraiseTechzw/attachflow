@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -9,6 +10,8 @@ import {
 import { initializeFirebase } from '@/firebase';
 import { createUserProfile } from './firestore';
 import { createSessionCookie, clearSessionCookie } from './server-auth';
+import { statsService } from './stats-service';
+import { getFirestore } from 'firebase/firestore';
 
 const { auth } = initializeFirebase();
 
@@ -26,9 +29,10 @@ export const signUpUser = async (userData) => {
     email,
     password
   );
+  
   // Create user profile in Firestore
   await createUserProfile(userCredential.user.uid, {
-    id: userCredential.user.uid, // Add this line
+    id: userCredential.user.uid,
     email: userCredential.user.email,
     displayName: displayName,
     regNumber: regNumber,
@@ -36,6 +40,13 @@ export const signUpUser = async (userData) => {
     universityName: universityName,
     role: 'student',
   });
+
+  // IMPORTANT: Create the initial stats document at the same time.
+  // This is the definitive fix for the permissions error.
+  const db = getFirestore(auth.app);
+  statsService.setFirestore(db);
+  await statsService.createInitialStats(userCredential.user.uid);
+
   const idToken = await userCredential.user.getIdToken();
   await createSessionCookie(idToken);
   return userCredential;
