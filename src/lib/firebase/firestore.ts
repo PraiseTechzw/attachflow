@@ -4,6 +4,7 @@ import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject as deleteFil
 import { initializeFirebase } from '@/firebase';
 import type { UserProfile, DailyLog, Project, Document } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
+import { format, getWeek } from 'date-fns';
 
 const { firestore } = initializeFirebase();
 const { storage } = initializeFirebase();
@@ -44,14 +45,17 @@ export const updateUserProfile = async (uid: string, data: Partial<UserProfile>)
 };
 
 // Daily Log Functions
-export const createDailyLog = async (userId: string, data: Pick<DailyLog, 'content'>) => {
+export const createDailyLog = async (userId: string, data: Pick<DailyLog, 'content' | 'activitiesRaw'>) => {
     const logCollection = collection(firestore, `users/${userId}/dailyLogs`);
     const logId = uuidv4();
+    const currentDate = new Date();
     const newLog: DailyLog = {
         ...data,
         id: logId,
         userId,
         date: serverTimestamp(),
+        monthYear: format(currentDate, 'MMMM yyyy'),
+        weekNumber: getWeek(currentDate),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
     };

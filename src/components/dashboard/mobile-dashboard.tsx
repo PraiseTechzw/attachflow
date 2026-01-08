@@ -10,4 +10,4 @@ import {
   Calendar, Clock, Brain, Award, Target, Sparkles,
   ChevronRight, Activity, BarChart3
 } from "lucide-react";
-import Link from "next/link
+import Link from "next/link";

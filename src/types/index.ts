@@ -19,6 +19,10 @@ export interface DailyLog {
   date: any; // Firestore Timestamp
   monthYear: string;
   weekNumber: number;
+  // New attachment-based properties
+  attachmentWeek?: number;
+  attachmentMonth?: number;
+  attachmentMonthYear?: string;
   activitiesRaw: string;
   activitiesProfessional?: string;
   skills?: string[];

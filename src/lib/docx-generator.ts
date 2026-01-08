@@ -1,4 +1,4 @@
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, PageBreak, AlignmentType, Bullet, Table, TableRow, TableCell, WidthType } from "docx";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, Table, TableRow, TableCell, WidthType } from "docx";
 import type { Project, FinalReportAIStructure } from "@/types";
 import { format } from "date-fns";
 
@@ -7,6 +7,101 @@ export const generateFinalReportDoc = (
     studentName: string,
     aiContent: FinalReportAIStructure
 ): Document => {
+    // Helper function to create content sections
+    const createSection = (title: string, content: string | undefined, headingLevel: typeof HeadingLevel.HEADING_1 = HeadingLevel.HEADING_1) => {
+        const paragraphs = [];
+        
+        // Add heading
+        paragraphs.push(new Paragraph({
+            children: [
+                new TextRun({
+                    text: title,
+                    bold: true,
+                    size: headingLevel === HeadingLevel.HEADING_1 ? 28 : 26,
+                }),
+            ],
+            heading: headingLevel,
+            spacing: { before: 400, after: 200 },
+        }));
+
+        // Add content paragraphs
+        if (content) {
+            const contentParagraphs = content.split('\n\n').map(para => 
+                new Paragraph({
+                    children: [new TextRun({ text: para.trim(), size: 24 })],
+                    spacing: { after: 200 },
+                })
+            );
+            paragraphs.push(...contentParagraphs);
+        }
+
+        return paragraphs;
+    };
+
+    // Create title page section
+    const titlePageSection = {
+        children: [
+            new Paragraph({ text: "" }),
+            new Paragraph({ text: "" }),
+            new Paragraph({ text: "" }),
+            new Paragraph({
+                children: [
+                    new TextRun({
+                        text: "FINAL ATTACHMENT REPORT",
+                        bold: true,
+                        size: 32,
+                    }),
+                ],
+                alignment: AlignmentType.CENTER,
+                spacing: { after: 400 },
+            }),
+            new Paragraph({
+                children: [
+                    new TextRun({
+                        text: project.title,
+                        bold: true,
+                        size: 28,
+                    }),
+                ],
+                alignment: AlignmentType.CENTER,
+                spacing: { after: 600 },
+            }),
+            new Paragraph({
+                children: [
+                    new TextRun({
+                        text: `Prepared by: ${studentName}`,
+                        size: 24,
+                    }),
+                ],
+                alignment: AlignmentType.CENTER,
+                spacing: { after: 200 },
+            }),
+            new Paragraph({
+                children: [
+                    new TextRun({
+                        text: `Date: ${format(new Date(), 'MMMM dd, yyyy')}`,
+                        size: 24,
+                    }),
+                ],
+                alignment: AlignmentType.CENTER,
+            }),
+            // Add some spacing instead of page break
+            new Paragraph({ text: "" }),
+            new Paragraph({ text: "" }),
+            new Paragraph({ text: "" }),
+        ],
+    };
+
+    // Create content section
+    const contentSection = {
+        children: [
+            ...createSection("1. INTRODUCTION", aiContent.introduction),
+            ...createSection("2. MAIN BODY", aiContent.mainBody),
+            ...createSection("3. TECHNOLOGIES USED", aiContent.technologiesUsed.join('\n\n')),
+            ...createSection("4. CONCLUSION AND RECOMMENDATIONS", aiContent.conclusionAndRecommendations),
+        ]
+    };
+
     const doc = new Document({
         creator: "AttachFlow",
         title: "Final Attachment Report",
@@ -24,7 +119,7 @@ export const generateFinalReportDoc = (
                         size: 24, // 12pt
                     },
                 },
-                 {
+                {
                     id: "listPara",
                     name: "List Para",
                     basedOn: "Normal",
@@ -39,75 +134,14 @@ export const generateFinalReportDoc = (
                 },
             ],
         },
-    });
-
-    // --- TITLE PAGE ---
-    doc.addSection({
-        children: [
-            new Paragraph({ text: "" }),
-            new Paragraph({ text: "" }),
-            new Paragraph({ text: "" }),
-            new Paragraph({
-                text: project.title,
-                heading: HeadingLevel.TITLE,
-                alignment: AlignmentType.CENTER,
-            }),
-            new Paragraph({ text: "" }),
-            new Paragraph({
-                text: `By: ${studentName}`,
-                alignment: AlignmentType.CENTER,
-                style: "normalPara"
-            }),
-             new Paragraph({ text: "" }),
-            new Paragraph({
-                text: `Date: ${format(new Date(), 'MMMM d, yyyy')}`,
-                alignment: AlignmentType.CENTER,
-                style: "normalPara"
-            }),
-            new PageBreak(),
-        ],
-    });
-
-
-    // --- MAIN CONTENT ---
-    const createSection = (title: string, content: string | undefined, headingLevel: HeadingLevel = HeadingLevel.HEADING_1) => {
-        if (!content) return [];
-        // Split content by newline and create paragraphs for each line
-        const paragraphs = content.split('\n').filter(p => p.trim() !== '').map(p => new Paragraph({ text: p, style: "normalPara", spacing: { after: 150 } }));
-        return [
-            new Paragraph({
-                text: title,
-                heading: headingLevel,
-                spacing: { after: 200, before: 300 }
-            }),
-            ...paragraphs,
-            new Paragraph({ text: "" }), // spacing
-        ];
-    }
-    
-    // Using the new AI structure
-    const introSection = createSection("Introduction", aiContent.introduction);
-    const mainBodySection = createSection("Main Body", aiContent.mainBody);
-    const conclusionSection = createSection("Conclusion and Recommendations", aiContent.conclusionAndRecommendations);
-
-    // Technologies Used
-    const technologiesSection = [
-        new Paragraph({ text: "Technologies Used", heading: HeadingLevel.HEADING_1, spacing: { after: 200, before: 300 } }),
-        ...aiContent.technologiesUsed.map(tech => new Paragraph({
-            text: tech,
-            bullet: { level: 0 },
-            style: "listPara",
-        })),
-         new Paragraph({ text: "" }),
-    ];
-
-
-    doc.addSection({
-        children: [
-            ...introSection,
-            ...mainBodySection,
-            ...technologiesSection,
-            ...conclusionSection
+        sections: [
+            {
+                properties: {},
+                children: [
+                    ...titlePageSection.children,
+                    ...contentSection.children,
+                ]
+            }
         ]
     });
     

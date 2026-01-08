@@ -145,7 +145,7 @@ export default function SettingsPage() {
             });
             console.log('🎉 Success toast shown');
             
-        } catch (error) {
+        } catch (error: any) {
             console.error('❌ Error updating profile:', error);
             console.error('❌ Error details:', {
                 name: error?.name,

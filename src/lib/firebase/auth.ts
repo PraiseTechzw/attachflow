@@ -15,14 +15,14 @@ import { getFirestore, doc } from 'firebase/firestore';
 
 const { auth } = initializeFirebase();
 
-export const signInUser = async (email, password) => {
+export const signInUser = async (email: string, password: string) => {
   const userCredential = await signInWithEmailAndPassword(auth, email, password);
   const idToken = await userCredential.user.getIdToken();
   await createSessionCookie(idToken);
   return userCredential;
 };
 
-export const signUpUser = async (userData) => {
+export const signUpUser = async (userData: any) => {
   const { email, password, displayName, regNumber, companyName, universityName } = userData;
   const userCredential = await createUserWithEmailAndPassword(
     auth,
