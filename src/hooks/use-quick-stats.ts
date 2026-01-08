@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useFirebase } from '@/firebase';
-import { statsService } from '@/lib/firebase/stats-service';
+import { statsService, type UserStats } from '@/lib/firebase/stats-service';
 import { FolderKanban, Calendar, Activity, FileText } from 'lucide-react';
 
 export interface QuickStat {
@@ -16,14 +16,16 @@ export interface QuickStat {
   };
 }
 
-export function useQuickStats() {
-  const { user, firestore } = useFirebase();
-  const [quickStats, setQuickStats] = useState<QuickStat[]>([
+const initialStats: QuickStat[] = [
     { label: 'Active Projects', value: '0', icon: FolderKanban, color: 'text-blue-500' },
     { label: 'This Month', value: '0', icon: Calendar, color: 'text-green-500' },
     { label: 'Total Logs', value: '0', icon: Activity, color: 'text-purple-500' },
     { label: 'Documents', value: '0', icon: FileText, color: 'text-orange-500' },
-  ]);
+];
+
+export function useQuickStats() {
+  const { user, firestore } = useFirebase();
+  const [quickStats, setQuickStats] = useState<QuickStat[]>(initialStats);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -32,39 +34,40 @@ export function useQuickStats() {
       return;
     }
 
-    // Initialize the service with the firestore instance
     statsService.setFirestore(firestore);
 
     const fetchStats = async () => {
       try {
         setIsLoading(true);
         
-        let userStats = await statsService.getUserStats(user.uid);
+        let userStats: UserStats | null = await statsService.getUserStats(user.uid);
         
+        // If stats are stale or don't exist, recalculate them
         const now = new Date();
         const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
-        
-        if (!userStats || (userStats.lastUpdated?.toDate() || new Date(0)) < fiveMinutesAgo) {
+        if (!userStats || !userStats.lastUpdated || (userStats.lastUpdated?.toDate() || new Date(0)) < fiveMinutesAgo) {
           userStats = await statsService.updateUserStats(user.uid);
         }
 
-        const projectStats = await statsService.getProjectStats(user.uid);
+        if (!userStats) {
+            throw new Error("Could not fetch or generate user stats.");
+        }
 
         const logsTrend = userStats.thisWeekLogs > 0 ? 
           Math.min(Math.round((userStats.thisWeekLogs / 7) * 10), 99) : 0;
         
-        const projectsTrend = projectStats.active > 0 ? 
-          Math.min(Math.round(projectStats.active * 5), 99) : 0;
+        const projectsTrend = userStats.totalProjects > 0 ? 
+          Math.min(Math.round(userStats.totalProjects * 5), 99) : 0;
 
         setQuickStats([
           { 
             label: 'Active Projects', 
-            value: projectStats.active.toString(), 
+            value: userStats.totalProjects.toString(), 
             icon: FolderKanban, 
             color: 'text-blue-500',
             trend: {
               value: projectsTrend,
-              isPositive: projectStats.active > 0
+              isPositive: userStats.totalProjects > 0
             }
           },
           { 
@@ -74,7 +77,7 @@ export function useQuickStats() {
             color: 'text-green-500',
             trend: {
               value: logsTrend,
-              isPositive: userStats.thisMonthLogs > userStats.thisWeekLogs
+              isPositive: true
             }
           },
           { 
