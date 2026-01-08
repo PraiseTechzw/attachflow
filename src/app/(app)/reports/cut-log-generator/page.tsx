@@ -8,7 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from '@/hooks/use-toast';
-import { useFirebase } from '@/firebase';
+import { useFirebase, useMemoFirebase } from '@/firebase';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import type { DailyLog } from '@/types';
 import { useUserProfile } from '@/hooks/use-user-profile';
@@ -113,12 +113,12 @@ export default function CutLogGeneratorPage() {
       });
       setLogsForPdf(fetchedLogs);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to load logs:", error);
       toast({ 
         variant: 'destructive', 
         title: 'Failed to Load Logs',
-        description: 'There was an error loading your logs. Please try again.' 
+        description: error.message || 'There was an error loading your logs. This could be due to a missing index. Please check the Firestore console.' 
       });
       setLoadingProgress(0);
     } finally {
