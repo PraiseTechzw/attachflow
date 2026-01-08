@@ -6,8 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Upload, FileText, Loader2, Trash2 } from "lucide-react";
 import { useFirebase } from "@/firebase/provider";
 import { useCollection, useMemoFirebase } from "@/firebase";
-import { collection, doc } from "firebase/firestore";
-import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from "firebase/storage";
+import { collection, doc, deleteDoc } from "firebase/firestore";
 import { useMemo, useRef, useState } from "react";
 import type { Document } from "@/types";
 import { addDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
@@ -16,7 +15,7 @@ import Link from "next/link";
 import { v4 as uuidv4 } from "uuid";
 
 export default function DocumentsPage() {
-    const { firestore, storage, user } = useFirebase();
+    const { firestore, user } = useFirebase();
     const { toast } = useToast();
     const [isUploading, setIsUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
@@ -40,68 +39,69 @@ export default function DocumentsPage() {
         setIsUploading(true);
         setUploadProgress(0);
 
-        try {
-            const documentId = uuidv4();
-            const storageRef = ref(storage, `users/${user.uid}/documents/${documentId}_${file.name}`);
-            const uploadTask = uploadBytesResumable(storageRef, file);
-
-            uploadTask.on('state_changed',
-                (snapshot) => {
-                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    setUploadProgress(progress);
-                },
-                (error) => {
-                    console.error("Upload failed:", error);
-                    toast({
-                        variant: "destructive",
-                        title: "Upload Failed",
-                        description: "There was an error uploading your document.",
-                    });
-                    setIsUploading(false);
-                },
-                async () => {
-                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                    const newDoc: Document = {
-                        id: documentId,
-                        userId: user.uid,
-                        filename: file.name,
-                        storagePath: uploadTask.snapshot.ref.fullPath,
-                        mimeType: file.type,
-                        size: file.size,
-                        createdAt: new Date(),
-                        url: downloadURL,
-                    };
-                    
-                    addDocumentNonBlocking(collection(firestore, `users/${user.uid}/documents`), newDoc);
-                    
-                    toast({
-                        title: "Document Uploaded",
-                        description: `${file.name} has been successfully uploaded.`,
-                    });
-                    setIsUploading(false);
+        const reader = new FileReader();
+        reader.onprogress = (event) => {
+            if (event.lengthComputable) {
+                const progress = (event.loaded / event.total) * 100;
+                setUploadProgress(progress);
+            }
+        };
+        reader.onload = async (e) => {
+            try {
+                const dataUrl = e.target?.result as string;
+                if (!dataUrl) {
+                    throw new Error("Failed to read file.");
                 }
-            );
-        } catch (error) {
-            console.error("Error setting up upload:", error);
+
+                const documentId = uuidv4();
+                
+                const newDoc: Document = {
+                    id: documentId,
+                    userId: user.uid,
+                    filename: file.name,
+                    url: dataUrl, // Store the data URI
+                    mimeType: file.type,
+                    size: file.size,
+                    createdAt: new Date(),
+                };
+                
+                addDocumentNonBlocking(collection(firestore, `users/${user.uid}/documents`), newDoc);
+                
+                toast({
+                    title: "Document Saved",
+                    description: `${file.name} has been successfully saved to Firestore.`,
+                });
+            } catch (error) {
+                console.error("Error saving document:", error);
+                toast({
+                    variant: "destructive",
+                    title: "Save Failed",
+                    description: "There was an error saving your document.",
+                });
+            } finally {
+                setIsUploading(false);
+            }
+        };
+        
+        reader.onerror = () => {
+            console.error("FileReader error");
             toast({
                 variant: "destructive",
                 title: "Upload Failed",
-                description: "There was an error initiating the upload.",
+                description: "There was an error reading the file.",
             });
             setIsUploading(false);
-        }
+        };
+        
+        reader.readAsDataURL(file);
     };
     
     const handleDelete = async (docToDelete: Document) => {
         if (!user) return;
         try {
-            // Delete from Storage
-            const fileRef = ref(storage, docToDelete.storagePath);
-            await deleteObject(fileRef);
-
-            // Delete from Firestore
+            // Only need to delete from Firestore
             const docRef = doc(firestore, `users/${user.uid}/documents`, docToDelete.id);
-            deleteDocumentNonBlocking(docRef);
+            await deleteDoc(docRef);
 
             toast({
                 title: "Document Deleted",
@@ -143,7 +143,7 @@ export default function DocumentsPage() {
 
             {isUploading && (
                 <div className="mb-8 space-y-2">
-                    <p className="text-sm font-medium text-center">Uploading...</p>
+                    <p className="text-sm font-medium text-center">Reading file...</p>
                     <Progress value={uploadProgress} className="w-full" />
                     <p className="text-sm text-muted-foreground text-center">{Math.round(uploadProgress)}%</p>
                 </div>

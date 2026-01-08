@@ -1,3 +1,4 @@
+
 export interface UserProfile {
   id: string;
   email: string | null;
@@ -111,7 +112,7 @@ export interface Document {
   userId: string;
   filename: string;
   url: string;
-  storagePath: string;
+  storagePath?: string;
   mimeType: string;
   size: number;
   createdAt: any; // Can be Date or Firestore Timestamp
