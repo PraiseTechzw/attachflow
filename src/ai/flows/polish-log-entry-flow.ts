@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -26,16 +27,17 @@ const polishLogEntryPrompt = ai.definePrompt({
 Your task is to rewrite a student's raw daily log entry into a polished, professional version suitable for an industrial attachment report.
 
 **Instructions:**
-1. **Correct Grammar and Spelling:** Fix any grammatical errors, spelling mistakes, and typos.
-2. **Improve Clarity and Conciseness:** Rephrase sentences to be clearer and more direct.
-3. **Use Professional Terminology:** Replace casual language with industry-standard terminology. For example, change "fixed a bug" to "resolved a software defect" or "debugged an issue."
-4. **Structure the Content:** Organize the text into a logical flow. Use bullet points or short paragraphs if it improves readability.
-5. **Maintain Key Information:** Ensure all original activities, accomplishments, and challenges are retained. Do not add new information.
+1.  **Correct Grammar and Spelling:** Fix any grammatical errors, spelling mistakes, and typos.
+2.  **Improve Clarity and Conciseness:** Rephrase sentences to be clearer and more direct.
+3.  **Use Professional Terminology:** Replace casual language with industry-standard terminology. For example, change "fixed a bug" to "resolved a software defect" or "debugged an issue."
+4.  **Structure the Content:** This is crucial. Organize the text into a logical flow. Identify separate activities, tasks, or challenges and format them using a **bulleted list** for maximum readability. Each bullet point should clearly describe a specific action or observation.
+5.  **Maintain Key Information:** Ensure all original activities, accomplishments, and challenges are retained. Do not add new information.
 
 **Raw Log Content:**
 {{{logContent}}}
 
-Please rewrite this content into a polished, professional version:`
+Please rewrite this content into a polished, professional, and well-structured version:
+`
 });
 
 const polishLogEntryFlow = ai.defineFlow(
