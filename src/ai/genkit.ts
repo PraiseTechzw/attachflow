@@ -1,4 +1,6 @@
 
+'use server';
+
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'zod';
@@ -10,11 +12,14 @@ import { z } from 'zod';
  * To prevent model availability errors, we are consolidating all AI
  * functionality to use a single, powerful, and stable model.
  */
-export const ai = genkit({
-  plugins: [googleAI({ apiKey: process.env.GEMINI_API_KEY })],
-});
 
 const reliableModel = 'googleai/gemini-1.5-pro';
+
+export const ai = genkit({
+  plugins: [googleAI({ apiKey: process.env.GEMINI_API_KEY })],
+  model: reliableModel, // Set the default model for all generate() calls
+});
+
 
 /**
  * ============================================
@@ -32,7 +37,6 @@ export async function generateText(prompt: string, options?: {
 }) {
   try {
     const response = await ai.generate({
-      model: reliableModel,
       prompt,
       config: {
         temperature: options?.temperature || 0.7,
@@ -59,7 +63,6 @@ export async function generateStructured<T>(
 ): Promise<T> {
   try {
     const response = await ai.generate({
-      model: reliableModel,
       prompt,
       output: {
         schema,
