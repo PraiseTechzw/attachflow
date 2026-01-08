@@ -1,12 +1,12 @@
 
 'use client';
 
-import { useFirebase } from '@/firebase';
+import { useFirebase, useMemoFirebase } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useDoc, useMemoFirebase } from '@/firebase/firestore/use-doc';
+import { useDoc } from '@/firebase/firestore/use-doc';
 import { doc } from 'firebase/firestore';
 import { statsService } from '@/lib/firebase/stats-service';
 import { useToast } from '@/hooks/use-toast';
