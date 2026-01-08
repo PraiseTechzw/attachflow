@@ -137,11 +137,7 @@ export default function DocumentsPage() {
                     createdAt: new Date(),
                 };
                 
-<<<<<<< HEAD
-                addDocumentNonBlocking(doc(collection(firestore, `users/${user.uid}/documents`), documentId), newDoc);
-=======
                 addDocumentNonBlocking(doc(firestore, `users/${user.uid}/documents`, documentId), newDoc);
->>>>>>> f04748cbf40002b28e6b960d5b9a7adb78193310
                 
                 toast({
                     title: "Document Uploaded Successfully! 🎉",
@@ -408,8 +404,6 @@ export default function DocumentsPage() {
                                         <Trash2 className="h-4 w-4" />
                                     </Button>
                                 </div>
-<<<<<<< HEAD
-                                
                                 <CardHeader className="pb-3">
                                     <div className={`p-3 rounded-xl w-fit ${colorClass} transition-all duration-300 group-hover:scale-110`}>
                                         <FileIcon className="h-8 w-8" />
@@ -444,68 +438,6 @@ export default function DocumentsPage() {
                                 
                                 <CardContent className="pt-0">
                                     <div className="flex gap-2">
-=======
-                            </CardHeader>
-                            <CardContent className="flex-grow">
-                                <CardTitle className="text-base truncate leading-tight mb-1" title={doc.filename}>
-                                    <Link href={doc.url} target="_blank" rel="noopener noreferrer" className="hover:underline">{doc.filename}</Link>
-                                </CardTitle>
-                                 <div className="text-xs text-muted-foreground flex items-center justify-between mt-2">
-                                            <span>{formatBytes(doc.size)}</span>
-                                            {doc.createdAt && (
-                                                <span className="flex items-center gap-1">
-                                                    <Calendar className="h-3 w-3" />
-                                                    {formatDate(doc.createdAt, 'MMM dd')}
-                                                </span>
-                                            )}
-                                        </div>
-                            </CardContent>
-                            <CardContent>
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <Button variant="outline" size="sm" className="w-full" onClick={() => handleSummarize(doc)}>
-                                            <Sparkles className="mr-2 h-4 w-4" />
-                                            Summarize
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent>
-                                        <DialogHeader>
-                                            <DialogTitle>AI Summary of {doc.filename}</DialogTitle>
-                                        </DialogHeader>
-                                        {isSummarizing === doc.id ? (
-                                            <div className="flex items-center justify-center min-h-[150px]"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-                                        ) : (
-                                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{summary}</p>
-                                        )}
-                                    </DialogContent>
-                                </Dialog>
-                            </CardContent>
-                       </Card>
-                    ))}
-                </div>
-            )}
-            
-            {!isLoading && filteredDocuments.length > 0 && viewMode === 'list' && (
-                <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Filename</TableHead>
-                                <TableHead>Size</TableHead>
-                                <TableHead>Date Added</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filteredDocuments.map((doc) => (
-                                <TableRow key={doc.id}>
-                                    <TableCell className="font-medium truncate max-w-xs">
-                                        <Link href={doc.url} target="_blank" rel="noopener noreferrer" className="hover:underline">{doc.filename}</Link>
-                                    </TableCell>
-                                    <TableCell>{formatBytes(doc.size)}</TableCell>
-                                    <TableCell>{formatDate(doc.createdAt)}</TableCell>
-                                    <TableCell className="text-right space-x-2">
->>>>>>> f04748cbf40002b28e6b960d5b9a7adb78193310
                                         <Dialog>
                                             <DialogTrigger asChild>
                                                 <Button 
@@ -713,5 +645,4 @@ export default function DocumentsPage() {
             )}
         </div>
     );
-
-    
+}
