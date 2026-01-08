@@ -83,8 +83,8 @@ export default function MonthlyReportPage({ params }: { params: Promise<{ monthI
 
   const renderSection = (title: string, content?: string) => (
     <div className="space-y-3">
-        <h3 className="text-base font-bold underline">{title}</h3>
-        <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
+        <h3 className="text-base font-bold underline print:text-black">{title}</h3>
+        <p className="text-sm text-black/80 print:text-black whitespace-pre-wrap leading-relaxed text-justify">
             {content || 'Not generated yet.'}
         </p>
     </div>
@@ -102,7 +102,7 @@ export default function MonthlyReportPage({ params }: { params: Promise<{ monthI
         </div>
         <div className="flex gap-2">
             <Link href={`/reports/generate/${monthId}`}>
-              <Button variant="secondary" disabled={isLocking}>
+              <Button variant="secondary" disabled={isLocking || report.status === 'Finalized'}>
                   <Edit className="mr-2 h-4 w-4"/>
                   Edit Report
               </Button>
@@ -122,7 +122,7 @@ export default function MonthlyReportPage({ params }: { params: Promise<{ monthI
 
       <Card id="report-content" className="print:shadow-none print:border-none min-h-[1000px] print:bg-white print:text-black">
           <CardHeader className='text-center space-y-2 font-serif'>
-              <p className='font-bold text-xl uppercase tracking-wide'>{userProfile?.universityName || 'University Name'}</p>
+              <p className='font-bold text-xl uppercase tracking-wide'>{userProfile?.universityName || 'Chinhoyi University of Technology'}</p>
               <p className='font-bold text-lg'>SCHOOL OF ENGINEERING SCIENCES AND TECHNOLOGY</p>
               <p className='font-bold text-base'>ICT AND ELECTRONICS DEPARTMENT</p>
               <CardTitle className='text-base underline pt-4 font-bold'>INDUSTRIAL ATTACHMENT MONTHLY REPORT</CardTitle>
@@ -151,17 +151,17 @@ export default function MonthlyReportPage({ params }: { params: Promise<{ monthI
       </Card>
       
        <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Tinos:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Times+New+Roman&family=Tinos:wght@400;700&display=swap');
 
         .font-serif {
-            font-family: 'Tinos', serif;
+            font-family: 'Times New Roman', Times, serif;
         }
 
         @media print {
             body {
               -webkit-print-color-adjust: exact;
               print-color-adjust: exact;
-              font-family: 'Tinos', serif;
+              font-family: 'Times New Roman', Times, serif;
             }
             .print-hide {
               display: none;

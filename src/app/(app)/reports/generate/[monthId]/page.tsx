@@ -44,6 +44,7 @@ export default function GenerateMonthlyReportPage({ params }: { params: Promise<
         const startOfMonth = new Date(getYear(reportDate), getMonth(reportDate), 1);
         const endOfMonth = new Date(getYear(reportDate), getMonth(reportDate) + 1, 0, 23, 59, 59);
 
+        // Fetch logs for the current month
         const logsQuery = query(
           collection(firestore, `users/${user.uid}/dailyLogs`),
           where('date', '>=', startOfMonth),
@@ -53,18 +54,21 @@ export default function GenerateMonthlyReportPage({ params }: { params: Promise<
         const fetchedLogs = logSnapshot.docs.map(doc => doc.data() as DailyLog);
         setLogs(fetchedLogs);
 
+        // Fetch existing report data for the current month, if any
         const currentReportRef = doc(firestore, `users/${user.uid}/monthlyReports`, monthId);
         const currentReportSnap = await getDoc(currentReportRef);
         if (currentReportSnap.exists()) {
           setReportData(currentReportSnap.data() as MonthlyReport);
         }
         
+        // Fetch the previous month's report to get its conclusion
         const prevMonthDate = subMonths(reportDate, 1);
         const prevMonthId = format(prevMonthDate, 'yyyy-MM');
         const prevReportRef = doc(firestore, `users/${user.uid}/monthlyReports`, prevMonthId);
         const prevReportSnap = await getDoc(prevReportRef);
         if (prevReportSnap.exists()) {
-          setPreviousConclusion((prevReportSnap.data() as MonthlyReport).conclusion);
+          const prevReport = prevReportSnap.data() as MonthlyReport;
+          setPreviousConclusion(prevReport.conclusion);
         }
         
       } catch (error) {
@@ -88,7 +92,7 @@ export default function GenerateMonthlyReportPage({ params }: { params: Promise<
     setIsGenerating(true);
     try {
       const mappedLogs = logs.map(log => ({
-        content: log.content ?? log.activitiesRaw ?? '',
+        content: log.activitiesProfessional ?? log.activitiesRaw ?? '',
         date: log.date
       }));
 
@@ -207,9 +211,9 @@ export default function GenerateMonthlyReportPage({ params }: { params: Promise<
         </Card>
       </div>
 
-      <Card id="report-content" className="min-h-[1000px]">
+      <Card id="report-content" className="min-h-[1000px] print:shadow-none print:border-none print:bg-white print:text-black">
           <CardHeader className='text-center space-y-2 font-serif'>
-              <p className='font-bold text-xl uppercase tracking-wide'>{userProfile?.universityName || 'University Name'}</p>
+              <p className='font-bold text-xl uppercase tracking-wide'>{userProfile?.universityName || 'Chinhoyi University of Technology'}</p>
               <p className='font-bold text-lg'>SCHOOL OF ENGINEERING SCIENCES AND TECHNOLOGY</p>
               <p className='font-bold text-base'>ICT AND ELECTRONICS DEPARTMENT</p>
               <CardTitle className='text-base underline pt-4 font-bold'>INDUSTRIAL ATTACHMENT MONTHLY REPORT</CardTitle>
@@ -224,13 +228,13 @@ export default function GenerateMonthlyReportPage({ params }: { params: Promise<
 
             {reportFields.map(field => (
                 <div key={field.key} className="grid w-full gap-2">
-                    <Label htmlFor={field.key} className="text-base font-bold underline">{field.label}</Label>
+                    <Label htmlFor={field.key} className="text-base font-bold underline print:text-black">{field.label}</Label>
                     <Textarea
                         id={field.key}
                         value={(reportData[field.key] as string) || ''}
                         onChange={(e) => handleTextChange(field.key, e.target.value)}
                         placeholder={`Content for ${field.label}...`}
-                        className="min-h-[150px] print-show text-sm leading-relaxed border-dashed hover:border-solid focus:border-solid"
+                        className="min-h-[150px] print-show text-sm leading-relaxed border-dashed hover:border-solid focus:border-solid print:border-none print:p-0 print:text-black"
                     />
                 </div>
             ))}
@@ -238,10 +242,10 @@ export default function GenerateMonthlyReportPage({ params }: { params: Promise<
       </Card>
 
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Tinos:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Times+New+Roman&family=Tinos:wght@400;700&display=swap');
 
         .font-serif {
-            font-family: 'Tinos', serif;
+            font-family: 'Times New Roman', Times, serif;
         }
 
         @media print {
@@ -249,7 +253,7 @@ export default function GenerateMonthlyReportPage({ params }: { params: Promise<
               -webkit-print-color-adjust: exact;
               print-color-adjust: exact;
               background: white;
-              font-family: 'Tinos', serif;
+              font-family: 'Times New Roman', Times, serif;
             }
             .print-hide {
               display: none !important;
@@ -270,9 +274,12 @@ export default function GenerateMonthlyReportPage({ params }: { params: Promise<
                 text-align: justify;
                 white-space: pre-wrap;
                 height: auto !important;
-                font-family: 'Tinos', serif;
+                font-family: 'Times New Roman', Times, serif;
             }
-            label { font-family: 'Tinos', serif; font-weight: bold; color: black; }
+            label.print\:text-black { color: black !important; font-family: 'Times New Roman', Times, serif; }
+            .print\:border-none { border: none !important; }
+            .print\:p-0 { padding: 0 !important; }
+            .print\:text-black { color: black !important; }
             @page {
               size: A4;
               margin: 2cm;

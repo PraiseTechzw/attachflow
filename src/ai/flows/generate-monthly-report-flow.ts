@@ -23,11 +23,11 @@ const generateMonthlyReportPrompt = ai.definePrompt({
 
 Analyze the provided daily logs for the month and generate content for the following five sections:
 
-1.  **Introduction/Summary**: Write a summary of the month's work. {{#if previousConclusion}}It must show continuation from the previous month's conclusion, which was: "{{previousConclusion}}".{{/if}} Introduce the key themes, projects, and major milestones achieved this month.
-2.  **Relevant Duties and/or Activities**: Synthesize all log entries into a cohesive narrative detailing tasks performed, technologies used, and progress made.
+1.  **Introduction/Summary**: Write a summary of the month's work. {{#if previousConclusion}}Crucially, it must show continuation from the previous month's conclusion, which was: "{{previousConclusion}}". Start by addressing how this month's work builds upon the previous month's ending point.{{/if}} Introduce the key themes, projects, and major milestones achieved this month.
+2.  **Relevant Duties and/or Activities**: Synthesize all log entries into a cohesive narrative detailing tasks performed, technologies used, and progress made. Write in professional, full paragraphs.
 3.  **Problems**: Scan the logs for mentions of "challenges," "issues," "errors," "bugs," or "problems." List them clearly. If none are found, state "No significant problems were encountered this month."
-4.  **Analysis**: Analyze the problems identified. Discuss their impact and how they were resolved. If there were no problems, provide a short reflection on why the month went smoothly.
-5.  **Conclusion**: Write a brief, forward-looking conclusion summarizing key accomplishments and stating the likely focus for the next month.
+4.  **Analysis**: Analyze the problems identified. Discuss their impact and how they were resolved. If there were no problems, provide a short reflection on why the month went smoothly and what factors contributed to the success.
+5.  **Conclusion**: Write a brief, forward-looking conclusion summarizing key accomplishments and stating the likely focus for the next month. This conclusion will be used as context for the next report.
 
 **Daily Logs for the Month:**
 {{#each logs}}
