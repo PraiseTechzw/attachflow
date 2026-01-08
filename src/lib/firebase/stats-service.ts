@@ -49,7 +49,7 @@ export class StatsService {
     return this.firestore;
   }
 
-  async createInitialStats(userId: string): Promise<void> {
+  async createInitialStats(userId: string): Promise<UserStats> {
     const db = this.getFirestore();
     const statsDocRef = doc(db, `users/${userId}/stats`, 'summary');
     const initialStats: UserStats = {
@@ -64,6 +64,7 @@ export class StatsService {
       longestStreak: 0,
     };
     await setDoc(statsDocRef, initialStats);
+    return initialStats;
   }
 
   async getUserStats(userId: string): Promise<UserStats | null> {
@@ -76,8 +77,10 @@ export class StatsService {
         return { userId, ...statsDoc.data() } as UserStats;
       }
       
-      // If doc doesn't exist (e.g., for a user created before this logic was added), create it.
-      return this.updateUserStats(userId);
+      // If doc doesn't exist, create it and then return it.
+      // This is a robust way to handle new users or missing stats documents.
+      console.log(`Stats document for user ${userId} not found. Creating a new one.`);
+      return await this.createInitialStats(userId);
     } catch (error) {
       console.error('Error fetching user stats:', error);
       return null;
@@ -139,10 +142,12 @@ export class StatsService {
             lastUpdated: Timestamp.now()
           });
       } else {
+          // If the stats doc doesn't exist, recalculate everything to be safe.
           await this.updateUserStats(userId);
       }
     } catch (error) {
       console.error('Error incrementing stat:', error);
+      // Fallback to a full update if increment fails.
       await this.updateUserStats(userId);
     }
   }

@@ -113,11 +113,10 @@ service cloud.firestore {
         allow delete: if false;
       }
 
-      // **Added This Rule Back to Prevent the Original Error**
-      // This allows the owner to read and write their own stats document.
+      // This rule grants full read/write access to the stats subcollection for the owner.
+      // This is secure because it's nested under the user's specific document path.
       match /stats/{statId} {
-        allow get, list, create, update: if isOwner(userId);
-        allow delete: if false; // Generally stats shouldn't be deleted by the client.
+        allow read, write: if isOwner(userId);
       }
     }
   }
