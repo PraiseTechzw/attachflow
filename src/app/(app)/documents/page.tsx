@@ -103,7 +103,7 @@ export default function DocumentsPage() {
             total: documents.length,
             totalSize: documents.reduce((sum, doc) => sum + doc.size, 0),
             recentCount: documents.filter(doc => 
-                doc.createdAt && new Date(doc.createdAt) > weekAgo
+                doc.createdAt && (doc.createdAt.toDate ? doc.createdAt.toDate() : new Date(doc.createdAt)) > weekAgo
             ).length
         };
     }, [documents]);
@@ -132,7 +132,6 @@ export default function DocumentsPage() {
                     userId: user.uid,
                     filename: file.name,
                     url: dataUrl,
-                    storagePath: `documents/${user.uid}/${documentId}`,
                     mimeType: file.type,
                     size: file.size,
                     createdAt: new Date(),
@@ -230,7 +229,12 @@ export default function DocumentsPage() {
         if (!timestamp) return 'N/A';
         // Firestore Timestamps have a toDate() method, JS Dates do not.
         const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-        return format(date, formatString);
+        try {
+            return format(date, formatString);
+        } catch (e) {
+            console.error("Error formatting date:", timestamp, e);
+            return "Invalid Date";
+        }
     };
 
     const isUploading = !!uploadingFile;
@@ -431,7 +435,7 @@ export default function DocumentsPage() {
                                             {doc.createdAt && (
                                                 <span className="flex items-center gap-1">
                                                     <Calendar className="h-3 w-3" />
-                                                    {format(new Date(doc.createdAt), 'MMM dd')}
+                                                    {formatDate(doc.createdAt, 'MMM dd')}
                                                 </span>
                                             )}
                                         </div>
@@ -540,7 +544,7 @@ export default function DocumentsPage() {
                                         <TableCell>
                                             <div className="flex items-center gap-1 text-muted-foreground">
                                                 <Calendar className="h-4 w-4" />
-                                                {doc.createdAt ? format(new Date(doc.createdAt), 'PPP') : 'N/A'}
+                                                {formatDate(doc.createdAt)}
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-right">
