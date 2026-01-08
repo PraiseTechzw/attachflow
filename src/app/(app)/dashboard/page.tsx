@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlusCircle, Book, FolderKanban, Loader2, Info, Cloud, AlertCircle } from "lucide-react";
+import { PlusCircle, Book, FolderKanban, Loader2, Info, Cloud, AlertCircle, TrendingUp, Award, Target, Sparkles, Brain, Code, Zap } from "lucide-react";
 import Link from "next/link";
 import {
   ChartContainer,
@@ -18,6 +18,8 @@ import { collection, query, orderBy } from "firebase/firestore";
 import { subMonths, format, differenceInHours } from 'date-fns';
 import type { DailyLog, Project, Skill } from "@/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 
 const chartConfig = {
   logs: {
@@ -34,6 +36,28 @@ const sentimentToScore = {
   'Positive': 1,
   'Neutral': 0,
   'Negative': -1,
+}
+
+// Skill categories with icons and colors
+const skillCategories = {
+  'Programming': { icon: Code, color: 'from-blue-500/20 to-blue-600/20 border-blue-500/30', textColor: 'text-blue-600' },
+  'Frontend': { icon: Sparkles, color: 'from-purple-500/20 to-purple-600/20 border-purple-500/30', textColor: 'text-purple-600' },
+  'Backend': { icon: Brain, color: 'from-green-500/20 to-green-600/20 border-green-500/30', textColor: 'text-green-600' },
+  'Database': { icon: Target, color: 'from-orange-500/20 to-orange-600/20 border-orange-500/30', textColor: 'text-orange-600' },
+  'DevOps': { icon: Zap, color: 'from-red-500/20 to-red-600/20 border-red-500/30', textColor: 'text-red-600' },
+  'Design': { icon: Award, color: 'from-pink-500/20 to-pink-600/20 border-pink-500/30', textColor: 'text-pink-600' },
+  'Default': { icon: Brain, color: 'from-gray-500/20 to-gray-600/20 border-gray-500/30', textColor: 'text-gray-600' }
+};
+
+function getSkillCategory(skillName: string): keyof typeof skillCategories {
+  const skill = skillName.toLowerCase();
+  if (skill.includes('react') || skill.includes('vue') || skill.includes('angular') || skill.includes('html') || skill.includes('css') || skill.includes('frontend')) return 'Frontend';
+  if (skill.includes('node') || skill.includes('express') || skill.includes('api') || skill.includes('backend') || skill.includes('server')) return 'Backend';
+  if (skill.includes('database') || skill.includes('sql') || skill.includes('mongodb') || skill.includes('firebase') || skill.includes('mysql')) return 'Database';
+  if (skill.includes('docker') || skill.includes('kubernetes') || skill.includes('aws') || skill.includes('deploy') || skill.includes('devops')) return 'DevOps';
+  if (skill.includes('design') || skill.includes('ui') || skill.includes('ux') || skill.includes('figma') || skill.includes('photoshop')) return 'Design';
+  if (skill.includes('javascript') || skill.includes('python') || skill.includes('java') || skill.includes('typescript') || skill.includes('programming')) return 'Programming';
+  return 'Default';
 }
 
 export default function DashboardPage() {
@@ -124,42 +148,65 @@ export default function DashboardPage() {
 
   }, [logs]);
 
+  // Enhanced skills processing
+  const processedSkills = useMemo(() => {
+    if (!skills || skills.length === 0) return [];
+    
+    const maxFrequency = Math.max(...skills.map(s => s.frequency));
+    
+    return skills.map(skill => {
+      const category = getSkillCategory(skill.name);
+      const categoryInfo = skillCategories[category];
+      const progressPercentage = (skill.frequency / maxFrequency) * 100;
+      
+      return {
+        ...skill,
+        category,
+        categoryInfo,
+        progressPercentage,
+        level: skill.frequency >= maxFrequency * 0.8 ? 'Expert' : 
+               skill.frequency >= maxFrequency * 0.5 ? 'Advanced' : 
+               skill.frequency >= maxFrequency * 0.3 ? 'Intermediate' : 'Beginner'
+      };
+    });
+  }, [skills]);
 
   const totalLogs = logs?.length ?? 0;
   const totalProjects = projects?.length ?? 0;
   const pendingProjects = projects?.filter(p => p.status === 'Pending').length ?? 0;
+  const totalSkills = skills?.length ?? 0;
 
   const isLoading = logsLoading || projectsLoading || skillsLoading;
 
   if (isLoading) {
     return (
         <div className="flex h-full items-center justify-center">
-            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            <div className="text-center space-y-4">
+              <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+              <p className="text-muted-foreground">Loading your beautiful dashboard...</p>
+            </div>
         </div>
     )
   }
 
-  const getFontSize = (frequency: number, maxFrequency: number) => {
-    if (maxFrequency <= 1) return '1.2rem';
-    const minFontSize = 0.8; // rem
-    const maxFontSize = 2.5; // rem
-    const scale = (maxFontSize - minFontSize) / (maxFrequency - 1);
-    return `${minFontSize + ((frequency - 1) * scale)}rem`;
-  }
-
-  const maxSkillFrequency = skills && skills.length > 0 ? Math.max(...skills.map(s => s.frequency)) : 0;
-
   return (
     <div className="container mx-auto py-8 space-y-8">
-      <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold tracking-tight gradient-text">Dashboard</h1>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Welcome back! Here&apos;s a beautiful overview of your attachment progress and achievements.
-        </p>
+      {/* Hero Section */}
+      <div className="text-center space-y-6 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-chart-4/5 rounded-3xl -z-10"></div>
+        <div className="py-12">
+          <h1 className="text-5xl font-bold tracking-tight gradient-text mb-4">
+            Welcome Back! 🚀
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            Your journey of growth and learning continues. Here&apos;s your beautiful progress overview.
+          </p>
+        </div>
       </div>
 
+      {/* Alerts */}
       {showBurnoutWarning && (
-         <Alert variant="destructive" className="backdrop-blur-sm bg-destructive/10 border-destructive/50">
+         <Alert variant="destructive" className="backdrop-blur-sm bg-destructive/10 border-destructive/50 animate-in slide-in-from-top-2">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Feeling Overwhelmed?</AlertTitle>
             <AlertDescription>
@@ -169,7 +216,7 @@ export default function DashboardPage() {
       )}
 
       {showInactivityReminder && !showBurnoutWarning && (
-        <Alert className="backdrop-blur-sm bg-primary/10 border-primary/50">
+        <Alert className="backdrop-blur-sm bg-primary/10 border-primary/50 animate-in slide-in-from-top-2">
             <Info className="h-4 w-4" />
           <AlertTitle>Friendly Reminder</AlertTitle>
           <AlertDescription>
@@ -178,128 +225,205 @@ export default function DashboardPage() {
         </Alert>
       )}
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="card-hover group">
+      {/* Stats Cards */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="card-hover group relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Logs</CardTitle>
-            <Book className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
+            <div className="p-2 rounded-full bg-blue-500/10 group-hover:bg-blue-500/20 transition-all duration-300">
+              <Book className="h-4 w-4 text-blue-600 group-hover:scale-110 transition-transform duration-300" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-primary">{totalLogs}</div>
-            <p className="text-xs text-muted-foreground mt-1">Keep up the great work!</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="card-hover group">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Projects Submitted</CardTitle>
-            <FolderKanban className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-primary">{totalProjects}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {pendingProjects > 0 ? `${pendingProjects} pending approval` : 'All projects approved!'}
+            <div className="text-3xl font-bold text-blue-600 mb-1">{totalLogs}</div>
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <TrendingUp className="h-3 w-3" />
+              Keep up the great work!
             </p>
           </CardContent>
         </Card>
         
-        <Card className="card-hover group bg-gradient-to-br from-primary/5 to-chart-4/5 border-primary/20">
+        <Card className="card-hover group relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-green-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Projects</CardTitle>
+            <div className="p-2 rounded-full bg-green-500/10 group-hover:bg-green-500/20 transition-all duration-300">
+              <FolderKanban className="h-4 w-4 text-green-600 group-hover:scale-110 transition-transform duration-300" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-green-600 mb-1">{totalProjects}</div>
+            <p className="text-xs text-muted-foreground">
+              {pendingProjects > 0 ? `${pendingProjects} pending approval` : 'All projects approved! ✨'}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="card-hover group relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-purple-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Skills Mastered</CardTitle>
+            <div className="p-2 rounded-full bg-purple-500/10 group-hover:bg-purple-500/20 transition-all duration-300">
+              <Brain className="h-4 w-4 text-purple-600 group-hover:scale-110 transition-transform duration-300" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-purple-600 mb-1">{totalSkills}</div>
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <Sparkles className="h-3 w-3" />
+              Growing every day!
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card className="card-hover group bg-gradient-to-br from-primary/10 via-primary/5 to-chart-4/10 border-primary/20 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-chart-4/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             <Link href="/logs/new" className="w-full h-full">
                 <CardContent className="flex flex-col items-center justify-center p-6 h-full text-center space-y-3">
-                    <div className="p-3 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-all duration-300">
-                      <PlusCircle className="h-8 w-8 text-primary group-hover:scale-110 transition-transform duration-300" />
+                    <div className="p-4 rounded-full bg-primary/20 group-hover:bg-primary/30 transition-all duration-300 group-hover:scale-110">
+                      <PlusCircle className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-primary">Add New Log</h3>
-                      <p className="text-sm text-muted-foreground">Record your activities for today</p>
+                      <h3 className="text-lg font-semibold text-primary mb-1">Add New Log</h3>
+                      <p className="text-sm text-muted-foreground">Record today&apos;s achievements</p>
                     </div>
                 </CardContent>
             </Link>
         </Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="card-hover">
-            <CardHeader className="space-y-2">
-                <CardTitle className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-primary animate-pulse"></div>
-                  Log Activity & Sentiment
-                </CardTitle>
-                <CardDescription>Your log count and average sentiment over the past 6 months</CardDescription>
-            </CardHeader>
-            <CardContent>
-            <ChartContainer config={chartConfig} className="h-[250px] w-full">
-                <ComposedChart accessibilityLayer data={chartData}>
-                    <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis
-                    dataKey="month"
-                    tickLine={false}
-                    tickMargin={10}
-                    axisLine={false}
-                    tickFormatter={(value) => value.slice(0, 3)}
-                    />
-                    <YAxis
-                        yAxisId="left"
-                        dataKey="logs"
-                        type="number"
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={10}
-                        allowDecimals={false}
-                    />
-                    <YAxis
-                        yAxisId="right"
-                        orientation="right"
-                        dataKey="sentiment"
-                        type="number"
-                        domain={[-1, 1]}
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={10}
-                    />
-                    <ChartTooltip
-                        cursor={false}
-                        content={<ChartTooltipContent indicator="dashed" />}
-                    />
-                    <ChartLegend content={<ChartLegendContent />} />
-                    <Bar yAxisId="left" dataKey="logs" fill="var(--color-logs)" radius={6} />
-                    <Line yAxisId="right" dataKey="sentiment" type="monotone" stroke="var(--color-sentiment)" strokeWidth={3} dot={{ fill: "var(--color-sentiment)", strokeWidth: 2, r: 4 }}/>
-                </ComposedChart>
-            </ChartContainer>
-            </CardContent>
-        </Card>
+      {/* Charts and Skills Section */}
+      <div className="grid gap-8 lg:grid-cols-3">
+        {/* Chart - spans 2 columns */}
+        <div className="lg:col-span-2">
+          <Card className="card-hover h-full">
+              <CardHeader className="space-y-3">
+                  <CardTitle className="flex items-center gap-3 text-xl">
+                    <div className="h-3 w-3 rounded-full bg-gradient-to-r from-primary to-chart-4 animate-pulse"></div>
+                    Activity & Sentiment Trends
+                  </CardTitle>
+                  <CardDescription className="text-base">
+                    Your logging consistency and emotional journey over the past 6 months
+                  </CardDescription>
+              </CardHeader>
+              <CardContent>
+              <ChartContainer config={chartConfig} className="h-[320px] w-full">
+                  <ComposedChart accessibilityLayer data={chartData}>
+                      <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis
+                      dataKey="month"
+                      tickLine={false}
+                      tickMargin={10}
+                      axisLine={false}
+                      tickFormatter={(value) => value.slice(0, 3)}
+                      />
+                      <YAxis
+                          yAxisId="left"
+                          dataKey="logs"
+                          type="number"
+                          tickLine={false}
+                          axisLine={false}
+                          tickMargin={10}
+                          allowDecimals={false}
+                      />
+                      <YAxis
+                          yAxisId="right"
+                          orientation="right"
+                          dataKey="sentiment"
+                          type="number"
+                          domain={[-1, 1]}
+                          tickLine={false}
+                          axisLine={false}
+                          tickMargin={10}
+                      />
+                      <ChartTooltip
+                          cursor={false}
+                          content={<ChartTooltipContent indicator="dashed" />}
+                      />
+                      <ChartLegend content={<ChartLegendContent />} />
+                      <Bar yAxisId="left" dataKey="logs" fill="var(--color-logs)" radius={8} />
+                      <Line yAxisId="right" dataKey="sentiment" type="monotone" stroke="var(--color-sentiment)" strokeWidth={3} dot={{ fill: "var(--color-sentiment)", strokeWidth: 2, r: 5 }}/>
+                  </ComposedChart>
+              </ChartContainer>
+              </CardContent>
+          </Card>
+        </div>
         
-        <Card className="card-hover">
-            <CardHeader className="space-y-2">
-                <CardTitle className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-chart-4 animate-pulse"></div>
-                  Skills Word Cloud
+        {/* Enhanced Skills Section - spans 1 column */}
+        <Card className="card-hover h-full">
+            <CardHeader className="space-y-3">
+                <CardTitle className="flex items-center gap-3 text-xl">
+                  <div className="h-3 w-3 rounded-full bg-gradient-to-r from-chart-4 to-purple-500 animate-pulse"></div>
+                  Skills Mastery
                 </CardTitle>
-                <CardDescription>Skills identified from your logs with frequency visualization</CardDescription>
+                <CardDescription className="text-base">
+                  Your technical expertise and growth areas
+                </CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-wrap items-center justify-center gap-4 min-h-[280px] p-6">
-              {skills && skills.length > 0 ? (
-                skills.map((skill, index) => (
-                  <span 
-                    key={skill.id}
-                    className="text-foreground/80 hover:text-primary transition-all duration-300 cursor-default hover:scale-110 px-2 py-1 rounded-md hover:bg-primary/10"
-                    style={{ 
-                      fontSize: getFontSize(skill.frequency, maxSkillFrequency), 
-                      fontWeight: 500,
-                      animationDelay: `${index * 100}ms`
-                    }}
-                  >
-                    {skill.name}
-                  </span>
-                ))
+            <CardContent className="space-y-4">
+              {processedSkills && processedSkills.length > 0 ? (
+                <div className="space-y-4 max-h-[280px] overflow-y-auto pr-2 custom-scrollbar">
+                  {processedSkills.slice(0, 8).map((skill, index) => {
+                    const IconComponent = skill.categoryInfo.icon;
+                    return (
+                      <div 
+                        key={skill.id}
+                        className="group p-3 rounded-xl border bg-gradient-to-r hover:shadow-md transition-all duration-300 hover:scale-[1.02]"
+                        style={{ 
+                          animationDelay: `${index * 100}ms`,
+                          background: `linear-gradient(135deg, ${skill.categoryInfo.color.split(' ')[0].replace('from-', '')} 0%, ${skill.categoryInfo.color.split(' ')[1].replace('to-', '')} 100%)`
+                        }}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <div className={`p-1.5 rounded-lg bg-white/80 ${skill.categoryInfo.textColor}`}>
+                              <IconComponent className="h-4 w-4" />
+                            </div>
+                            <span className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                              {skill.name}
+                            </span>
+                          </div>
+                          <Badge variant="secondary" className="text-xs font-medium">
+                            {skill.level}
+                          </Badge>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>Frequency: {skill.frequency}</span>
+                            <span>{Math.round(skill.progressPercentage)}%</span>
+                          </div>
+                          <Progress 
+                            value={skill.progressPercentage} 
+                            className="h-2 bg-white/50"
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {processedSkills.length > 8 && (
+                    <div className="text-center py-2">
+                      <Badge variant="outline" className="text-xs">
+                        +{processedSkills.length - 8} more skills
+                      </Badge>
+                    </div>
+                  )}
+                </div>
               ) : (
-                <div className="text-center text-muted-foreground space-y-4">
-                  <div className="p-4 rounded-full bg-muted/20 w-fit mx-auto">
-                    <Cloud className="h-12 w-12 mx-auto text-muted-foreground/50" />
+                <div className="text-center text-muted-foreground space-y-6 py-8">
+                  <div className="relative">
+                    <div className="p-6 rounded-full bg-gradient-to-br from-primary/10 to-chart-4/10 w-fit mx-auto">
+                      <Cloud className="h-16 w-16 mx-auto text-muted-foreground/50" />
+                    </div>
+                    <div className="absolute -top-2 -right-2 p-2 rounded-full bg-primary/20">
+                      <Sparkles className="h-4 w-4 text-primary" />
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium">No skills logged yet</p>
-                    <p className="text-sm">Start adding daily logs to see your skills grow!</p>
+                  <div className="space-y-2">
+                    <p className="font-semibold text-lg">Ready to Grow? 🌱</p>
+                    <p className="text-sm leading-relaxed">
+                      Start logging your daily activities to discover and track your amazing skills!
+                    </p>
                   </div>
                 </div>
               )}
