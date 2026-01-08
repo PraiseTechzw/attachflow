@@ -429,3 +429,171 @@ body {
     transform: rotate(360deg);
   }
 }
+
+/* Enhanced Calendar Styles */
+.rdp {
+  --rdp-cell-size: 2.5rem;
+  --rdp-accent-color: hsl(var(--primary));
+  --rdp-background-color: hsl(var(--background));
+  --rdp-accent-color-dark: hsl(var(--primary));
+  --rdp-background-color-dark: hsl(var(--background));
+}
+
+/* Calendar animations and hover effects */
+.rdp-day {
+  position: relative;
+  overflow: hidden;
+}
+
+.rdp-day::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, hsl(var(--primary) / 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: -1;
+}
+
+.rdp-day:hover::before {
+  width: 100%;
+  height: 100%;
+}
+
+/* Selected day glow effect */
+.rdp-day_selected {
+  position: relative;
+  box-shadow: 
+    0 0 0 1px hsl(var(--primary) / 0.2),
+    0 4px 12px hsl(var(--primary) / 0.15),
+    0 2px 4px hsl(var(--primary) / 0.1);
+}
+
+.rdp-day_selected::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(45deg, hsl(var(--primary) / 0.1), hsl(var(--chart-4) / 0.1));
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Today indicator with pulsing animation */
+.rdp-day_today {
+  position: relative;
+}
+
+.rdp-day_today::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  background: hsl(var(--primary));
+  border-radius: 50%;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* Range selection styling */
+.rdp-day_range_start,
+.rdp-day_range_end {
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--chart-4)));
+  box-shadow: 
+    0 2px 8px hsl(var(--primary) / 0.3),
+    0 1px 3px hsl(var(--primary) / 0.2);
+}
+
+.rdp-day_range_middle {
+  background: linear-gradient(90deg, hsl(var(--primary) / 0.1), hsl(var(--chart-4) / 0.1));
+  position: relative;
+}
+
+.rdp-day_range_middle::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.05), transparent);
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* Navigation button enhancements */
+.rdp-nav_button {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rdp-nav_button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px hsl(var(--primary) / 0.2);
+}
+
+/* Month/Year label styling */
+.rdp-caption_label {
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--chart-4)));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+}
+
+/* Weekday headers */
+.rdp-head_cell {
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+}
+
+/* Animations */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { 
+    opacity: 1; 
+    transform: translateX(-50%) scale(1);
+  }
+  50% { 
+    opacity: 0.6; 
+    transform: translateX(-50%) scale(1.2);
+  }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Dark mode adjustments */
+.dark .rdp-day_today::after {
+  background: hsl(var(--primary));
+}
+
+.dark .rdp-day_selected {
+  box-shadow: 
+    0 0 0 1px hsl(var(--primary) / 0.3),
+    0 4px 12px hsl(var(--primary) / 0.2),
+    0 2px 4px hsl(var(--primary) / 0.15);
+}
+
+/* Popover calendar specific styling */
+.calendar-popover .rdp {
+  background: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  backdrop-filter: blur(8px);
+  box-shadow: 
+    0 10px 25px hsl(var(--primary) / 0.1),
+    0 4px 10px hsl(var(--primary) / 0.05);
+}

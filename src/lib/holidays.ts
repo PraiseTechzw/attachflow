@@ -13,7 +13,7 @@ const ZIMBABWE_HOLIDAYS = [
     { month: 8, day: 13, name: "Defence Forces Day" }, // Second Tuesday of August
     { month: 12, day: 22, name: "National Unity Day" },
     { month: 12, day: 25, name: "Christmas Day" },
-    { month: 12-end, day: 26, name: "Boxing Day" },
+    { month: 12, day: 26, name: "Boxing Day" },
 ];
 
 // Approximated dates for Easter holidays, as they are variable
