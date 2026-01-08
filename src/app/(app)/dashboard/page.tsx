@@ -37,6 +37,7 @@ import type { DailyLog, Project, Skill } from "@/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { NotificationDemo } from "@/components/demo/notification-demo";
 
 const chartConfig = {
   logs: {
@@ -671,6 +672,56 @@ export default function DashboardPage() {
             </CardContent>
         </Card>
       </div>
+
+      {/* Notification System Demo - Development Only */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-8">
+          <Card className="card-hover">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5 text-yellow-500" />
+                Enhanced System Demo
+              </CardTitle>
+              <CardDescription>
+                Test the new notification system, search functionality, and enhanced UI components.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2">
+                <NotificationDemo />
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">Quick Actions</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Try these keyboard shortcuts and features:
+                    </p>
+                    <div className="space-y-2 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span>Command Palette</span>
+                        <kbd className="px-2 py-1 bg-muted rounded text-xs">⌘K</kbd>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span>Search</span>
+                        <kbd className="px-2 py-1 bg-muted rounded text-xs">Click search icon</kbd>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span>Notifications</span>
+                        <kbd className="px-2 py-1 bg-muted rounded text-xs">Click bell icon</kbd>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span>Sidebar Toggle</span>
+                        <kbd className="px-2 py-1 bg-muted rounded text-xs">⌘B</kbd>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
