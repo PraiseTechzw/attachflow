@@ -12,6 +12,7 @@ export const ScorecardItemSchema = z.object({
 });
 
 export const GenerateLogFeedbackOutputSchema = z.object({
+  supervisorComment: z.string().describe("A concise, overall comment (2-3 sentences) from a supervisor's perspective, summarizing the feedback."),
   technicalDepth: ScorecardItemSchema.describe("Evaluation of the log's technical detail and substance."),
   professionalTone: ScorecardItemSchema.describe("Evaluation of the log's tone, language, and professionalism."),
   problemSolvingClarity: ScorecardItemSchema.describe("Evaluation of how clearly the log describes problems and the steps taken to solve them."),

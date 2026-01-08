@@ -17,16 +17,18 @@ const generateLogFeedbackPrompt = ai.definePrompt({
 
 The student has the following goals for their attachment: {{{studentGoals}}}
 
-Your task is to analyze the log entry provided and evaluate it based on three criteria. For each criterion, provide a score from 1 to 10 and detailed, constructive feedback on how to improve.
+Your task is to analyze the log entry provided and evaluate it. First, create a detailed scorecard based on three criteria, providing a score from 1 to 10 and constructive feedback for each.
 
 1. **Technical Depth (Score/10):** How detailed is the log? Does it just list tasks, or does it explain the 'how' and 'why'? Rate it higher for including specific technologies, code snippets, or technical challenges.
 2. **Professional Tone (Score/10):** Is the language professional and clear? Or is it too casual or vague? Rate it higher for clear, concise, and objective descriptions of activities.
 3. **Problem-Solving Clarity (Score/10):** When a problem or challenge is mentioned, is the resolution process clear? Does the student explain what they tried, what worked, and what they learned? If no problems are mentioned, this score can reflect the clarity of the overall work process.
 
+After creating the scorecard, write a **Supervisor Comment**. This should be a concise, overall comment (2-3 sentences) that summarizes your key feedback from the scorecard. It should sound like a real supervisor's note.
+
 Analyze the following daily log:
 "{{{logText}}}"
 
-Please provide your evaluation:`
+Please provide your complete evaluation including the scorecard and the final supervisor comment:`
 });
 
 
@@ -52,6 +54,7 @@ export async function generateLogFeedback(input: GenerateLogFeedbackInput): Prom
     
     // Return default feedback as fallback
     return {
+      supervisorComment: "Unable to generate feedback at this time. Please review your log for clarity and detail.",
       technicalDepth: { score: 5, feedback: "Unable to analyze technical depth at this time. Please ensure your log includes specific details about technologies and methods used." },
       professionalTone: { score: 5, feedback: "Unable to analyze professional tone at this time. Please ensure your log uses clear, professional language." },
       problemSolvingClarity: { score: 5, feedback: "Unable to analyze problem-solving clarity at this time. Please include details about challenges faced and how they were resolved." }
