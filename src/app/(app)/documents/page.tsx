@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-<<<<<<< HEAD
 import { Badge } from "@/components/ui/badge";
 import { 
   Upload, FileText, Loader2, Trash2, Search, LayoutGrid, List, Sparkles, 
@@ -15,9 +14,6 @@ import {
   FolderOpen, CloudUpload, Zap, Star, Filter, SortAsc, MoreVertical,
   FileCheck, Clock, TrendingUp
 } from "lucide-react";
-=======
-import { Upload, FileText, Loader2, Trash2, Search, LayoutGrid, List, Sparkles, Calendar } from "lucide-react";
->>>>>>> f04748cbf40002b28e6b960d5b9a7adb78193310
 import { useFirebase } from "@/firebase/provider";
 import { useCollection, useMemoFirebase } from "@/firebase";
 import { collection, doc, deleteDoc } from "firebase/firestore";
