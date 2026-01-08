@@ -8,20 +8,17 @@ import {
   Book, 
   FolderKanban, 
   FileText, 
-  Settings, 
   FileDown, 
   FileSignature, 
   Sparkles,
-  BarChart3,
-  Calendar,
-  Users,
-  Zap,
   TrendingUp,
-  Activity
+  Activity,
+  Zap,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useQuickStats } from '@/hooks/use-quick-stats';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const navItems = [
   { 
@@ -29,35 +26,30 @@ const navItems = [
     label: 'Dashboard', 
     icon: Home,
     description: 'Overview and analytics',
-    badge: null
   },
   { 
     href: '/logs', 
     label: 'Daily Logs', 
     icon: Book,
     description: 'Track your daily progress',
-    badge: 'New'
   },
   { 
     href: '/projects', 
     label: 'Projects', 
     icon: FolderKanban,
     description: 'Manage your projects',
-    badge: null
   },
   { 
     href: '/documents', 
     label: 'Documents', 
     icon: FileText,
     description: 'File management',
-    badge: null
   },
   { 
     href: '/reports', 
     label: 'Monthly Reports', 
     icon: FileDown,
     description: 'Generate and view reports',
-    badge: null
   },
 ];
 
@@ -75,6 +67,10 @@ export function SidebarNav() {
   const pathname = usePathname();
   const { quickStats, isLoading } = useQuickStats();
 
+  const getStatByLabel = (label: string) => {
+    return quickStats.find(stat => stat.label === label);
+  };
+
   return (
     <div className="flex flex-1 flex-col h-full">
       <ScrollArea className="flex-1 px-4 pt-6 sidebar-scroll">
@@ -84,11 +80,11 @@ export function SidebarNav() {
             <TrendingUp className="h-4 w-4 text-primary" />
             <span className="text-sm font-semibold text-foreground">Quick Stats</span>
             {isLoading && (
-              <div className="h-3 w-3 border-2 border-primary border-t-transparent rounded-full stats-loading" />
+              <div className="h-3 w-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             )}
           </div>
           <div className="grid grid-cols-1 gap-2">
-            {quickStats.map((stat, index) => (
+            {quickStats.map((stat) => (
               <div key={stat.label} className="flex items-center justify-between quick-stat-item rounded-md p-1 transition-colors">
                 <div className="flex items-center gap-2">
                   <stat.icon className={`h-3 w-3 ${stat.color}`} />
@@ -96,7 +92,7 @@ export function SidebarNav() {
                 </div>
                 <div className="flex items-center gap-1">
                   <span className="text-xs font-bold text-foreground">
-                    {isLoading ? '...' : stat.value}
+                    {isLoading ? <Skeleton className="h-3 w-4" /> : stat.value}
                   </span>
                   {!isLoading && stat.trend && (
                     <div className={`flex items-center text-xs trend-indicator ${
@@ -116,39 +112,46 @@ export function SidebarNav() {
 
         {/* Main Navigation */}
         <div className='space-y-2 mb-6'>
-          {navItems.map((item, index) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                'group flex items-center gap-3 rounded-lg px-3 py-3 text-sidebar-foreground/80 transition-all duration-300 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-md hover:scale-105 relative overflow-hidden',
-                (pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href) && !extraNavItems.some(extra => pathname.startsWith(extra.href)))) &&
-                'bg-sidebar-accent font-semibold text-sidebar-accent-foreground shadow-lg scale-105 pulse-glow'
-              )}
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              <div className="flex items-center gap-3 flex-1">
-                <item.icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
-                <div className="flex flex-col">
-                  <span className="transition-all duration-300 font-medium">{item.label}</span>
-                  <span className="text-xs text-sidebar-foreground/60 transition-all duration-300">
-                    {item.description}
-                  </span>
+          {navItems.map((item, index) => {
+            const stat = item.label === 'Daily Logs' ? getStatByLabel('Total Logs') 
+                       : item.label === 'Projects' ? getStatByLabel('Active Projects')
+                       : item.label === 'Documents' ? getStatByLabel('Documents')
+                       : null;
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  'group flex items-center gap-3 rounded-lg px-3 py-3 text-sidebar-foreground/80 transition-all duration-300 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-md hover:scale-105 relative overflow-hidden',
+                  (pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href) && !extraNavItems.some(extra => pathname.startsWith(extra.href)))) &&
+                  'bg-sidebar-accent font-semibold text-sidebar-accent-foreground shadow-lg scale-105 pulse-glow'
+                )}
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <div className="flex items-center gap-3 flex-1">
+                  <item.icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                  <div className="flex flex-col">
+                    <span className="transition-all duration-300 font-medium">{item.label}</span>
+                    <span className="text-xs text-sidebar-foreground/60 transition-all duration-300">
+                      {item.description}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              {item.badge && (
-                <Badge 
-                  variant="secondary" 
-                  className="text-xs px-2 py-0.5 bg-primary/20 text-primary border-primary/30"
-                >
-                  {item.badge}
-                </Badge>
-              )}
-              {(pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href) && !extraNavItems.some(extra => pathname.startsWith(extra.href)))) && (
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent shimmer" />
-              )}
-            </Link>
-          ))}
+                {stat && !isLoading && (
+                  <Badge 
+                    variant="secondary" 
+                    className="text-xs px-2 py-0.5"
+                  >
+                    {stat.value}
+                  </Badge>
+                )}
+                {(pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href) && !extraNavItems.some(extra => pathname.startsWith(extra.href)))) && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent shimmer" />
+                )}
+              </Link>
+            );
+          })}
         </div>
         
         {/* AI Generators Section */}
