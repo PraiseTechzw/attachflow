@@ -2,7 +2,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useFormContext } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +16,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Loader2, Sparkles } from "lucide-react";
 import type { DailyLog, MonthlyReport } from "@/types";
 import { useFirebase } from "@/firebase";
@@ -51,7 +51,28 @@ export function LogForm({ log, suggestion, logDate }: LogFormProps) {
   const { toast } = useToast();
   const router = useRouter();
 
-  const form = useFormContext<LogFormValues>();
+  const form = useForm<LogFormValues>({
+    resolver: zodResolver(logFormSchema),
+    defaultValues: {
+      activitiesRaw: "",
+      activitiesProfessional: "",
+    },
+  });
+
+  useEffect(() => {
+    if (log) {
+      form.reset({
+        activitiesRaw: log.activitiesRaw || "",
+        activitiesProfessional: log.activitiesProfessional || "",
+      });
+    } else if (suggestion) {
+      form.reset({
+        activitiesRaw: suggestion,
+        activitiesProfessional: "",
+      });
+    }
+  }, [log, suggestion, form]);
+
 
   const handlePolish = async () => {
     const rawContent = form.getValues("activitiesRaw");
