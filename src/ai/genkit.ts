@@ -1,4 +1,5 @@
 
+'use server';
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'zod';
@@ -11,7 +12,7 @@ import { z } from 'zod';
  * functionality to use a single, powerful, and stable model.
  */
 
-const reliableModel = 'googleai/gemini-1.5-pro';
+const reliableModel = 'googleai/gemini-pro';
 
 export const ai = genkit({
   plugins: [googleAI({ apiKey: process.env.GEMINI_API_KEY })],
@@ -42,7 +43,7 @@ export async function generateText(prompt: string, options?: {
       },
     });
     
-    return response.text();
+    return response.text;
   } catch (error) {
     console.error('AI Generation Error:', error);
     throw new Error(`Failed to generate text: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -71,7 +72,7 @@ export async function generateStructured<T>(
       },
     });
     
-    const output = response.output();
+    const output = response.output;
     if (output === null || output === undefined) {
       throw new Error('AI returned null or undefined structured output.');
     }
