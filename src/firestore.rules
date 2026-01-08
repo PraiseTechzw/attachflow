@@ -3,70 +3,121 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Helper Functions
+    
+    /**
+     * Checks if the user is authenticated.
+     */
     function isSignedIn() {
       return request.auth != null;
     }
     
+    /**
+     * Checks if the currently authenticated user's ID matches the provided userId.
+     * This is the core function for verifying ownership.
+     */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
-    
-    // Helper function for create operations
-    function hasCorrectIdsOnCreate(userId, docId) {
-        // For the main user document, check its own ID.
-        if (docId == null) {
-             return request.resource.data.id == userId;
-        }
-        // For subcollection documents, check both userId and the document's own id.
-        return request.resource.data.userId == userId && request.resource.data.id == docId;
+
+    /**
+     * Verifies ownership for an existing document. Used for update and delete operations
+     * to prevent acting on documents that don't exist.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
     }
 
-    // Helper function for update operations
-    function hasImmutableIds() {
-        // The 'id' and 'userId' fields, if they exist in the incoming data, must not change.
+    /**
+     * On create, validates that the user document's internal 'id' field
+     * matches the document ID in the path.
+     */
+    function hasCorrectIdOnCreate(userId) {
+      return request.resource.data.id == userId;
+    }
+
+    /**
+     * On update, ensures the user document's internal 'id' field is immutable.
+     * This rule only applies if the 'id' field is present in the request.
+     */
+    function hasImmutableId() {
+      return !('id' in request.resource.data) || request.resource.data.id == resource.data.id;
+    }
+    
+    /**
+     * On create, validates that a subcollection document's internal 'userId' and 'id'
+     * fields match the IDs from the document path.
+     */
+    function hasCorrectSubcollectionIdsOnCreate(userId, docId) {
+      // For the stats collection, the 'id' might not be a UUID, but 'summary'
+      if (docId == 'summary') {
+        return request.resource.data.userId == userId;
+      }
+      return request.resource.data.userId == userId && request.resource.data.id == docId;
+    }
+
+    /**
+     * On update, ensures that a subcollection document's 'userId' and 'id' fields
+     * are immutable, preserving the original ownership and identity.
+     * This rule only applies if 'id' or 'userId' are present in the request.
+     */
+    function hasImmutableSubcollectionIds() {
         return (!('id' in request.resource.data) || request.resource.data.id == resource.data.id) &&
                (!('userId' in request.resource.data) || request.resource.data.userId == resource.data.userId);
     }
-
+    
     match /users/{userId} {
-      allow get, update, delete: if isOwner(userId);
-      allow create: if isOwner(userId) && hasCorrectIdsOnCreate(userId, null);
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId) && hasCorrectIdOnCreate(userId);
+      allow update: if isExistingOwner(userId) && hasImmutableId();
+      allow delete: if isExistingOwner(userId);
 
       match /dailyLogs/{logId} {
-        allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId);
-        allow update, delete: if isOwner(userId) && hasImmutableIds();
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && hasCorrectSubcollectionIdsOnCreate(userId, logId);
+        allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
+        allow delete: if isExistingOwner(userId);
       }
       
       match /projects/{projectId} {
-        allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId);
-        allow update, delete: if isOwner(userId) && hasImmutableIds();
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && hasCorrectSubcollectionIdsOnCreate(userId, projectId);
+        allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
+        allow delete: if isExistingOwner(userId);
       }
       
       match /documents/{documentId} {
-        allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId);
-        allow update, delete: if isOwner(userId) && hasImmutableIds();
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && hasCorrectSubcollectionIdsOnCreate(userId, documentId);
+        allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
+        allow delete: if isExistingOwner(userId);
       }
 
       match /skills/{skillId} {
-        allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId);
-        allow update: if isOwner(userId) && hasImmutableIds();
-        allow delete: if false; 
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && hasCorrectSubcollectionIdsOnCreate(userId, skillId);
+        allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
+        allow delete: if false; // Prevent accidental deletion
       }
       
       match /monthlyReports/{monthId} {
-        allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId);
-        allow update: if isOwner(userId) && hasImmutableIds();
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && hasCorrectSubcollectionIdsOnCreate(userId, monthId);
+        allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
         allow delete: if false;
       }
-      
-      // Corrected rule for the stats subcollection
+
+      // **Added This Rule Back to Prevent the Original Error**
+      // This allows the owner to read and write their own stats document.
       match /stats/{statId} {
-        allow read, write: if isOwner(userId);
+        allow get, list, create, update: if isOwner(userId);
+        allow delete: if false; // Generally stats shouldn't be deleted by the client.
       }
     }
   }
