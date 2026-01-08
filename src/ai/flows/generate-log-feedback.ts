@@ -1,6 +1,6 @@
 'use server';
 
-import { getServerAI } from '@/ai/server-genkit';
+import { ai } from '@/ai/genkit';
 import {
   GenerateLogFeedbackInputSchema,
   GenerateLogFeedbackOutputSchema,
@@ -8,18 +8,14 @@ import {
   type GenerateLogFeedbackOutput
 } from './generate-log-feedback-shared';
 
-export async function generateLogFeedback(input: GenerateLogFeedbackInput): Promise<GenerateLogFeedbackOutput> {
-  try {
-    // Validate input
-    const validatedInput = GenerateLogFeedbackInputSchema.parse(input);
-    
-    // Create AI instance
-    const ai = getServerAI();
-    
-    // Define the prompt
-    const prompt = `You are an AI assistant acting as a strict but fair University Supervisor, providing feedback on a student's daily log during their industrial attachment.
 
-The student has the following goals for their attachment: ${validatedInput.studentGoals}
+const generateLogFeedbackPrompt = ai.definePrompt({
+    name: 'generateLogFeedbackPrompt',
+    input: { schema: GenerateLogFeedbackInputSchema },
+    output: { schema: GenerateLogFeedbackOutputSchema },
+    prompt: `You are an AI assistant acting as a strict but fair University Supervisor, providing feedback on a student's daily log during their industrial attachment.
+
+The student has the following goals for their attachment: {{{studentGoals}}}
 
 Your task is to analyze the log entry provided and evaluate it based on three criteria. For each criterion, provide a score from 1 to 10 and detailed, constructive feedback on how to improve.
 
@@ -28,38 +24,37 @@ Your task is to analyze the log entry provided and evaluate it based on three cr
 3. **Problem-Solving Clarity (Score/10):** When a problem or challenge is mentioned, is the resolution process clear? Does the student explain what they tried, what worked, and what they learned? If no problems are mentioned, this score can reflect the clarity of the overall work process.
 
 Analyze the following daily log:
-"${validatedInput.logText}"
+"{{{logText}}}"
 
-Please provide your evaluation:`;
+Please provide your evaluation:`
+});
 
-    // Generate response
-    const response = await ai.generate({
-      prompt,
-      output: {
-        schema: GenerateLogFeedbackOutputSchema,
-      },
-      config: {
-        temperature: 0.4,
-        maxOutputTokens: 1000,
-      },
-    });
 
-    const result = response.output() as GenerateLogFeedbackOutput;
-    
-    // Validate output
+const generateLogFeedbackFlow = ai.defineFlow(
+  {
+    name: 'generateLogFeedbackFlow',
+    inputSchema: GenerateLogFeedbackInputSchema,
+    outputSchema: GenerateLogFeedbackOutputSchema,
+  },
+  async (input) => {
+    const { output } = await generateLogFeedbackPrompt(input);
+    return output!;
+  }
+);
+
+
+export async function generateLogFeedback(input: GenerateLogFeedbackInput): Promise<GenerateLogFeedbackOutput> {
+  try {
+    const result = await generateLogFeedbackFlow(input);
     return GenerateLogFeedbackOutputSchema.parse(result);
-    
   } catch (error) {
     console.error('Error generating log feedback:', error);
     
     // Return default feedback as fallback
     return {
-      technicalDepthScore: 5,
-      technicalDepthFeedback: "Unable to analyze technical depth at this time. Please ensure your log includes specific details about technologies and methods used.",
-      professionalToneScore: 5,
-      professionalToneFeedback: "Unable to analyze professional tone at this time. Please ensure your log uses clear, professional language.",
-      problemSolvingScore: 5,
-      problemSolvingFeedback: "Unable to analyze problem-solving clarity at this time. Please include details about challenges faced and how they were resolved."
+      technicalDepth: { score: 5, feedback: "Unable to analyze technical depth at this time. Please ensure your log includes specific details about technologies and methods used." },
+      professionalTone: { score: 5, feedback: "Unable to analyze professional tone at this time. Please ensure your log uses clear, professional language." },
+      problemSolvingClarity: { score: 5, feedback: "Unable to analyze problem-solving clarity at this time. Please include details about challenges faced and how they were resolved." }
     };
   }
 }

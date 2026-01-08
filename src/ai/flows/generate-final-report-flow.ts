@@ -10,7 +10,7 @@
  * - `FinalReportOutput`: The TypeScript interface for the structured output.
  */
 
-import { getServerAI } from '@/ai/server-genkit';
+import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
 // Define the complex input object schemas
@@ -113,7 +113,7 @@ export const FinalReportOutputSchema = z.object({
 export type FinalReportOutput = z.infer<typeof FinalReportOutputSchema>;
 
 
-const generateFinalReportPrompt = getServerAI().definePrompt({
+const generateFinalReportPrompt = ai.definePrompt({
   name: 'generateFinalReportPrompt',
   input: { schema: FinalReportInputSchema },
   output: { schema: FinalReportOutputSchema },
@@ -144,7 +144,7 @@ Analyze the provided project details and the complete set of daily logs. Your go
 
 
 // Define the flow
-const generateFinalReportFlow = getServerAI().defineFlow(
+const generateFinalReportFlow = ai.defineFlow(
   {
     name: 'generateFinalReportFlow',
     inputSchema: FinalReportInputSchema,

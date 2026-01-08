@@ -10,7 +10,7 @@
  * - `PolishLogEntryOutput`: The TypeScript interface for the output.
  */
 
-import { getServerAI } from '@/ai/server-genkit';
+import { ai } from '@/ai/genkit';
 import {
   PolishLogEntryInputSchema,
   PolishLogEntryOutputSchema,
@@ -18,16 +18,11 @@ import {
   type PolishLogEntryOutput
 } from './polish-log-entry-flow-shared';
 
-export async function polishLogEntry(input: PolishLogEntryInput): Promise<PolishLogEntryOutput> {
-  try {
-    // Validate input
-    const validatedInput = PolishLogEntryInputSchema.parse(input);
-    
-    // Create AI instance
-    const ai = getServerAI();
-    
-    // Define the prompt
-    const prompt = `You are an AI assistant that acts as a language expert, specializing in professional and technical writing.
+const polishLogEntryPrompt = ai.definePrompt({
+    name: 'polishLogEntryPrompt',
+    input: { schema: PolishLogEntryInputSchema },
+    output: { schema: PolishLogEntryOutputSchema },
+    prompt: `You are an AI assistant that acts as a language expert, specializing in professional and technical writing.
 Your task is to rewrite a student's raw daily log entry into a polished, professional version suitable for an industrial attachment report.
 
 **Instructions:**
@@ -38,27 +33,28 @@ Your task is to rewrite a student's raw daily log entry into a polished, profess
 5. **Maintain Key Information:** Ensure all original activities, accomplishments, and challenges are retained. Do not add new information.
 
 **Raw Log Content:**
-${validatedInput.logContent}
+{{{logContent}}}
 
-Please rewrite this content into a polished, professional version:`;
+Please rewrite this content into a polished, professional version:`
+});
 
-    // Generate response
-    const response = await ai.generate({
-      prompt,
-      output: {
-        schema: PolishLogEntryOutputSchema,
-      },
-      config: {
-        temperature: 0.4,
-        maxOutputTokens: 1000,
-      },
-    });
+const polishLogEntryFlow = ai.defineFlow(
+  {
+    name: 'polishLogEntryFlow',
+    inputSchema: PolishLogEntryInputSchema,
+    outputSchema: PolishLogEntryOutputSchema,
+  },
+  async (input) => {
+    const { output } = await polishLogEntryPrompt(input);
+    return output!;
+  }
+);
 
-    const result = response.output;
-    
-    // Validate output
+
+export async function polishLogEntry(input: PolishLogEntryInput): Promise<PolishLogEntryOutput> {
+  try {
+    const result = await polishLogEntryFlow(input);
     return PolishLogEntryOutputSchema.parse(result);
-    
   } catch (error) {
     console.error('Error polishing log entry:', error);
     

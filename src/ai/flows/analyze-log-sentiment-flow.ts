@@ -1,6 +1,6 @@
 'use server';
 
-import { getServerAI } from '@/ai/server-genkit';
+import { ai } from '@/ai/genkit';
 import {
   AnalyzeLogSentimentInputSchema,
   AnalyzeLogSentimentOutputSchema,
@@ -8,16 +8,11 @@ import {
   type AnalyzeLogSentimentOutput
 } from './analyze-log-sentiment-flow-shared';
 
-export async function analyzeLogSentiment(input: AnalyzeLogSentimentInput): Promise<AnalyzeLogSentimentOutput> {
-  try {
-    // Validate input
-    const validatedInput = AnalyzeLogSentimentInputSchema.parse(input);
-    
-    // Create AI instance
-    const ai = getServerAI();
-    
-    // Define the prompt
-    const prompt = `You are an AI assistant that analyzes text for its emotional tone.
+const analyzeLogSentimentPrompt = ai.definePrompt({
+    name: 'analyzeLogSentimentPrompt',
+    input: { schema: AnalyzeLogSentimentInputSchema },
+    output: { schema: AnalyzeLogSentimentOutputSchema },
+    prompt: `You are an AI assistant that analyzes text for its emotional tone.
 Based on the following daily log entry, classify the overall sentiment as "Positive", "Neutral", or "Negative".
 
 - **Positive**: The user expresses excitement, accomplishment, satisfaction, or overcomes a challenge successfully.
@@ -25,27 +20,28 @@ Based on the following daily log entry, classify the overall sentiment as "Posit
 - **Negative**: The user expresses frustration, confusion, difficulty, or mentions unresolved problems or stress.
 
 Log Content:
-${validatedInput.logContent}
+{{{logContent}}}
 
-Please analyze the sentiment:`;
+Please analyze the sentiment:`
+});
 
-    // Generate response
-    const response = await ai.generate({
-      prompt,
-      output: {
-        schema: AnalyzeLogSentimentOutputSchema,
-      },
-      config: {
-        temperature: 0.3,
-        maxOutputTokens: 200,
-      },
-    });
+const analyzeLogSentimentFlow = ai.defineFlow(
+  {
+    name: 'analyzeLogSentimentFlow',
+    inputSchema: AnalyzeLogSentimentInputSchema,
+    outputSchema: AnalyzeLogSentimentOutputSchema,
+  },
+  async (input) => {
+    const { output } = await analyzeLogSentimentPrompt(input);
+    return output!;
+  }
+);
 
-    const result = response.output() as AnalyzeLogSentimentOutput;
-    
-    // Validate output
+
+export async function analyzeLogSentiment(input: AnalyzeLogSentimentInput): Promise<AnalyzeLogSentimentOutput> {
+  try {
+    const result = await analyzeLogSentimentFlow(input);
     return AnalyzeLogSentimentOutputSchema.parse(result);
-    
   } catch (error) {
     console.error('Error analyzing log sentiment:', error);
     
