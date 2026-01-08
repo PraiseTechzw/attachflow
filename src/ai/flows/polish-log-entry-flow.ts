@@ -7,8 +7,6 @@
  *
  * It exports:
  * - `polishLogEntry`: An asynchronous function to polish the log content.
- * - `PolishLogEntryInput`: The TypeScript interface for the input.
- * - `PolishLogEntryOutput`: The TypeScript interface for the output.
  */
 
 import { ai } from '@/ai/genkit';
