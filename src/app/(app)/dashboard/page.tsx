@@ -16,8 +16,8 @@ import {
   Container, Cloud as CloudIcon, Settings, Wrench, GitBranch, Package, Rocket, Activity,
   // Design & UI
   Figma, Pen, Image, Crop, Type, Grid, Brush, Scissors,
-  // General Tech
-  Laptop, Wifi, Bug, TestTube, FileText, Folder, Download, Upload
+  // General Tech & Support
+  Laptop, Wifi, Bug, TestTube, FileText, Folder, Download, Upload, Users, LifeBuoy, Printer, HardHat
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -60,25 +60,24 @@ const sentimentToScore = {
 const getSkillIcon = (skillName: string) => {
   const skill = skillName.toLowerCase();
   
-  console.log('Getting icon for skill:', skillName, 'normalized:', skill);
-  
+  // IT Support & Hardware
+  if (skill.includes('troubleshooting')) return Bug;
+  if (skill.includes('maintenance')) return Wrench;
+  if (skill.includes('hardware')) return HardHat;
+  if (skill.includes('printer')) return Printer;
+  if (skill.includes('toner')) return Printer;
+  if (skill.includes('repair')) return Wrench;
+  if (skill.includes('support')) return LifeBuoy;
+  if (skill.includes('service')) return Users;
+  if (skill.includes('network') || skill.includes('ethernet')) return Network;
+  if (skill.includes('cable') || skill.includes('cabling')) return Network;
+  if (skill.includes('install')) return HardHat;
+
   // Programming Languages
-  if (skill.includes('javascript') || skill.includes('js')) {
-    console.log('Matched JavaScript');
-    return FileCode2;
-  }
-  if (skill.includes('typescript') || skill.includes('ts')) {
-    console.log('Matched TypeScript');
-    return Braces;
-  }
-  if (skill.includes('python')) {
-    console.log('Matched Python');
-    return Terminal;
-  }
-  if (skill.includes('java') && !skill.includes('javascript')) {
-    console.log('Matched Java');
-    return Coffee;
-  }
+  if (skill.includes('javascript') || skill.includes('js')) return FileCode2;
+  if (skill.includes('typescript') || skill.includes('ts')) return Braces;
+  if (skill.includes('python')) return Terminal;
+  if (skill.includes('java') && !skill.includes('javascript')) return Coffee;
   if (skill.includes('c++') || skill.includes('cpp')) return Hash;
   if (skill.includes('c#') || skill.includes('csharp')) return Hash;
   if (skill.includes('php')) return Code;
@@ -89,32 +88,17 @@ const getSkillIcon = (skillName: string) => {
   if (skill.includes('kotlin')) return Smartphone;
   
   // Frontend Frameworks & Libraries
-  if (skill.includes('react')) {
-    console.log('Matched React');
-    return Layers;
-  }
-  if (skill.includes('vue')) {
-    console.log('Matched Vue');
-    return Eye;
-  }
-  if (skill.includes('angular')) {
-    console.log('Matched Angular');
-    return Target;
-  }
+  if (skill.includes('react')) return Layers;
+  if (skill.includes('vue')) return Eye;
+  if (skill.includes('angular')) return Target;
   if (skill.includes('svelte')) return Sparkles;
   if (skill.includes('next')) return Rocket;
   if (skill.includes('nuxt')) return Rocket;
   if (skill.includes('gatsby')) return Globe;
   
   // Frontend Technologies
-  if (skill.includes('html')) {
-    console.log('Matched HTML');
-    return Layout;
-  }
-  if (skill.includes('css')) {
-    console.log('Matched CSS');
-    return Palette;
-  }
+  if (skill.includes('html')) return Layout;
+  if (skill.includes('css')) return Palette;
   if (skill.includes('sass') || skill.includes('scss')) return Paintbrush;
   if (skill.includes('tailwind')) return Brush;
   if (skill.includes('bootstrap')) return Grid;
@@ -123,10 +107,7 @@ const getSkillIcon = (skillName: string) => {
   if (skill.includes('vite')) return Zap;
   
   // Backend Frameworks & Technologies
-  if (skill.includes('node') || skill.includes('nodejs')) {
-    console.log('Matched Node.js');
-    return Server;
-  }
+  if (skill.includes('node') || skill.includes('nodejs')) return Server;
   if (skill.includes('express')) return Network;
   if (skill.includes('django')) return Shield;
   if (skill.includes('flask')) return Server;
@@ -206,11 +187,12 @@ const getSkillIcon = (skillName: string) => {
   if (skill.includes('oauth')) return Key;
   if (skill.includes('jwt')) return Shield;
   
-  // Content Management
+  // Content Management & Documentation
   if (skill.includes('wordpress')) return FileText;
   if (skill.includes('drupal')) return FileText;
   if (skill.includes('strapi')) return Folder;
   if (skill.includes('contentful')) return FileText;
+  if (skill.includes('documentation')) return FileText;
   
   // General categories fallback
   if (skill.includes('programming') || skill.includes('coding')) return Code;
@@ -223,7 +205,6 @@ const getSkillIcon = (skillName: string) => {
   if (skill.includes('development')) return Laptop;
   
   // Default fallback
-  console.log('No match found, using Brain icon for:', skillName);
   return Brain;
 };
 
@@ -238,12 +219,18 @@ const skillCategories = {
   'Mobile': { color: 'from-indigo-500/20 to-indigo-600/20 border-indigo-500/30', textColor: 'text-indigo-600' },
   'Data': { color: 'from-teal-500/20 to-teal-600/20 border-teal-500/30', textColor: 'text-teal-600' },
   'Testing': { color: 'from-yellow-500/20 to-yellow-600/20 border-yellow-500/30', textColor: 'text-yellow-600' },
+  'Support & Hardware': { color: 'from-cyan-500/20 to-cyan-600/20 border-cyan-500/30', textColor: 'text-cyan-600' },
   'Default': { color: 'from-gray-500/20 to-gray-600/20 border-gray-500/30', textColor: 'text-gray-600' }
 };
 
 function getSkillCategory(skillName: string): keyof typeof skillCategories {
   const skill = skillName.toLowerCase();
   
+  // IT Support & Hardware
+  if (skill.includes('support') || skill.includes('hardware') || skill.includes('maintenance') || 
+      skill.includes('troubleshooting') || skill.includes('printer') || skill.includes('repair') ||
+      skill.includes('install') || skill.includes('network') || skill.includes('ethernet') || skill.includes('cabling')) return 'Support & Hardware';
+
   // Mobile Development
   if (skill.includes('react native') || skill.includes('flutter') || skill.includes('ionic') || 
       skill.includes('xamarin') || skill.includes('mobile') || skill.includes('ios') || 
@@ -388,8 +375,6 @@ export default function DashboardPage() {
   const processedSkills = useMemo(() => {
     if (!skills || skills.length === 0) return [];
     
-    console.log('Processing skills:', skills.map(s => s.name));
-    
     const maxFrequency = Math.max(...skills.map(s => s.frequency));
     
     return skills.map(skill => {
@@ -397,8 +382,6 @@ export default function DashboardPage() {
       const categoryInfo = skillCategories[category];
       const skillIcon = getSkillIcon(skill.name);
       const progressPercentage = (skill.frequency / maxFrequency) * 100;
-      
-      console.log(`Skill: ${skill.name}, Category: ${category}, Icon:`, skillIcon);
       
       return {
         ...skill,
