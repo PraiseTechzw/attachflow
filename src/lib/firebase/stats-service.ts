@@ -196,6 +196,23 @@ export class StatsService {
 
       return { streakDays: currentStreak, longestStreak };
     } catch (error) {
+      console.error('Error calculating streak:', error);
+      return { streakDays: 0, longestStreak: 0 };
+    }
+  }
+
+  async getRecentActivity(userId: string, limit: number = 10): Promise<any[]> {
+    try {
+      const db = this.getFirestore();
+      const recentLogsQuery = query(
+        collection(db, 'logs'),
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc'),
+        limit(limit)
+      );
+      
+      const snapshot = await getDocs(recentLogsQuery);
+      return snapshot.docs.map(doc => ({
         id: doc.id,
         type: 'log',
         ...doc.data(),
@@ -214,6 +231,7 @@ export class StatsService {
     total: number;
   }> {
     try {
+      const db = this.getFirestore();
       const [activeSnapshot, completedSnapshot, pausedSnapshot, totalSnapshot] = await Promise.all([
         getDocs(query(collection(db, 'projects'), where('userId', '==', userId), where('status', '==', 'active'))),
         getDocs(query(collection(db, 'projects'), where('userId', '==', userId), where('status', '==', 'completed'))),
