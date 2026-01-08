@@ -169,15 +169,18 @@ service cloud.firestore {
         allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
         allow delete: if false;
       }
-      
+
       /**
-       * @description Rules for a user's statistics document.
+       * @description Rules for a user's aggregated statistics.
        * @path /users/{userId}/stats/summary
        * @allow (get, write) Only the owner of the stats can read or write to them.
        * @principle Secures aggregated user statistics to the owner.
        */
-      match /stats/summary {
-        allow get, write: if isOwner(userId);
+      match /stats/{statId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create, update: if isOwner(userId) && statId == 'summary';
+        allow delete: if false;
       }
     }
   }
