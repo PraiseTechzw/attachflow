@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { FileDown, Loader2, Eye } from 'lucide-react';
+import { FileDown, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { MonthlyReport } from '@/types';
 import { format } from 'date-fns';
@@ -23,7 +23,6 @@ const MonthlyReportPDFGenerator: React.FC<MonthlyReportPDFGeneratorProps> = ({
   universityName
 }) => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -108,37 +107,26 @@ const MonthlyReportPDFGenerator: React.FC<MonthlyReportPDFGeneratorProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-3">
-        <Button 
-          onClick={() => setShowPreview(!showPreview)}
-          variant="outline"
-          className="hover:border-primary hover:text-primary transition-colors duration-200"
-        >
-          <Eye className="mr-2 h-4 w-4" />
-          {showPreview ? 'Hide Preview' : 'Show Preview'}
-        </Button>
-        
-        <Button 
-          onClick={generatePDF}
-          disabled={isGenerating}
-          className="bg-gradient-to-r from-primary to-chart-4 hover:from-primary/90 hover:to-chart-4/90"
-        >
-          {isGenerating ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <FileDown className="mr-2 h-4 w-4" />
-          )}
-          {isGenerating ? 'Generating PDF...' : 'Download PDF'}
-        </Button>
-      </div>
+      <Button 
+        onClick={generatePDF}
+        disabled={isGenerating}
+        className="bg-gradient-to-r from-primary to-chart-4 hover:from-primary/90 hover:to-chart-4/90"
+      >
+        {isGenerating ? (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        ) : (
+          <FileDown className="mr-2 h-4 w-4" />
+        )}
+        {isGenerating ? 'Generating PDF...' : 'Download PDF'}
+      </Button>
 
-      {showPreview && (
-        <div className="border rounded-lg p-4 bg-white">
-          <div 
-            ref={previewRef}
-            className="bg-white text-black p-8 font-serif"
-            style={{ width: '210mm', minHeight: '297mm' }}
-          >
+      {/* Hidden preview element for PDF generation */}
+      <div className="hidden">
+        <div 
+          ref={previewRef}
+          className="bg-white text-black p-8 font-serif"
+          style={{ width: '210mm', minHeight: '297mm' }}
+        >
             {/* Header */}
             <div className="text-center space-y-3 border-b border-black/20 pb-6 mb-8">
               <div className="space-y-2">
@@ -208,7 +196,6 @@ const MonthlyReportPDFGenerator: React.FC<MonthlyReportPDFGeneratorProps> = ({
             </div>
           </div>
         </div>
-      )}
     </div>
   );
 };

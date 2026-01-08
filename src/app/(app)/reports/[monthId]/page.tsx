@@ -215,28 +215,14 @@ export default function MonthlyReportPage({ params }: { params: Promise<{ monthI
                   )}
                   {report.status === 'Draft' ? 'Finalize' : 'Re-open'}
                 </Button>
+                <MonthlyReportPDFGenerator
+                  report={report}
+                  studentName={userProfile?.displayName || 'N/A'}
+                  regNumber={userProfile?.regNumber || 'N/A'}
+                  companyName={userProfile?.companyName || 'N/A'}
+                  universityName={userProfile?.universityName || 'Chinhoyi University of Technology'}
+                />
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* PDF Generator */}
-        <Card className="card-hover">
-          <CardContent className="p-6">
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <h3 className="font-semibold">PDF Download</h3>
-                <p className="text-sm text-muted-foreground">
-                  Generate and download your monthly report as a professional PDF document
-                </p>
-              </div>
-              <MonthlyReportPDFGenerator
-                report={report}
-                studentName={userProfile?.displayName || 'N/A'}
-                regNumber={userProfile?.regNumber || 'N/A'}
-                companyName={userProfile?.companyName || 'N/A'}
-                universityName={userProfile?.universityName || 'Chinhoyi University of Technology'}
-              />
             </div>
           </CardContent>
         </Card>
