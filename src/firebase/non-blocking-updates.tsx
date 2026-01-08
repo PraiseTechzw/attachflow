@@ -33,9 +33,9 @@ export function setDocumentNonBlocking(docRef: DocumentReference, data: any, opt
 
 
 /**
- * Initiates an addDoc operation for a collection reference.
- * Does NOT await the write operation internally.
- * Returns the Promise for the new doc ref, but typically not awaited by caller.
+ * Initiates an addDoc operation for a document reference.
+ * The original implementation was for a CollectionReference, but our
+ * use case uses a DocumentReference with a pre-generated ID.
  */
 export function addDocumentNonBlocking(docRef: DocumentReference, data: any) {
   const promise = setDoc(docRef, data)

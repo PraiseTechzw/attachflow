@@ -125,7 +125,7 @@ const ModernPDFGenerator: React.FC<ModernPDFGeneratorProps> = ({
             <div className="col-span-2 p-2 border-r border-gray-300 text-xs">
               {log.date ? format(log.date.toDate(), 'dd/MM/yyyy') : ''}
             </div>
-            <div className="col-span-7 p-2 border-r border-gray-300 text-xs">
+            <div className="col-span-7 p-2 border-r border-gray-300 text-xs whitespace-pre-wrap">
               {log.activitiesProfessional || log.activitiesRaw || ''}
             </div>
             <div className="col-span-3 p-2 text-xs">

@@ -19,9 +19,10 @@ import Link from "next/link";
 import { v4 as uuidv4 } from "uuid";
 import { format } from "date-fns";
 import { summarizeDocument } from "@/ai/flows/summarize-document-flow";
+import { uploadBytesResumable, ref, getDownloadURL } from "firebase/storage";
 
 export default function DocumentsPage() {
-    const { firestore, user } = useFirebase();
+    const { firestore, user, storage } = useFirebase();
     const { toast } = useToast();
     const [uploadingFile, setUploadingFile] = useState<string | null>(null);
     const [uploadProgress, setUploadProgress] = useState(0);
@@ -58,12 +59,6 @@ export default function DocumentsPage() {
         setUploadProgress(0);
 
         const reader = new FileReader();
-        reader.onprogress = (event) => {
-            if (event.lengthComputable) {
-                const progress = (event.loaded / event.total) * 100;
-                setUploadProgress(progress);
-            }
-        };
         reader.onload = async (e) => {
             try {
                 const dataUrl = e.target?.result as string;
@@ -75,17 +70,18 @@ export default function DocumentsPage() {
                     id: documentId,
                     userId: user.uid,
                     filename: file.name,
-                    url: dataUrl,
+                    url: dataUrl, // Save the data URI directly
                     mimeType: file.type,
                     size: file.size,
                     createdAt: new Date(),
                 };
                 
-                await addDocumentNonBlocking(doc(collection(firestore, `users/${user.uid}/documents`), documentId), newDoc);
+                // Using non-blocking add
+                addDocumentNonBlocking(doc(collection(firestore, `users/${user.uid}/documents`), documentId), newDoc);
                 
                 toast({
                     title: "Document Saved",
-                    description: `${file.name} has been successfully saved.`,
+                    description: `${file.name} has been successfully saved to your records.`,
                 });
             } catch (error) {
                 console.error("Error saving document:", error);
@@ -98,14 +94,21 @@ export default function DocumentsPage() {
                 setUploadingFile(null);
             }
         };
+
+        reader.onprogress = (event) => {
+            if (event.lengthComputable) {
+                const progress = (event.loaded / event.total) * 100;
+                setUploadProgress(progress);
+            }
+        };
         
         reader.onerror = () => {
             console.error("FileReader error");
-            toast({ variant: "destructive", title: "Upload Failed" });
+            toast({ variant: "destructive", title: "Upload Failed", description: "Could not read the selected file." });
             setUploadingFile(null);
         };
         
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(file); // This triggers the process
     };
     
     const handleDelete = async (docToDelete: Document) => {
@@ -116,7 +119,7 @@ export default function DocumentsPage() {
             toast({ title: "Document Deleted", description: `${docToDelete.filename} has been removed.` });
         } catch (error) {
             console.error("Error deleting document:", error);
-            toast({ variant: "destructive", title: "Deletion Failed" });
+            toast({ variant: "destructive", title: "Deletion Failed", description: "Could not remove the document record." });
         }
     }
 
@@ -148,7 +151,7 @@ export default function DocumentsPage() {
 
     return (
         <div className="container mx-auto py-8">
-            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.txt,text/plain" />
             
             <div className="mb-8">
                 <h1 className="text-3xl font-bold tracking-tight">Documents</h1>
@@ -252,7 +255,7 @@ export default function DocumentsPage() {
                                         <Link href={doc.url} target="_blank" rel="noopener noreferrer" className="hover:underline">{doc.filename}</Link>
                                     </TableCell>
                                     <TableCell>{formatBytes(doc.size)}</TableCell>
-                                    <TableCell>{doc.createdAt ? format(doc.createdAt.toDate(), 'PPP') : 'N/A'}</TableCell>
+                                    <TableCell>{doc.createdAt ? format(new Date(doc.createdAt), 'PPP') : 'N/A'}</TableCell>
                                     <TableCell className="text-right space-x-2">
                                         <Dialog>
                                             <DialogTrigger asChild>
