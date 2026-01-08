@@ -77,10 +77,7 @@ export class StatsService {
         return { userId, ...statsDoc.data() } as UserStats;
       }
       
-      // If doc doesn't exist, create it and then return it.
-      // This is a robust way to handle new users or missing stats documents.
-      console.log(`Stats document for user ${userId} not found. Creating a new one.`);
-      return await this.createInitialStats(userId);
+      return null; // Return null if it doesn't exist, creation is handled elsewhere
     } catch (error) {
       console.error('Error fetching user stats:', error);
       return null;

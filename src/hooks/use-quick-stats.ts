@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useFirebase, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import type { UserStats } from '@/lib/firebase/stats-service';
+import { statsService, type UserStats } from '@/lib/firebase/stats-service';
 import { FolderKanban, Calendar, Activity, FileText } from 'lucide-react';
 
 export interface QuickStat {
@@ -34,6 +34,24 @@ export function useQuickStats() {
   }, [user, firestore]);
 
   const { data: userStats, isLoading, error } = useDoc<UserStats>(statsDocRef);
+
+  useEffect(() => {
+    // This effect ensures the stats document exists for the current user.
+    const ensureStatsDocExists = async () => {
+      if (user && !isLoading && !userStats && !error) {
+        console.log("Stats document not found for user, creating one...");
+        try {
+          statsService.setFirestore(firestore);
+          await statsService.createInitialStats(user.uid);
+          // The useDoc hook will automatically pick up the new document.
+        } catch (e) {
+          console.error("Failed to create initial stats document:", e);
+        }
+      }
+    };
+    ensureStatsDocExists();
+  }, [user, firestore, isLoading, userStats, error]);
+
 
   useEffect(() => {
     if (userStats) {
@@ -74,10 +92,10 @@ export function useQuickStats() {
         },
       ]);
     } else if (!isLoading) {
-      // If there are no stats (e.g., new user) or an error occurred, show zeros.
+      // If there are no stats or an error occurred, show zeros.
       setQuickStats(initialStats);
       if (error) {
-          console.error("Error fetching quick stats:", error);
+          console.error("Error fetching quick stats:", error.message);
       }
     }
   }, [userStats, isLoading, error]);
