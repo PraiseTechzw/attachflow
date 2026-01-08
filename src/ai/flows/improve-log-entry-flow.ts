@@ -1,7 +1,7 @@
 
 'use server';
 
-import { getAIForTask } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import {
   ImproveLogEntryInputSchema,
   ImproveLogEntryOutputSchema,
@@ -9,9 +9,7 @@ import {
   ImproveLogEntryOutput
 } from './improve-log-entry-flow-shared';
 
-const creativeAI = getAIForTask('creative');
-
-const improveLogEntryPrompt = creativeAI.definePrompt({
+const improveLogEntryPrompt = ai.definePrompt({
   name: 'improveLogEntryPrompt',
   input: { schema: ImproveLogEntryInputSchema },
   output: { schema: ImproveLogEntryOutputSchema },
@@ -34,7 +32,7 @@ Based *only* on the feedback above, rewrite the original log entry.
 Produce the improved version of the log.`
 });
 
-const improveLogEntryFlow = creativeAI.defineFlow(
+const improveLogEntryFlow = ai.defineFlow(
   {
     name: 'improveLogEntryFlow',
     inputSchema: ImproveLogEntryInputSchema,

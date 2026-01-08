@@ -1,7 +1,7 @@
 
 'use server';
 
-import { getAIForTask } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import {
   ExtractSkillsInputSchema,
   ExtractSkillsOutputSchema,
@@ -9,9 +9,7 @@ import {
   ExtractSkillsOutput
 } from './extract-skills-from-log-flow-shared';
 
-const analyticalAI = getAIForTask('analytical');
-
-const extractSkillsPrompt = analyticalAI.definePrompt({
+const extractSkillsPrompt = ai.definePrompt({
   name: 'extractSkillsPrompt',
   input: { schema: ExtractSkillsInputSchema },
   output: { schema: ExtractSkillsOutputSchema },
@@ -26,7 +24,7 @@ Log Content:
 `,
 });
 
-const extractSkillsFlow = analyticalAI.defineFlow(
+const extractSkillsFlow = ai.defineFlow(
   {
     name: 'extractSkillsFromLogFlow',
     inputSchema: ExtractSkillsInputSchema,

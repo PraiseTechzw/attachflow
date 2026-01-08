@@ -1,7 +1,7 @@
 
 'use server';
 
-import { getAIForTask } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import {
   GenerateLogFeedbackInputSchema,
   GenerateLogFeedbackOutputSchema,
@@ -9,9 +9,7 @@ import {
   GenerateLogFeedbackOutput
 } from './generate-log-feedback-shared';
 
-const creativeAI = getAIForTask('creative');
-
-const generateLogFeedbackPrompt = creativeAI.definePrompt({
+const generateLogFeedbackPrompt = ai.definePrompt({
   name: 'generateLogFeedbackPrompt',
   input: {schema: GenerateLogFeedbackInputSchema},
   output: {schema: GenerateLogFeedbackOutputSchema},
@@ -33,7 +31,7 @@ const generateLogFeedbackPrompt = creativeAI.definePrompt({
   `,
 });
 
-const generateLogFeedbackFlow = creativeAI.defineFlow(
+const generateLogFeedbackFlow = ai.defineFlow(
   {
     name: 'generateLogFeedbackFlow',
     inputSchema: GenerateLogFeedbackInputSchema,

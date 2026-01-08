@@ -1,7 +1,7 @@
 
 'use server';
 
-import { getAIForTask } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import {
   GenerateLogSuggestionInputSchema,
   GenerateLogSuggestionOutputSchema,
@@ -9,9 +9,7 @@ import {
   GenerateLogSuggestionOutput
 } from './generate-log-suggestion-flow-shared';
 
-const creativeAI = getAIForTask('creative');
-
-const generateLogSuggestionPrompt = creativeAI.definePrompt({
+const generateLogSuggestionPrompt = ai.definePrompt({
   name: 'generateLogSuggestionPrompt',
   input: { schema: GenerateLogSuggestionInputSchema },
   output: { schema: GenerateLogSuggestionOutputSchema },
@@ -27,7 +25,7 @@ Previous Log Content:
 `,
 });
 
-const generateLogSuggestionFlow = creativeAI.defineFlow(
+const generateLogSuggestionFlow = ai.defineFlow(
   {
     name: 'generateLogSuggestionFlow',
     inputSchema: GenerateLogSuggestionInputSchema,

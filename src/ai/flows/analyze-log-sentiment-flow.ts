@@ -1,7 +1,7 @@
 
 'use server';
 
-import { getAIForTask } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import {
   AnalyzeLogSentimentInputSchema,
   AnalyzeLogSentimentOutputSchema,
@@ -9,9 +9,7 @@ import {
   AnalyzeLogSentimentOutput
 } from './analyze-log-sentiment-flow-shared';
 
-const analyticalAI = getAIForTask('analytical');
-
-const analyzeLogSentimentPrompt = analyticalAI.definePrompt({
+const analyzeLogSentimentPrompt = ai.definePrompt({
   name: 'analyzeLogSentimentPrompt',
   input: { schema: AnalyzeLogSentimentInputSchema },
   output: { schema: AnalyzeLogSentimentOutputSchema },
@@ -27,7 +25,7 @@ Log Content:
 `,
 });
 
-const analyzeLogSentimentFlow = analyticalAI.defineFlow(
+const analyzeLogSentimentFlow = ai.defineFlow(
   {
     name: 'analyzeLogSentimentFlow',
     inputSchema: AnalyzeLogSentimentInputSchema,

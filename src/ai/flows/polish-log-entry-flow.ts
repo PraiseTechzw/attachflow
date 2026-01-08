@@ -10,7 +10,7 @@
  * - `PolishLogEntryOutput`: The TypeScript interface for the output.
  */
 
-import { getAIForTask } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 
 
 import {
@@ -20,9 +20,7 @@ import {
   PolishLogEntryOutput
 } from './polish-log-entry-flow-shared';
 
-const creativeAI = getAIForTask('creative');
-
-const polishLogEntryPrompt = creativeAI.definePrompt({
+const polishLogEntryPrompt = ai.definePrompt({
   name: 'polishLogEntryPrompt',
   input: { schema: PolishLogEntryInputSchema },
   output: { schema: PolishLogEntryOutputSchema },
@@ -43,7 +41,7 @@ Rewrite this content into a polished, professional version.
 `,
 });
 
-const polishLogEntryFlow = creativeAI.defineFlow(
+const polishLogEntryFlow = ai.defineFlow(
   {
     name: 'polishLogEntryFlow',
     inputSchema: PolishLogEntryInputSchema,
