@@ -8,7 +8,7 @@ function createServerAI() {
     plugins: [googleAI({
       apiKey: process.env.GEMINI_API_KEY,
     })],
-    model: 'gemini-2.5-flash',
+    model: 'model/gemini-2.5-flash',
   });
 }
 
