@@ -1,11 +1,13 @@
+
 'use client';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { Upload, FileText, Loader2, Trash2 } from "lucide-react";
 import { useFirebase } from "@/firebase/provider";
 import { useCollection, useMemoFirebase } from "@/firebase";
 import { collection, doc } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from "firebase/storage";
 import { useMemo, useRef, useState } from "react";
 import type { Document } from "@/types";
 import { addDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
@@ -17,6 +19,7 @@ export default function DocumentsPage() {
     const { firestore, storage, user } = useFirebase();
     const { toast } = useToast();
     const [isUploading, setIsUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const docsQuery = useMemoFirebase(() => {
@@ -35,38 +38,56 @@ export default function DocumentsPage() {
         if (!file || !user) return;
 
         setIsUploading(true);
+        setUploadProgress(0);
+
         try {
             const documentId = uuidv4();
             const storageRef = ref(storage, `users/${user.uid}/documents/${documentId}_${file.name}`);
-            const snapshot = await uploadBytes(storageRef, file);
-            const downloadURL = await getDownloadURL(snapshot.ref);
+            const uploadTask = uploadBytesResumable(storageRef, file);
 
-            const newDoc: Document = {
-                id: documentId,
-                userId: user.uid,
-                filename: file.name,
-                storagePath: snapshot.ref.fullPath,
-                mimeType: file.type,
-                size: file.size,
-                createdAt: new Date(),
-                url: downloadURL,
-            };
-            
-            const docRef = doc(firestore, `users/${user.uid}/documents`, documentId);
-            addDocumentNonBlocking(collection(firestore, `users/${user.uid}/documents`), newDoc);
-            
-            toast({
-                title: "Document Uploaded",
-                description: `${file.name} has been successfully uploaded.`,
-            });
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    setUploadProgress(progress);
+                },
+                (error) => {
+                    console.error("Upload failed:", error);
+                    toast({
+                        variant: "destructive",
+                        title: "Upload Failed",
+                        description: "There was an error uploading your document.",
+                    });
+                    setIsUploading(false);
+                },
+                async () => {
+                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                    const newDoc: Document = {
+                        id: documentId,
+                        userId: user.uid,
+                        filename: file.name,
+                        storagePath: uploadTask.snapshot.ref.fullPath,
+                        mimeType: file.type,
+                        size: file.size,
+                        createdAt: new Date(),
+                        url: downloadURL,
+                    };
+                    
+                    addDocumentNonBlocking(collection(firestore, `users/${user.uid}/documents`), newDoc);
+                    
+                    toast({
+                        title: "Document Uploaded",
+                        description: `${file.name} has been successfully uploaded.`,
+                    });
+                    setIsUploading(false);
+                }
+            );
         } catch (error) {
-            console.error("Error uploading file:", error);
+            console.error("Error setting up upload:", error);
             toast({
                 variant: "destructive",
                 title: "Upload Failed",
-                description: "There was an error uploading your document.",
+                description: "There was an error initiating the upload.",
             });
-        } finally {
             setIsUploading(false);
         }
     };
@@ -115,16 +136,20 @@ export default function DocumentsPage() {
                     <p className="text-muted-foreground">Upload and manage your attachment-related documents.</p>
                 </div>
                 <Button onClick={handleUploadClick} disabled={isUploading}>
-                    {isUploading ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                        <Upload className="mr-2 h-4 w-4" />
-                    )}
+                    <Upload className="mr-2 h-4 w-4" />
                     Upload Document
                 </Button>
             </div>
 
-            {isLoading && (
+            {isUploading && (
+                <div className="mb-8 space-y-2">
+                    <p className="text-sm font-medium text-center">Uploading...</p>
+                    <Progress value={uploadProgress} className="w-full" />
+                    <p className="text-sm text-muted-foreground text-center">{Math.round(uploadProgress)}%</p>
+                </div>
+            )}
+
+            {isLoading && !isUploading && (
                 <div className="flex items-center justify-center border-dashed min-h-[400px]">
                     <Loader2 className="h-12 w-12 animate-spin text-primary" />
                 </div>
@@ -160,7 +185,7 @@ export default function DocumentsPage() {
                 </div>
             ) : null}
 
-            {!isLoading && (!documents || documents.length === 0) && (
+            {!isLoading && !isUploading && (!documents || documents.length === 0) && (
                  <Card className="flex flex-col items-center justify-center border-dashed min-h-[400px]">
                     <CardHeader className="text-center">
                         <div className="mx-auto bg-secondary p-3 rounded-full w-fit mb-4">
@@ -171,11 +196,7 @@ export default function DocumentsPage() {
                     </CardHeader>
                     <CardContent>
                         <Button onClick={handleUploadClick} disabled={isUploading}>
-                            {isUploading ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                                <Upload className="mr-2 h-4 w-4" />
-                            )}
+                            <Upload className="mr-2 h-4 w-4" />
                             Upload First Document
                         </Button>
                     </CardContent>
