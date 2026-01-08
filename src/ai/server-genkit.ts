@@ -8,7 +8,7 @@ function createServerAI() {
     plugins: [googleAI({
       apiKey: process.env.GEMINI_API_KEY,
     })],
-    model: 'googleai/gemini-1.5-flash',
+    model: 'gemini-2.5-flash',
   });
 }
 
@@ -33,7 +33,7 @@ export async function generateServerText(prompt: string, options?: {
       },
     });
     
-    return response.text();
+    return response.text;
   } catch (error) {
     console.error('Server AI Generation Error:', error);
     throw new Error(`Failed to generate text: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -62,7 +62,7 @@ export async function generateServerStructured<T>(
       },
     });
     
-    return response.output() as T;
+    return response.output as T;
   } catch (error) {
     console.error('Server AI Structured Generation Error:', error);
     throw new Error(`Failed to generate structured response: ${error instanceof Error ? error.message : 'Unknown error'}`);
