@@ -93,7 +93,7 @@ export default function GenerateMonthlyReportPage({ params }: { params: Promise<
     try {
       const mappedLogs = logs.map(log => ({
         content: log.activitiesProfessional ?? log.activitiesRaw ?? '',
-        date: log.date
+        date: log.date.toDate(), // Convert Firestore Timestamp to JS Date
       }));
 
       const result = await generateMonthlyReport({ 
