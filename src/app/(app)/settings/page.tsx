@@ -18,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { useFirebase } from "@/firebase";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useUserProfile } from "@/hooks/use-user-profile";
 
@@ -39,10 +39,20 @@ const settingsFormSchema = z.object({
 type SettingsFormValues = z.infer<typeof settingsFormSchema>;
 
 export default function SettingsPage() {
+    console.log('🏗️ SettingsPage component initializing');
+    
     const { user, firestore } = useFirebase();
     const { userProfile, isLoading: isProfileLoading } = useUserProfile();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { toast } = useToast();
+    
+    console.log('🔍 Component state:', {
+        user: user ? { uid: user.uid, email: user.email } : 'No user',
+        userProfile: userProfile ? 'Profile loaded' : 'No profile',
+        isProfileLoading,
+        isSubmitting,
+        firestore: firestore ? 'Available' : 'Not available'
+    });
     
     const form = useForm<SettingsFormValues>({
         resolver: zodResolver(settingsFormSchema),
@@ -57,7 +67,19 @@ export default function SettingsPage() {
       });
 
     useEffect(() => {
+        console.log('🔄 Profile data effect triggered');
+        console.log('👤 Current userProfile:', userProfile);
+        console.log('📋 Current form values:', form.getValues());
+        
         if (userProfile) {
+            console.log('✅ UserProfile available, resetting form with:', {
+                displayName: userProfile.displayName || "",
+                regNumber: userProfile.regNumber || "",
+                companyName: userProfile.companyName || "",
+                universityName: userProfile.universityName || "",
+                goals: userProfile.goals || "",
+            });
+            
             form.reset({
                 displayName: userProfile.displayName || "",
                 regNumber: userProfile.regNumber || "",
@@ -65,35 +87,80 @@ export default function SettingsPage() {
                 universityName: userProfile.universityName || "",
                 goals: userProfile.goals || "",
             });
+            
+            console.log('📋 Form reset complete, new values:', form.getValues());
+        } else {
+            console.log('⚠️ UserProfile not available yet');
         }
     }, [userProfile, form]);
 
     async function onSubmit(data: SettingsFormValues) {
+        console.log('🚀 Profile submission started');
+        console.log('📝 Form data:', data);
+        console.log('👤 Current user:', user ? { uid: user.uid, email: user.email } : 'No user');
+        console.log('🔥 Firestore instance:', firestore ? 'Available' : 'Not available');
+        
         if (!user) {
+            console.error('❌ User not authenticated');
             toast({ variant: 'destructive', title: 'Not authenticated' });
             return;
         }
+        
+        if (!firestore) {
+            console.error('❌ Firestore not available');
+            toast({ variant: 'destructive', title: 'Database not available' });
+            return;
+        }
+        
         setIsSubmitting(true);
+        console.log('⏳ Setting isSubmitting to true');
+        
         try {
+            console.log('📄 Creating document reference for user:', user.uid);
             const userRef = doc(firestore, "users", user.uid);
-            await updateDoc(userRef, {
+            console.log('📄 Document reference created:', userRef.path);
+            
+            const updateData = {
                 displayName: data.displayName,
                 regNumber: data.regNumber,
                 companyName: data.companyName,
                 universityName: data.universityName,
                 goals: data.goals,
-            });
+                updatedAt: serverTimestamp(),
+                // Ensure we have the user's email and uid for reference
+                email: user.email,
+                uid: user.uid,
+                // Add createdAt only if it's a new document
+                ...(userProfile ? {} : { createdAt: serverTimestamp() })
+            };
+            console.log('📊 Update data prepared:', updateData);
+            
+            console.log('💾 Attempting to create/update document...');
+            await setDoc(userRef, updateData, { merge: true });
+            console.log('✅ Document created/updated successfully');
+            
             toast({
                 title: "Settings updated",
                 description: "Your profile has been successfully updated.",
             });
+            console.log('🎉 Success toast shown');
+            
         } catch (error) {
+            console.error('❌ Error updating profile:', error);
+            console.error('❌ Error details:', {
+                name: error?.name,
+                message: error?.message,
+                code: error?.code,
+                stack: error?.stack
+            });
+            
             toast({
                 variant: 'destructive',
                 title: "Update failed",
-                description: "Could not update your settings. Please try again.",
+                description: `Could not update your settings: ${error?.message || 'Unknown error'}`,
             });
         } finally {
+            console.log('🏁 Setting isSubmitting to false');
             setIsSubmitting(false);
         }
     }

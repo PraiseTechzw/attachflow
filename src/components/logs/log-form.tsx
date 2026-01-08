@@ -28,6 +28,8 @@ import { analyzeLogSentiment } from "@/ai/flows/analyze-log-sentiment-flow";
 import { format, getWeek } from 'date-fns';
 import { useStatsUpdater } from "@/hooks/use-stats-updater";
 import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { useFirstLogDate } from "@/hooks/use-first-log-date";
+import { calculateLogNumbers } from "@/lib/date-utils";
 
 const logFormSchema = z.object({
   activitiesRaw: z.string().min(10, {
@@ -51,6 +53,7 @@ export function LogForm({ log, suggestion, logDate }: LogFormProps) {
   const { toast } = useToast();
   const router = useRouter();
   const { updateStats } = useStatsUpdater();
+  const { firstLogDate } = useFirstLogDate();
 
   const form = useForm<LogFormValues>({
     resolver: zodResolver(logFormSchema),
@@ -111,20 +114,32 @@ export function LogForm({ log, suggestion, logDate }: LogFormProps) {
                 setIsSaving(false);
                 return;
             }
+            
             const logId = uuidv4();
             const logRef = doc(firestore, `users/${user.uid}/dailyLogs`, logId);
+            
+            // Calculate attachment-based numbers
+            const logNumbers = firstLogDate 
+                ? calculateLogNumbers(dateForLog, firstLogDate)
+                : {
+                    weekNumber: getWeek(dateForLog), // Fallback to ISO week
+                    monthNumber: 1,
+                    monthYear: format(dateForLog, 'MMMM yyyy')
+                };
+            
             const newLogData: Omit<DailyLog, 'sentiment' | 'skills' | 'feedback'> = {
                 id: logId,
                 userId: user.uid,
                 ...data,
                 date: dateForLog,
-                monthYear: format(dateForLog, 'MMMM yyyy'),
-                weekNumber: getWeek(dateForLog),
+                monthYear: logNumbers.monthYear,
+                weekNumber: logNumbers.weekNumber,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
             };
-             await setDoc(logRef, newLogData);
-             toast({ title: "Log saved successfully!", description: "Your daily progress has been recorded." });
+            
+            await setDoc(logRef, newLogData);
+            toast({ title: "Log saved successfully!", description: "Your daily progress has been recorded." });
 
         } else {
             const logRef = doc(firestore, `users/${user.uid}/dailyLogs`, log.id);

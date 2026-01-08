@@ -22,10 +22,14 @@ import { collection, query, orderBy } from "firebase/firestore";
 import type { DailyLog } from "@/types";
 import { useMemo, useState } from "react";
 import { format, isThisWeek, isThisMonth, differenceInDays } from "date-fns";
+import { useFirstLogDate } from "@/hooks/use-first-log-date";
+import { calculateAttachmentWeek, calculateAttachmentMonth, getAttachmentWeekString, getAttachmentMonthYear } from "@/lib/date-utils";
 
 type GroupedLogs = {
-    [week: string]: DailyLog[];
+    [key: string]: DailyLog[];
 }
+
+type GroupingMode = 'weeks' | 'months';
 
 const getSentimentIcon = (sentiment: string | undefined) => {
   switch (sentiment) {
@@ -60,6 +64,9 @@ export default function LogsPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterSentiment, setFilterSentiment] = useState<string>('all');
     const [viewMode, setViewMode] = useState<'accordion' | 'grid'>('accordion');
+    const [groupingMode, setGroupingMode] = useState<GroupingMode>('weeks');
+    
+    const { firstLogDate, isLoading: isFirstLogLoading } = useFirstLogDate();
 
     const logsQuery = useMemoFirebase(() => {
         if (!user) return null;
@@ -68,11 +75,31 @@ export default function LogsPage() {
 
     const { data: logs, isLoading } = useCollection<DailyLog>(logsQuery);
 
+    // Enhanced logs with attachment-based numbering
+    const enhancedLogs = useMemo(() => {
+        if (!logs || !firstLogDate) return logs;
+        
+        return logs.map(log => {
+            const logDate = log.date?.toDate();
+            if (!logDate) return log;
+            
+            const attachmentWeek = calculateAttachmentWeek(logDate, firstLogDate);
+            const attachmentMonth = calculateAttachmentMonth(logDate, firstLogDate);
+            
+            return {
+                ...log,
+                attachmentWeek,
+                attachmentMonth,
+                attachmentMonthYear: getAttachmentMonthYear(logDate, firstLogDate)
+            };
+        });
+    }, [logs, firstLogDate]);
+
     // Filter logs based on search and sentiment
     const filteredLogs = useMemo(() => {
-        if (!logs) return [];
+        if (!enhancedLogs) return [];
         
-        return logs.filter(log => {
+        return enhancedLogs.filter(log => {
             const matchesSearch = searchTerm === '' || 
                 (log.activitiesRaw && log.activitiesRaw.toLowerCase().includes(searchTerm.toLowerCase())) ||
                 (log.activitiesProfessional && log.activitiesProfessional.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -81,40 +108,56 @@ export default function LogsPage() {
             
             return matchesSearch && matchesSentiment;
         });
-    }, [logs, searchTerm, filterSentiment]);
+    }, [enhancedLogs, searchTerm, filterSentiment]);
 
     const groupedLogs = useMemo(() => {
-        if (!filteredLogs) return {};
+        if (!filteredLogs || !firstLogDate) return {};
+        
         return filteredLogs.reduce((acc: GroupedLogs, log) => {
-            const weekKey = `Week ${log.weekNumber}`;
-            if (!acc[weekKey]) {
-                acc[weekKey] = [];
+            const logDate = log.date?.toDate();
+            if (!logDate) return acc;
+            
+            let groupKey: string;
+            if (groupingMode === 'weeks') {
+                groupKey = getAttachmentWeekString(logDate, firstLogDate);
+            } else {
+                groupKey = log.attachmentMonthYear || getAttachmentMonthYear(logDate, firstLogDate);
             }
-            acc[weekKey].push(log);
+            
+            if (!acc[groupKey]) {
+                acc[groupKey] = [];
+            }
+            acc[groupKey].push(log);
             return acc;
         }, {});
-    }, [filteredLogs]);
+    }, [filteredLogs, firstLogDate, groupingMode]);
 
-    const sortedWeeks = useMemo(() => {
+    const sortedGroups = useMemo(() => {
         return Object.keys(groupedLogs).sort((a, b) => {
-            const weekA = parseInt(a.replace('Week ', ''));
-            const weekB = parseInt(b.replace('Week ', ''));
-            return weekB - weekA;
+            // Extract numbers for sorting (Week 5 vs Week 10, Month 2 vs Month 3)
+            const getNumber = (str: string) => {
+                const match = str.match(/(?:Week|Month)\s+(\d+)/);
+                return match ? parseInt(match[1]) : 0;
+            };
+            
+            const numA = getNumber(a);
+            const numB = getNumber(b);
+            return numB - numA; // Descending order (newest first)
         });
     }, [groupedLogs]);
 
     // Statistics
     const stats = useMemo(() => {
-        if (!logs) return { total: 0, thisWeek: 0, thisMonth: 0, positive: 0 };
+        if (!enhancedLogs) return { total: 0, thisWeek: 0, thisMonth: 0, positive: 0 };
         
         const now = new Date();
         return {
-            total: logs.length,
-            thisWeek: logs.filter(log => log.date && isThisWeek(log.date.toDate())).length,
-            thisMonth: logs.filter(log => log.date && isThisMonth(log.date.toDate())).length,
-            positive: logs.filter(log => log.sentiment === 'Positive').length
+            total: enhancedLogs.length,
+            thisWeek: enhancedLogs.filter(log => log.date && isThisWeek(log.date.toDate())).length,
+            thisMonth: enhancedLogs.filter(log => log.date && isThisMonth(log.date.toDate())).length,
+            positive: enhancedLogs.filter(log => log.sentiment === 'Positive').length
         };
-    }, [logs]);
+    }, [enhancedLogs]);
 
     const formatDate = (timestamp: any) => {
         if (!timestamp) return 'N/A';
@@ -243,7 +286,7 @@ export default function LogsPage() {
                             onClick={() => setViewMode('accordion')}
                         >
                             <BookOpen className="h-4 w-4 mr-2" />
-                            Weeks
+                            {groupingMode === 'weeks' ? 'Weeks' : 'Months'}
                         </Button>
                         <Button
                             variant={viewMode === 'grid' ? 'default' : 'outline'}
@@ -253,12 +296,29 @@ export default function LogsPage() {
                             <BarChart3 className="h-4 w-4 mr-2" />
                             Grid
                         </Button>
+                        <div className="h-4 w-px bg-border mx-2" />
+                        <Button
+                            variant={groupingMode === 'weeks' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setGroupingMode('weeks')}
+                        >
+                            <Calendar className="h-4 w-4 mr-2" />
+                            Weeks
+                        </Button>
+                        <Button
+                            variant={groupingMode === 'months' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setGroupingMode('months')}
+                        >
+                            <BarChart3 className="h-4 w-4 mr-2" />
+                            Months
+                        </Button>
                     </div>
                 </div>
             </Card>
 
             {/* Content */}
-            {isLoading ? (
+            {isLoading || isFirstLogLoading ? (
                 <div className="flex items-center justify-center min-h-[400px]">
                     <div className="text-center space-y-4">
                         <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
@@ -267,23 +327,27 @@ export default function LogsPage() {
                 </div>
             ) : filteredLogs && filteredLogs.length > 0 ? (
                 viewMode === 'accordion' ? (
-                    <Accordion type="single" collapsible className="w-full space-y-4" defaultValue={sortedWeeks.length > 0 ? sortedWeeks[0] : undefined}>
-                        {sortedWeeks.map(week => (
-                            <AccordionItem value={week} key={week} className="border rounded-lg px-6 bg-card/50 backdrop-blur-sm">
+                    <Accordion type="single" collapsible className="w-full space-y-4" defaultValue={sortedGroups.length > 0 ? sortedGroups[0] : undefined}>
+                        {sortedGroups.map(groupKey => (
+                            <AccordionItem value={groupKey} key={groupKey} className="border rounded-lg px-6 bg-card/50 backdrop-blur-sm">
                                 <AccordionTrigger className="text-lg font-semibold hover:no-underline py-6">
                                     <div className="flex items-center gap-3">
                                         <div className="p-2 rounded-full bg-primary/10">
-                                            <Calendar className="h-5 w-5 text-primary" />
+                                            {groupingMode === 'weeks' ? (
+                                                <Calendar className="h-5 w-5 text-primary" />
+                                            ) : (
+                                                <BarChart3 className="h-5 w-5 text-primary" />
+                                            )}
                                         </div>
-                                        <span>{week}</span>
+                                        <span>{groupKey}</span>
                                         <Badge variant="secondary" className="ml-2">
-                                            {groupedLogs[week].length} {groupedLogs[week].length === 1 ? 'log' : 'logs'}
+                                            {groupedLogs[groupKey].length} {groupedLogs[groupKey].length === 1 ? 'log' : 'logs'}
                                         </Badge>
                                     </div>
                                 </AccordionTrigger>
                                 <AccordionContent className="pb-6">
                                     <div className="grid gap-4 md:grid-cols-2">
-                                        {groupedLogs[week].map(log => (
+                                        {groupedLogs[groupKey].map(log => (
                                             <Card key={log.id} className={`card-hover group relative overflow-hidden bg-gradient-to-br ${getSentimentColor(log.sentiment)}`}>
                                                 <CardHeader className="pb-3">
                                                     <div className="flex items-center justify-between">
@@ -355,7 +419,10 @@ export default function LogsPage() {
                                         </div>
                                     </div>
                                     <Badge variant="outline" className="w-fit text-xs">
-                                        Week {log.weekNumber}
+                                        {groupingMode === 'weeks' 
+                                            ? `Attachment Week ${log.attachmentWeek || calculateAttachmentWeek(log.date?.toDate() || new Date(), firstLogDate || new Date())}`
+                                            : `Attachment Month ${log.attachmentMonth || calculateAttachmentMonth(log.date?.toDate() || new Date(), firstLogDate || new Date())}`
+                                        }
                                     </Badge>
                                 </CardHeader>
                                 <CardContent className="pt-0">
