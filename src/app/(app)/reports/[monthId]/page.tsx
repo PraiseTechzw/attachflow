@@ -19,6 +19,11 @@ import type { MonthlyReport } from '@/types';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { format, parse } from 'date-fns';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+
+const MonthlyReportPDFGenerator = dynamic(() => import('@/components/reports/MonthlyReportPDFGenerator'), {
+  ssr: false,
+});
 
 // Utility function to safely format dates from Firestore
 const safeFormatDate = (date: any, formatString: string = 'PPP'): string => {
@@ -60,10 +65,6 @@ export default function MonthlyReportPage({ params }: { params: Promise<{ monthI
   const { data: report, isLoading: isReportLoading } = useDoc<MonthlyReport>(reportRef);
 
   const isLoading = isReportLoading || isProfileLoading;
-
-  const handleDownloadClick = () => {
-    window.print();
-  }
   
   const handleToggleLock = async () => {
     if (!report || !reportRef) return;
@@ -214,14 +215,28 @@ export default function MonthlyReportPage({ params }: { params: Promise<{ monthI
                   )}
                   {report.status === 'Draft' ? 'Finalize' : 'Re-open'}
                 </Button>
-                <Button 
-                  onClick={handleDownloadClick}
-                  className="bg-gradient-to-r from-primary to-chart-4 hover:from-primary/90 hover:to-chart-4/90"
-                >
-                  <FileDown className="mr-2 h-4 w-4" />
-                  Download PDF
-                </Button>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* PDF Generator */}
+        <Card className="card-hover">
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <h3 className="font-semibold">PDF Download</h3>
+                <p className="text-sm text-muted-foreground">
+                  Generate and download your monthly report as a professional PDF document
+                </p>
+              </div>
+              <MonthlyReportPDFGenerator
+                report={report}
+                studentName={userProfile?.displayName || 'N/A'}
+                regNumber={userProfile?.regNumber || 'N/A'}
+                companyName={userProfile?.companyName || 'N/A'}
+                universityName={userProfile?.universityName || 'Chinhoyi University of Technology'}
+              />
             </div>
           </CardContent>
         </Card>
