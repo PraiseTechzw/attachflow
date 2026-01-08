@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Upload, FileText, Loader2, Trash2, Search, LayoutGrid, List, Sparkles } from "lucide-react";
+import { Upload, FileText, Loader2, Trash2, Search, LayoutGrid, List, Sparkles, Calendar } from "lucide-react";
 import { useFirebase } from "@/firebase/provider";
 import { useCollection, useMemoFirebase } from "@/firebase";
 import { collection, doc, deleteDoc } from "firebase/firestore";
@@ -19,7 +19,6 @@ import Link from "next/link";
 import { v4 as uuidv4 } from "uuid";
 import { format } from "date-fns";
 import { summarizeDocument } from "@/ai/flows/summarize-document-flow";
-import { uploadBytesResumable, ref, getDownloadURL } from "firebase/storage";
 
 export default function DocumentsPage() {
     const { firestore, user, storage } = useFirebase();
@@ -76,8 +75,7 @@ export default function DocumentsPage() {
                     createdAt: new Date(),
                 };
                 
-                // Using non-blocking add
-                addDocumentNonBlocking(doc(collection(firestore, `users/${user.uid}/documents`), documentId), newDoc);
+                addDocumentNonBlocking(doc(firestore, `users/${user.uid}/documents`, documentId), newDoc);
                 
                 toast({
                     title: "Document Saved",
@@ -108,7 +106,7 @@ export default function DocumentsPage() {
             setUploadingFile(null);
         };
         
-        reader.readAsDataURL(file); // This triggers the process
+        reader.readAsDataURL(file);
     };
     
     const handleDelete = async (docToDelete: Document) => {
@@ -146,6 +144,13 @@ export default function DocumentsPage() {
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
     }
+    
+    const formatDate = (timestamp: any, formatString: string = 'PPP') => {
+        if (!timestamp) return 'N/A';
+        // Firestore Timestamps have a toDate() method, JS Dates do not.
+        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+        return format(date, formatString);
+    };
 
     const isUploading = !!uploadingFile;
 
@@ -210,7 +215,15 @@ export default function DocumentsPage() {
                                 <CardTitle className="text-base truncate leading-tight mb-1" title={doc.filename}>
                                     <Link href={doc.url} target="_blank" rel="noopener noreferrer" className="hover:underline">{doc.filename}</Link>
                                 </CardTitle>
-                                <CardDescription className="text-xs">{formatBytes(doc.size)}</CardDescription>
+                                 <div className="text-xs text-muted-foreground flex items-center justify-between mt-2">
+                                            <span>{formatBytes(doc.size)}</span>
+                                            {doc.createdAt && (
+                                                <span className="flex items-center gap-1">
+                                                    <Calendar className="h-3 w-3" />
+                                                    {formatDate(doc.createdAt, 'MMM dd')}
+                                                </span>
+                                            )}
+                                        </div>
                             </CardContent>
                             <CardContent>
                                 <Dialog>
@@ -255,7 +268,7 @@ export default function DocumentsPage() {
                                         <Link href={doc.url} target="_blank" rel="noopener noreferrer" className="hover:underline">{doc.filename}</Link>
                                     </TableCell>
                                     <TableCell>{formatBytes(doc.size)}</TableCell>
-                                    <TableCell>{doc.createdAt ? format(new Date(doc.createdAt), 'PPP') : 'N/A'}</TableCell>
+                                    <TableCell>{formatDate(doc.createdAt)}</TableCell>
                                     <TableCell className="text-right space-x-2">
                                         <Dialog>
                                             <DialogTrigger asChild>
@@ -306,4 +319,5 @@ export default function DocumentsPage() {
             )}
         </div>
     );
-}
+
+    
