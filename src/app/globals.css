@@ -432,7 +432,7 @@ body {
 
 /* Enhanced Calendar Styles */
 .rdp {
-  --rdp-cell-size: 2.5rem;
+  --rdp-cell-size: 3rem;
   --rdp-accent-color: hsl(var(--primary));
   --rdp-background-color: hsl(var(--background));
   --rdp-accent-color-dark: hsl(var(--primary));
@@ -443,6 +443,8 @@ body {
 .rdp-day {
   position: relative;
   overflow: hidden;
+  border-radius: 0.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .rdp-day::before {
@@ -452,108 +454,145 @@ body {
   left: 50%;
   width: 0;
   height: 0;
-  background: radial-gradient(circle, hsl(var(--primary) / 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, hsl(var(--primary) / 0.15) 0%, transparent 70%);
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: -1;
 }
 
 .rdp-day:hover::before {
-  width: 100%;
-  height: 100%;
+  width: 120%;
+  height: 120%;
 }
 
-/* Selected day glow effect */
+.rdp-day:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px hsl(var(--primary) / 0.15);
+}
+
+/* Selected day enhanced effects */
 .rdp-day_selected {
   position: relative;
   box-shadow: 
-    0 0 0 1px hsl(var(--primary) / 0.2),
-    0 4px 12px hsl(var(--primary) / 0.15),
-    0 2px 4px hsl(var(--primary) / 0.1);
+    0 0 0 2px hsl(var(--primary) / 0.3),
+    0 8px 25px hsl(var(--primary) / 0.25),
+    0 4px 12px hsl(var(--primary) / 0.15);
+  transform: translateY(-1px);
 }
 
 .rdp-day_selected::after {
   content: '';
   position: absolute;
-  inset: -2px;
-  background: linear-gradient(45deg, hsl(var(--primary) / 0.1), hsl(var(--chart-4) / 0.1));
+  inset: -3px;
+  background: linear-gradient(45deg, hsl(var(--primary) / 0.2), hsl(var(--chart-4) / 0.2));
   border-radius: inherit;
   z-index: -1;
   opacity: 0;
-  animation: pulse-glow 2s ease-in-out infinite;
+  animation: pulse-glow 3s ease-in-out infinite;
 }
 
-/* Today indicator with pulsing animation */
+.rdp-day_selected:hover {
+  transform: translateY(-3px);
+  box-shadow: 
+    0 0 0 2px hsl(var(--primary) / 0.4),
+    0 12px 35px hsl(var(--primary) / 0.3),
+    0 6px 16px hsl(var(--primary) / 0.2);
+}
+
+/* Today indicator with enhanced animation */
 .rdp-day_today {
   position: relative;
+  animation: today-pulse 4s ease-in-out infinite;
 }
 
 .rdp-day_today::after {
   content: '';
   position: absolute;
-  bottom: 2px;
+  bottom: 3px;
   left: 50%;
   transform: translateX(-50%);
-  width: 4px;
-  height: 4px;
-  background: hsl(var(--primary));
+  width: 6px;
+  height: 6px;
+  background: linear-gradient(45deg, hsl(var(--primary)), hsl(var(--chart-4)));
   border-radius: 50%;
   animation: pulse-dot 2s ease-in-out infinite;
+  box-shadow: 0 0 8px hsl(var(--primary) / 0.5);
 }
 
-/* Range selection styling */
+/* Range selection enhanced styling */
 .rdp-day_range_start,
 .rdp-day_range_end {
   background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--chart-4)));
   box-shadow: 
-    0 2px 8px hsl(var(--primary) / 0.3),
-    0 1px 3px hsl(var(--primary) / 0.2);
+    0 4px 16px hsl(var(--primary) / 0.4),
+    0 2px 8px hsl(var(--primary) / 0.3);
+  transform: translateY(-1px);
 }
 
 .rdp-day_range_middle {
-  background: linear-gradient(90deg, hsl(var(--primary) / 0.1), hsl(var(--chart-4) / 0.1));
+  background: linear-gradient(90deg, hsl(var(--primary) / 0.15), hsl(var(--chart-4) / 0.15));
   position: relative;
+  border: 1px solid hsl(var(--primary) / 0.2);
 }
 
 .rdp-day_range_middle::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.05), transparent);
-  animation: shimmer 2s ease-in-out infinite;
+  background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.08), transparent);
+  animation: shimmer 3s ease-in-out infinite;
 }
 
 /* Navigation button enhancements */
 .rdp-nav_button {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.rdp-nav_button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, hsl(var(--primary) / 0.1), hsl(var(--chart-4) / 0.1));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.rdp-nav_button:hover::before {
+  opacity: 1;
 }
 
 .rdp-nav_button:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px hsl(var(--primary) / 0.2);
+  transform: scale(1.15);
+  box-shadow: 0 6px 20px hsl(var(--primary) / 0.25);
 }
 
-/* Month/Year label styling */
+/* Month/Year label enhanced styling */
 .rdp-caption_label {
   background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--chart-4)));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  font-weight: 600;
-  letter-spacing: 0.025em;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-shadow: 0 2px 4px hsl(var(--primary) / 0.1);
 }
 
-/* Weekday headers */
+/* Weekday headers enhanced */
 .rdp-head_cell {
-  font-weight: 500;
+  font-weight: 600;
   color: hsl(var(--muted-foreground));
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
   font-size: 0.75rem;
+  background: linear-gradient(135deg, hsl(var(--muted) / 0.6), hsl(var(--muted) / 0.3));
+  border: 1px solid hsl(var(--border) / 0.5);
+  backdrop-filter: blur(4px);
 }
 
-/* Animations */
+/* Enhanced animations */
 @keyframes pulse-glow {
   0%, 100% { opacity: 0; }
   50% { opacity: 1; }
@@ -565,8 +604,8 @@ body {
     transform: translateX(-50%) scale(1);
   }
   50% { 
-    opacity: 0.6; 
-    transform: translateX(-50%) scale(1.2);
+    opacity: 0.7; 
+    transform: translateX(-50%) scale(1.3);
   }
 }
 
@@ -575,25 +614,74 @@ body {
   100% { transform: translateX(100%); }
 }
 
+@keyframes today-pulse {
+  0%, 100% { 
+    box-shadow: 
+      0 0 0 2px hsl(var(--orange-500) / 0.4),
+      0 4px 12px hsl(var(--orange-500) / 0.2);
+  }
+  50% { 
+    box-shadow: 
+      0 0 0 4px hsl(var(--orange-500) / 0.6),
+      0 6px 20px hsl(var(--orange-500) / 0.3);
+  }
+}
+
+/* Calendar container enhancements */
+.calendar-enhanced {
+  background: linear-gradient(135deg, hsl(var(--background)), hsl(var(--muted) / 0.3));
+  backdrop-filter: blur(12px);
+  border: 1px solid hsl(var(--border) / 0.5);
+  box-shadow: 
+    0 20px 40px hsl(var(--primary) / 0.1),
+    0 8px 16px hsl(var(--primary) / 0.05),
+    inset 0 1px 0 hsl(var(--background) / 0.8);
+}
+
 /* Dark mode adjustments */
 .dark .rdp-day_today::after {
-  background: hsl(var(--primary));
+  background: linear-gradient(45deg, hsl(var(--primary)), hsl(var(--chart-4)));
+  box-shadow: 0 0 12px hsl(var(--primary) / 0.6);
 }
 
 .dark .rdp-day_selected {
   box-shadow: 
-    0 0 0 1px hsl(var(--primary) / 0.3),
-    0 4px 12px hsl(var(--primary) / 0.2),
-    0 2px 4px hsl(var(--primary) / 0.15);
+    0 0 0 2px hsl(var(--primary) / 0.4),
+    0 8px 25px hsl(var(--primary) / 0.3),
+    0 4px 12px hsl(var(--primary) / 0.2);
+}
+
+.dark .calendar-enhanced {
+  background: linear-gradient(135deg, hsl(var(--background)), hsl(var(--muted) / 0.2));
+  border: 1px solid hsl(var(--border) / 0.3);
+  box-shadow: 
+    0 20px 40px hsl(var(--background) / 0.5),
+    0 8px 16px hsl(var(--primary) / 0.1),
+    inset 0 1px 0 hsl(var(--muted) / 0.2);
 }
 
 /* Popover calendar specific styling */
 .calendar-popover .rdp {
   background: hsl(var(--popover));
   border: 1px solid hsl(var(--border));
-  border-radius: 0.75rem;
-  backdrop-filter: blur(8px);
+  border-radius: 1rem;
+  backdrop-filter: blur(16px);
   box-shadow: 
-    0 10px 25px hsl(var(--primary) / 0.1),
-    0 4px 10px hsl(var(--primary) / 0.05);
+    0 25px 50px hsl(var(--primary) / 0.15),
+    0 10px 20px hsl(var(--primary) / 0.1),
+    inset 0 1px 0 hsl(var(--background) / 0.1);
+}
+
+/* Select dropdown enhancements */
+.calendar-select {
+  background: linear-gradient(135deg, hsl(var(--background)), hsl(var(--muted) / 0.3));
+  border: 1px solid hsl(var(--border) / 0.5);
+  backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+}
+
+.calendar-select:hover {
+  background: linear-gradient(135deg, hsl(var(--muted) / 0.5), hsl(var(--muted) / 0.3));
+  border-color: hsl(var(--primary) / 0.3);
+  box-shadow: 0 4px 12px hsl(var(--primary) / 0.1);
 }

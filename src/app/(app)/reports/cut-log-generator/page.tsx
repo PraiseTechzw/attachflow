@@ -235,7 +235,7 @@ export default function CutLogGeneratorPage() {
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 calendar-popover backdrop-blur-sm bg-background/95 border-border/50 shadow-xl" align="start">
+                <PopoverContent className="w-auto p-0 calendar-popover calendar-enhanced shadow-xl" align="start">
                   <Calendar
                     initialFocus
                     mode="range"

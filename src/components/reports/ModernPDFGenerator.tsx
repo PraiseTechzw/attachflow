@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, Eye, Loader2, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { DailyLog } from '@/types';
-import { format } from 'date-fns';
+import { format, isSameMonth, startOfMonth, endOfMonth } from 'date-fns';
 
 interface ModernPDFGeneratorProps {
   logs: DailyLog[];

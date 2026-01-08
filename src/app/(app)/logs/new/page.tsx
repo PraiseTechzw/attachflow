@@ -70,7 +70,7 @@ export default function NewLogPage() {
                     {logDate ? format(logDate, "PPP") : <span>Pick a date</span>}
                 </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 calendar-popover">
+                <PopoverContent className="w-auto p-0 calendar-popover calendar-enhanced">
                 <Calendar
                     mode="single"
                     selected={logDate}
