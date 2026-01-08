@@ -46,7 +46,7 @@ const generateMonthlyReportFlow = ai.defineFlow(
   async (input) => {
     // Ensure logs are sorted by date before sending to the prompt
     const sortedLogs = input.logs.sort((a, b) => {
-        return a.date.getTime() - b.date.getTime();
+        return new Date(a.date).getTime() - new Date(b.date).getTime();
     });
 
     const { output } = await generateMonthlyReportPrompt({ ...input, logs: sortedLogs });

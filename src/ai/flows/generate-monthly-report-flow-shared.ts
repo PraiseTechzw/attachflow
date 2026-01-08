@@ -2,7 +2,7 @@
 import { z } from 'genkit';
 
 const LogEntrySchema = z.object({
-  date: z.date().describe('The date of the log entry.'),
+  date: z.string().describe('The date of the log entry as an ISO 8601 string.'),
   content: z.string().describe('The content of the log entry.'),
 });
 
