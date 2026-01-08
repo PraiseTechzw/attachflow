@@ -27,6 +27,7 @@ export default function GenerateMonthlyReportPage({ params }: { params: Promise<
   const [isLoading, setIsLoading] = useState(true);
   const [reportData, setReportData] = useState<Partial<MonthlyReport>>({});
   const [logs, setLogs] = useState<DailyLog[]>([]);
+  const [previousConclusion, setPreviousConclusion] = useState<string | undefined>();
   const [hasFetchedLogs, setHasFetchedLogs] = useState(false);
   
   const reportDate = parse(monthId, 'yyyy-MM', new Date());
@@ -61,22 +62,20 @@ export default function GenerateMonthlyReportPage({ params }: { params: Promise<
           // Load existing report data
           const existingData = currentReportSnap.data() as MonthlyReport;
           setReportData(existingData);
-        } else {
-          // New Report: Fetch previous month's conclusion for continuity
-          const prevMonthDate = subMonths(reportDate, 1);
-          const prevMonthId = format(prevMonthDate, 'yyyy-MM');
-          const prevReportRef = doc(firestore, `users/${user.uid}/monthlyReports`, prevMonthId);
-          const prevReportSnap = await getDoc(prevReportRef);
-
-          let intro = '';
-          if (prevReportSnap.exists()) {
-            const prevReport = prevReportSnap.data() as MonthlyReport;
-            if (prevReport.conclusion) {
-              intro = `Continuing from the activities of last month where we concluded with: "${prevReport.conclusion}", this month focused on...`;
-            }
-          }
-          setReportData(prev => ({ ...prev, introduction: intro }));
         }
+        
+        // 4. Fetch previous month's conclusion for continuity, regardless of current report existence
+        const prevMonthDate = subMonths(reportDate, 1);
+        const prevMonthId = format(prevMonthDate, 'yyyy-MM');
+        const prevReportRef = doc(firestore, `users/${user.uid}/monthlyReports`, prevMonthId);
+        const prevReportSnap = await getDoc(prevReportRef);
+        if (prevReportSnap.exists()) {
+          const prevReport = prevReportSnap.data() as MonthlyReport;
+          if (prevReport.conclusion) {
+            setPreviousConclusion(prevReport.conclusion);
+          }
+        }
+        
       } catch (error) {
         console.error("Error fetching prerequisites:", error);
         toast({ variant: 'destructive', title: 'Error', description: 'Failed to load report data.' });
@@ -89,7 +88,7 @@ export default function GenerateMonthlyReportPage({ params }: { params: Promise<
     fetchData();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, firestore, monthId, reportDate]); // reportDate is derived from monthId, but included for stability
+  }, [user, firestore, monthId]);
 
   const handleAutoGenerate = async () => {
     if (logs.length === 0) {
@@ -103,9 +102,15 @@ export default function GenerateMonthlyReportPage({ params }: { params: Promise<
         content: log.content ?? log.activitiesRaw ?? '',
         date: log.date
       }));
-      const result = await generateMonthlyReport({ logs: mappedLogs });
+
+      const result = await generateMonthlyReport({ 
+        logs: mappedLogs,
+        previousConclusion: previousConclusion
+      });
+
       setReportData(prev => ({
         ...prev,
+        introduction: result.introduction,
         duties: result.duties,
         problems: result.problems,
         analysis: result.analysis,
@@ -126,14 +131,14 @@ export default function GenerateMonthlyReportPage({ params }: { params: Promise<
       try {
         const reportRef = doc(firestore, `users/${user.uid}/monthlyReports`, monthId);
         const finalReportData: MonthlyReport = {
-          ...reportData as MonthlyReport, // Spread first (may include AI fields)
+          ...reportData as MonthlyReport,
           id: monthId,
           userId: user.uid,
           month: monthName,
           year: getYear(reportDate),
           logCount: logs.length,
           status: 'Draft',
-          lastUpdated: new Date(), // Override after
+          lastUpdated: new Date(),
         };
 
         await setDoc(reportRef, finalReportData, { merge: true });
