@@ -1,3 +1,4 @@
+
 import { 
   collection, 
   query, 
@@ -51,7 +52,6 @@ export class StatsService {
   async getUserStats(userId: string): Promise<UserStats | null> {
     try {
       const db = this.getFirestore();
-      // Stats will be stored as a single document in a subcollection of the user
       const statsDocRef = doc(db, `users/${userId}/stats`, 'summary');
       const statsDoc = await getDoc(statsDocRef);
       
@@ -134,7 +134,6 @@ export class StatsService {
   private async calculateStreak(userId: string): Promise<{ streakDays: number; longestStreak: number }> {
     try {
       const db = this.getFirestore();
-      // Get all logs ordered by date for the specific user
       const logsQuery = query(
         collection(db, `users/${userId}/dailyLogs`),
         orderBy('date', 'desc')
