@@ -10,16 +10,12 @@ import { useFirebase } from '@/firebase';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import type { DailyLog } from '@/types';
 import { useUserProfile } from '@/hooks/use-user-profile';
-import { Loader2, CalendarIcon, Download, Eye, X } from 'lucide-react';
+import { Loader2, CalendarIcon } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
 import { addDays, format, startOfMonth } from "date-fns"
 import dynamic from 'next/dynamic';
 
-const CUTLogSheetPDF = dynamic(() => import('@/components/reports/CUTLogSheetPDF'), {
-  ssr: false,
-});
-
-const PDFDownloadButton = dynamic(() => import('@/components/reports/PDFDownloadButton'), {
+const ModernPDFGenerator = dynamic(() => import('@/components/reports/ModernPDFGenerator'), {
   ssr: false,
 });
 
@@ -29,13 +25,12 @@ export default function CutLogGeneratorPage() {
   const { userProfile, isLoading: isProfileLoading } = useUserProfile();
   const [isLoading, setIsLoading] = useState(false);
   const [logsForPdf, setLogsForPdf] = useState<DailyLog[] | null>(null);
-  const [viewMode, setViewMode] = useState<'download' | 'view'>('download');
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: startOfMonth(new Date()),
     to: new Date(),
   });
 
-  const handleGenerate = async (mode: 'download' | 'view') => {
+  const handleGenerate = async () => {
     if (!user || !userProfile) {
       toast({ variant: 'destructive', title: 'User profile not loaded yet. Please wait.' });
       return;
@@ -46,8 +41,7 @@ export default function CutLogGeneratorPage() {
     }
 
     setIsLoading(true);
-    setLogsForPdf(null); // Reset previous PDF data
-    setViewMode(mode);
+    setLogsForPdf(null);
     
     try {
       const logsQuery = query(
@@ -65,27 +59,20 @@ export default function CutLogGeneratorPage() {
         return;
       }
       
-      if (mode === 'download') {
-        toast({ title: "Preparing PDF...", description: "Your log sheet is being prepared for download." });
-      } else {
-        toast({ title: "Loading Preview...", description: "Your log sheet is being prepared for viewing." });
-      }
-      
+      toast({ title: "Logs Loaded!", description: "Your log sheet is ready for generation." });
       setLogsForPdf(fetchedLogs);
 
     } catch (error) {
-      console.error("Failed to generate PDF:", error);
-      toast({ variant: 'destructive', title: 'PDF Generation Failed' });
+      console.error("Failed to load logs:", error);
+      toast({ variant: 'destructive', title: 'Failed to Load Logs' });
+    } finally {
       setIsLoading(false);
     }
   };
   
-  // Callback to reset loading state after PDF is initiated
+  // Callback to reset loading state
   const onPdfRendered = () => {
     setIsLoading(false);
-    if (viewMode === 'download') {
-      setLogsForPdf(null); // Clear logs to hide the component and prevent re-downloads
-    }
   }
 
 
@@ -141,103 +128,32 @@ export default function CutLogGeneratorPage() {
                 </PopoverContent>
             </Popover>
 
-          <div className="flex gap-3">
-            <Button 
-              onClick={() => handleGenerate('view')} 
-              disabled={isLoading || isProfileLoading}
-              variant="outline"
-              size="lg"
-              className="min-w-[140px]"
-            >
-              {isLoading && viewMode === 'view' ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Eye className="mr-2 h-4 w-4" />
-              )}
-              Preview PDF
-            </Button>
-            
-            {logsForPdf && userProfile && dateRange?.from && dateRange?.to ? (
-              <PDFDownloadButton
-                document={
-                  <CUTLogSheetPDF
-                    logs={logsForPdf}
-                    studentName={userProfile.displayName}
-                    regNumber={userProfile.regNumber || 'N/A'}
-                    companyName={userProfile.companyName || 'N/A'}
-                    startDate={format(dateRange.from, 'dd/MM/yyyy')}
-                    endDate={format(dateRange.to, 'dd/MM/yyyy')}
-                    mode="download"
-                  />
-                }
-                fileName={`CUT_Log_Sheet_${userProfile.displayName}.pdf`}
-                disabled={isLoading || isProfileLoading}
-                onDownload={() => {
-                  toast({ 
-                    title: "Download Started", 
-                    description: "Your CUT log sheet is being downloaded." 
-                  });
-                }}
-              />
+          <Button 
+            onClick={handleGenerate} 
+            disabled={isLoading || isProfileLoading}
+            variant="gradient"
+            size="lg"
+            className="min-w-[200px]"
+          >
+            {isLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
-              <Button 
-                onClick={() => handleGenerate('download')} 
-                disabled={isLoading || isProfileLoading}
-                variant="gradient"
-                size="lg"
-                className="min-w-[200px]"
-              >
-                {isLoading && viewMode === 'download' ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Download className="mr-2 h-4 w-4" />
-                )}
-                Generate PDF
-              </Button>
+              <CalendarIcon className="mr-2 h-4 w-4" />
             )}
-          </div>
+            {isLoading ? 'Loading Logs...' : 'Load Logs'}
+          </Button>
         </CardContent>
       </Card>
       
-      {logsForPdf && viewMode === 'view' && !isProfileLoading && userProfile && dateRange?.from && dateRange?.to && (
-        <Card className="card-hover">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-success animate-pulse"></div>
-                  PDF Preview
-                </CardTitle>
-                <CardDescription>
-                  Preview your CUT log sheet before downloading
-                </CardDescription>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  setLogsForPdf(null);
-                  setViewMode('download');
-                }}
-                className="hover:bg-destructive/10 hover:text-destructive"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <CUTLogSheetPDF
-                logs={logsForPdf}
-                studentName={userProfile.displayName}
-                regNumber={userProfile.regNumber || 'N/A'}
-                companyName={userProfile.companyName || 'N/A'}
-                startDate={format(dateRange.from, 'dd/MM/yyyy')}
-                endDate={format(dateRange.to, 'dd/MM/yyyy')}
-                onRendered={onPdfRendered}
-                mode="view"
-            />
-          </CardContent>
-        </Card>
+      {logsForPdf && !isProfileLoading && userProfile && dateRange?.from && dateRange?.to && (
+        <ModernPDFGenerator
+          logs={logsForPdf}
+          studentName={userProfile.displayName}
+          regNumber={userProfile.regNumber || 'N/A'}
+          companyName={userProfile.companyName || 'N/A'}
+          startDate={format(dateRange.from, 'dd/MM/yyyy')}
+          endDate={format(dateRange.to, 'dd/MM/yyyy')}
+        />
       )}
     </div>
   );

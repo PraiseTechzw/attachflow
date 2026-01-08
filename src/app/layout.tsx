@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase';
 import { ThemeProvider } from '@/components/providers/theme-provider';
+import { SessionSync } from '@/components/auth/SessionSync';
 
 export const metadata: Metadata = {
   title: 'AttachFlow',
@@ -30,6 +31,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <FirebaseClientProvider>
+            <SessionSync />
             {children}
             <Toaster />
           </FirebaseClientProvider>

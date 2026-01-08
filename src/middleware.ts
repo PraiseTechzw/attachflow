@@ -6,21 +6,50 @@ import {verifySessionCookie} from './lib/firebase/server-auth';
 export const runtime = 'nodejs';
 
 export async function middleware(request: NextRequest) {
-  const user = await verifySessionCookie(request);
-
   const {pathname} = request.nextUrl;
 
-  // If user is authenticated and tries to access login/signup, redirect to dashboard
-  if (user && (pathname === '/' || pathname === '/signup')) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+  // Skip middleware for static files and API routes
+  if (
+    pathname.startsWith('/_next/') ||
+    pathname.startsWith('/api/') ||
+    pathname.includes('.') ||
+    pathname === '/favicon.ico'
+  ) {
+    return NextResponse.next();
   }
 
-  // If user is not authenticated and tries to access a protected route, redirect to login
-  if (!user && isProtectedRoute(pathname)) {
-    return NextResponse.redirect(new URL('/', request.url));
+  // Temporarily disable middleware for debugging
+  if (pathname.startsWith('/debug')) {
+    return NextResponse.next();
   }
 
-  return NextResponse.next();
+  try {
+    const user = await verifySessionCookie(request);
+    
+    console.log(`Middleware check for ${pathname}:`, {
+      hasUser: !!user,
+      userEmail: user?.email || 'none',
+      isProtected: isProtectedRoute(pathname)
+    });
+
+    // If user is authenticated and tries to access login/signup, redirect to dashboard
+    if (user && (pathname === '/' || pathname === '/signup')) {
+      console.log('Authenticated user accessing auth page, redirecting to dashboard');
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+
+    // If user is not authenticated and tries to access a protected route, redirect to login
+    if (!user && isProtectedRoute(pathname)) {
+      console.log('Unauthenticated user accessing protected route, redirecting to login');
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+
+    return NextResponse.next();
+  } catch (error) {
+    console.error('Middleware error:', error);
+    // On error, allow the request to proceed to avoid blocking the app
+    return NextResponse.next();
+  }
 }
 
 function isProtectedRoute(pathname: string): boolean {
@@ -29,5 +58,14 @@ function isProtectedRoute(pathname: string): boolean {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
 };

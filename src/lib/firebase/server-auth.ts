@@ -25,14 +25,26 @@ function getAdminApp(): App {
 }
 
 export async function createSessionCookie(idToken: string) {
-  const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
-  const { getAuth } = require('firebase-admin/auth');
-  const sessionCookie = await getAuth(getAdminApp()).createSessionCookie(idToken, {expiresIn});
-  cookies().set('session', sessionCookie, {
-    maxAge: expiresIn,
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-  });
+  try {
+    const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
+    const { getAuth } = require('firebase-admin/auth');
+    const sessionCookie = await getAuth(getAdminApp()).createSessionCookie(idToken, {expiresIn});
+    
+    const cookieStore = await cookies();
+    cookieStore.set('session', sessionCookie, {
+      maxAge: expiresIn,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+    });
+    
+    console.log('Session cookie created successfully');
+    return sessionCookie;
+  } catch (error) {
+    console.error('Error creating session cookie:', error);
+    throw error;
+  }
 }
 
 export async function verifySessionCookie(request: NextRequest) {
@@ -48,13 +60,16 @@ export async function verifySessionCookie(request: NextRequest) {
     return decodedClaims;
   } catch (error) {
     console.error('Error verifying session cookie:', error);
-    // Clear the invalid cookie
-    const cookieStore = await cookies();
-    cookieStore.delete('session');
     return null;
   }
 }
 
 export async function clearSessionCookie() {
-  cookies().delete('session');
+  try {
+    const cookieStore = await cookies();
+    cookieStore.delete('session');
+    console.log('Session cookie cleared successfully');
+  } catch (error) {
+    console.error('Error clearing session cookie:', error);
+  }
 }

@@ -30,27 +30,39 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
-    allowedDevOrigins: [
-      'https://6000-firebase-studio-1767811365337.cluster-ikslh4rdsnbqsvu5nw3v4dqjj2.cloudworkstations.dev',
-    ],
     // Enable React 19 features
     reactCompiler: false,
-    // Enable Turbopack for faster builds
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
+  },
+  // Turbopack configuration (moved from experimental.turbo)
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
       },
     },
   },
   // Enable React 19 strict mode
   reactStrictMode: true,
-  // Enable SWC minification for better performance
-  swcMinify: true,
   // Enable modern bundling
   bundlePagesRouterDependencies: true,
+  // Development server configuration
+  ...(process.env.NODE_ENV === 'development' && {
+    // Allow specific dev origins for development
+    async headers() {
+      return [
+        {
+          source: '/(.*)',
+          headers: [
+            {
+              key: 'Access-Control-Allow-Origin',
+              value: 'https://6000-firebase-studio-1767811365337.cluster-ikslh4rdsnbqsvu5nw3v4dqjj2.cloudworkstations.dev',
+            },
+          ],
+        },
+      ];
+    },
+  }),
 };
 
 export default nextConfig;
