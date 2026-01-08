@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview This file defines a Genkit flow for polishing a raw daily log entry
@@ -9,7 +10,7 @@
  * - `PolishLogEntryOutput`: The TypeScript interface for the output.
  */
 
-import { ai } from '@/ai/genkit';
+import { getAIForTask } from '@/ai/genkit';
 
 
 import {
@@ -19,7 +20,9 @@ import {
   PolishLogEntryOutput
 } from './polish-log-entry-flow-shared';
 
-const polishLogEntryPrompt = ai.definePrompt({
+const creativeAI = getAIForTask('creative');
+
+const polishLogEntryPrompt = creativeAI.definePrompt({
   name: 'polishLogEntryPrompt',
   input: { schema: PolishLogEntryInputSchema },
   output: { schema: PolishLogEntryOutputSchema },
@@ -40,7 +43,7 @@ Rewrite this content into a polished, professional version.
 `,
 });
 
-const polishLogEntryFlow = ai.defineFlow(
+const polishLogEntryFlow = creativeAI.defineFlow(
   {
     name: 'polishLogEntryFlow',
     inputSchema: PolishLogEntryInputSchema,

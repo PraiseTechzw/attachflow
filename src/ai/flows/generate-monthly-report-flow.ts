@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -9,8 +10,10 @@
  * - `MonthlyReportOutput`: The TypeScript interface for the output.
  */
 
-import { ai } from '@/ai/genkit';
+import { getAIForTask } from '@/ai/genkit';
 import { z } from 'genkit';
+
+const longContextAI = getAIForTask('long-context');
 
 // We don't need to define the whole DailyLog schema here, just the parts we use.
 const LogEntrySchema = z.object({
@@ -33,7 +36,7 @@ export const MonthlyReportOutputSchema = z.object({
 });
 export type MonthlyReportOutput = z.infer<typeof MonthlyReportOutputSchema>;
 
-const generateMonthlyReportPrompt = ai.definePrompt({
+const generateMonthlyReportPrompt = longContextAI.definePrompt({
   name: 'generateMonthlyReportPrompt',
   input: { schema: MonthlyReportInputSchema },
   output: { schema: MonthlyReportOutputSchema },
@@ -53,7 +56,7 @@ Analyze the provided daily logs for the month and generate content for the follo
 `,
 });
 
-const generateMonthlyReportFlow = ai.defineFlow(
+const generateMonthlyReportFlow = longContextAI.defineFlow(
   {
     name: 'generateMonthlyReportFlow',
     inputSchema: MonthlyReportInputSchema,

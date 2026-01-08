@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -10,8 +11,10 @@
  * - `FinalReportOutput`: The TypeScript interface for the structured output.
  */
 
-import { ai } from '@/ai/genkit';
+import { getAIForTask } from '@/ai/genkit';
 import { z } from 'genkit';
+
+const longContextAI = getAIForTask('long-context');
 
 // Define the complex input object schemas
 const ProjectSchema = z.object({
@@ -113,7 +116,7 @@ export const FinalReportOutputSchema = z.object({
 export type FinalReportOutput = z.infer<typeof FinalReportOutputSchema>;
 
 
-const generateFinalReportPrompt = ai.definePrompt({
+const generateFinalReportPrompt = longContextAI.definePrompt({
   name: 'generateFinalReportPrompt',
   input: { schema: FinalReportInputSchema },
   output: { schema: FinalReportOutputSchema },
@@ -144,7 +147,7 @@ Analyze the provided project details and the complete set of daily logs. Your go
 
 
 // Define the flow
-const generateFinalReportFlow = ai.defineFlow(
+const generateFinalReportFlow = longContextAI.defineFlow(
   {
     name: 'generateFinalReportFlow',
     inputSchema: FinalReportInputSchema,

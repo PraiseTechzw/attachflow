@@ -5,7 +5,7 @@ import { googleAI } from '@genkit-ai/google-genai';
 // Configure the main AI instance with proper error handling
 export const ai = genkit({
   plugins: [googleAI()],
-  model: 'googleai/gemini-1.5-flash', // Stable and reliable model
+  model: 'models/gemini-flash-lite-latest', // Stable and reliable model
 });
 
 // ============================================
