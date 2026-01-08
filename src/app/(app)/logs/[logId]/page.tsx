@@ -14,6 +14,8 @@ import {
   Loader2, ArrowLeft, Calendar, Clock, Brain, Heart, Meh, Frown, 
   Sparkles, TrendingUp, Award, Edit, Eye, BookOpen, Target
 } from "lucide-react";
+import { useFirstLogDate } from "@/hooks/use-first-log-date";
+import { calculateAttachmentWeek, calculateAttachmentMonth } from "@/lib/date-utils";
 import { useUserProfile } from "@/hooks/use-user-profile";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -58,6 +60,7 @@ const getSentimentText = (sentiment: string | undefined) => {
 export default function LogDetailPage({ params }: { params: Promise<{ logId: string }> }) {
     const { logId } = React.use(params);
     const { firestore, user } = useFirebase();
+    const { firstLogDate } = useFirstLogDate();
     const { userProfile, isLoading: profileLoading } = useUserProfile();
     
     const logRef = useMemoFirebase(() => {
@@ -153,7 +156,12 @@ export default function LogDetailPage({ params }: { params: Promise<{ logId: str
                             </div>
                             <div className="flex items-center gap-2">
                                 <Calendar className="h-4 w-4" />
-                                <span>Week {log.weekNumber}</span>
+                                <span>
+                                    {firstLogDate && log.date 
+                                        ? `Attachment Week ${calculateAttachmentWeek(log.date.toDate(), firstLogDate)}`
+                                        : `Week ${log.weekNumber}`
+                                    }
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -199,7 +207,12 @@ export default function LogDetailPage({ params }: { params: Promise<{ logId: str
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-purple-600 mb-1">{log.weekNumber}</div>
+                        <div className="text-2xl font-bold text-purple-600 mb-1">
+                            {firstLogDate && log.date 
+                                ? calculateAttachmentWeek(log.date.toDate(), firstLogDate)
+                                : log.weekNumber
+                            }
+                        </div>
                         <p className="text-xs text-muted-foreground">Attachment week</p>
                     </CardContent>
                 </Card>
