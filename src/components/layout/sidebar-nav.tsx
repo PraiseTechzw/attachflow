@@ -63,7 +63,11 @@ const extraNavItems = [
   },
 ];
 
-export function SidebarNav() {
+interface SidebarNavProps {
+  onItemClick?: () => void;
+}
+
+export function SidebarNav({ onItemClick }: SidebarNavProps) {
   const pathname = usePathname();
   const { quickStats, isLoading } = useQuickStats();
 
@@ -122,6 +126,7 @@ export function SidebarNav() {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={onItemClick}
                 className={cn(
                   'group flex items-center gap-3 rounded-lg px-3 py-3 text-sidebar-foreground/80 transition-all duration-300 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-md hover:scale-105 relative overflow-hidden',
                   (pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href) && !extraNavItems.some(extra => pathname.startsWith(extra.href)))) &&
@@ -166,6 +171,7 @@ export function SidebarNav() {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={onItemClick}
                 className={cn(
                   'group flex items-center gap-3 rounded-lg px-3 py-3 text-sidebar-foreground/80 transition-all duration-300 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-md hover:scale-105 relative overflow-hidden',
                   pathname.startsWith(item.href) &&

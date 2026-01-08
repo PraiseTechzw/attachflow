@@ -685,3 +685,315 @@ body {
   border-color: hsl(var(--primary) / 0.3);
   box-shadow: 0 4px 12px hsl(var(--primary) / 0.1);
 }
+/* Mobile Responsive Enhancements */
+
+/* Base responsive utilities */
+.container-responsive {
+  @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.text-responsive {
+  @apply text-sm sm:text-base;
+}
+
+.heading-responsive {
+  @apply text-xl sm:text-2xl lg:text-3xl;
+}
+
+.subheading-responsive {
+  @apply text-lg sm:text-xl lg:text-2xl;
+}
+
+/* Mobile-first card layouts */
+.card-grid-responsive {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6;
+}
+
+.card-grid-2-responsive {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6;
+}
+
+.card-grid-3-responsive {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6;
+}
+
+/* Mobile navigation enhancements */
+.mobile-nav-item {
+  @apply flex items-center gap-3 p-3 rounded-lg transition-all duration-300;
+  @apply hover:bg-accent hover:text-accent-foreground;
+  @apply active:scale-95 active:bg-accent/80;
+  min-height: 48px; /* Minimum touch target size */
+}
+
+.mobile-nav-icon {
+  @apply h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0;
+}
+
+/* Touch-friendly buttons */
+.btn-touch {
+  @apply min-h-[44px] min-w-[44px] touch-manipulation;
+}
+
+.btn-touch-sm {
+  @apply min-h-[36px] min-w-[36px] touch-manipulation;
+}
+
+/* Mobile form improvements */
+.form-responsive {
+  @apply space-y-4 sm:space-y-6;
+}
+
+.form-grid-responsive {
+  @apply grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6;
+}
+
+.input-responsive {
+  @apply text-base sm:text-sm; /* Prevent zoom on iOS */
+  @apply min-h-[44px] px-3 py-2;
+}
+
+/* Mobile table improvements */
+.table-responsive {
+  @apply overflow-x-auto;
+}
+
+.table-responsive table {
+  @apply min-w-full;
+}
+
+/* Mobile modal/dialog improvements */
+.dialog-responsive {
+  @apply w-[95vw] max-w-lg sm:w-full;
+}
+
+.sheet-responsive {
+  @apply w-[85vw] max-w-sm sm:w-80;
+}
+
+/* Mobile calendar improvements */
+.calendar-mobile {
+  @apply p-3 sm:p-4 lg:p-6;
+}
+
+.calendar-mobile .rdp-day {
+  @apply h-10 w-10 sm:h-12 sm:w-12 text-sm sm:text-base;
+}
+
+.calendar-mobile .rdp-head_cell {
+  @apply h-8 w-10 sm:h-10 sm:w-12 text-xs sm:text-sm;
+}
+
+/* Mobile stats cards */
+.stats-card-mobile {
+  @apply p-4 sm:p-6;
+}
+
+.stats-value-mobile {
+  @apply text-2xl sm:text-3xl lg:text-4xl;
+}
+
+/* Mobile accordion improvements */
+.accordion-mobile .accordion-trigger {
+  @apply py-4 sm:py-6 text-left;
+}
+
+.accordion-mobile .accordion-content {
+  @apply pb-4 sm:pb-6;
+}
+
+/* Mobile search improvements */
+.search-mobile {
+  @apply w-full max-w-sm sm:max-w-md;
+}
+
+/* Mobile spacing utilities */
+.space-mobile {
+  @apply space-y-4 sm:space-y-6 lg:space-y-8;
+}
+
+.gap-mobile {
+  @apply gap-3 sm:gap-4 lg:gap-6;
+}
+
+.p-mobile {
+  @apply p-3 sm:p-4 lg:p-6;
+}
+
+.px-mobile {
+  @apply px-3 sm:px-4 lg:px-6;
+}
+
+.py-mobile {
+  @apply py-3 sm:py-4 lg:py-6;
+}
+
+/* Mobile text improvements */
+.text-mobile-sm {
+  @apply text-xs sm:text-sm;
+}
+
+.text-mobile-base {
+  @apply text-sm sm:text-base;
+}
+
+.text-mobile-lg {
+  @apply text-base sm:text-lg;
+}
+
+/* Mobile hero sections */
+.hero-mobile {
+  @apply py-8 sm:py-12 lg:py-16;
+}
+
+.hero-title-mobile {
+  @apply text-2xl sm:text-3xl lg:text-4xl xl:text-5xl;
+}
+
+.hero-subtitle-mobile {
+  @apply text-base sm:text-lg lg:text-xl;
+}
+
+/* Mobile-specific animations */
+@media (prefers-reduced-motion: no-preference) {
+  .mobile-slide-up {
+    animation: slideUpMobile 0.3s ease-out;
+  }
+  
+  .mobile-fade-in {
+    animation: fadeInMobile 0.4s ease-out;
+  }
+}
+
+@keyframes slideUpMobile {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInMobile {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Mobile scroll improvements */
+.scroll-mobile {
+  @apply overflow-y-auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile safe area support */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-area-left {
+  padding-left: env(safe-area-inset-left);
+}
+
+.safe-area-right {
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Mobile viewport fixes */
+@media screen and (max-width: 768px) {
+  .mobile-full-height {
+    min-height: 100vh;
+    min-height: 100dvh; /* Dynamic viewport height */
+  }
+  
+  .mobile-safe-height {
+    height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+}
+
+/* Mobile focus improvements */
+@media (hover: none) and (pointer: coarse) {
+  .hover\:scale-105:hover {
+    transform: none;
+  }
+  
+  .hover\:shadow-lg:hover {
+    box-shadow: none;
+  }
+  
+  /* Focus styles for touch devices */
+  .focus\:ring-2:focus {
+    @apply ring-2 ring-primary ring-offset-2;
+  }
+}
+
+/* Mobile-specific component overrides */
+@media (max-width: 640px) {
+  .card-hover {
+    @apply active:scale-95 transition-transform duration-150;
+  }
+  
+  .card-hover:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  
+  /* Simplify animations on mobile */
+  .floating {
+    animation: none;
+  }
+  
+  .pulse-glow {
+    animation: none;
+  }
+  
+  .shimmer {
+    animation: none;
+  }
+}
+
+/* Mobile typography improvements */
+@media (max-width: 640px) {
+  .gradient-text {
+    background: hsl(var(--primary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+/* Mobile loading states */
+.mobile-skeleton {
+  @apply animate-pulse bg-muted rounded;
+}
+
+.mobile-spinner {
+  @apply animate-spin h-5 w-5 sm:h-6 sm:w-6;
+}
+
+/* Mobile error states */
+.mobile-error {
+  @apply p-4 rounded-lg bg-destructive/10 border border-destructive/20;
+}
+
+.mobile-error-text {
+  @apply text-sm text-destructive;
+}
+
+/* Mobile success states */
+.mobile-success {
+  @apply p-4 rounded-lg bg-green-500/10 border border-green-500/20;
+}
+
+.mobile-success-text {
+  @apply text-sm text-green-700 dark:text-green-400;
+}
