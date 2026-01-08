@@ -20,15 +20,36 @@ const generateMonthlyReportPrompt = ai.definePrompt({
   name: 'generateMonthlyReportPrompt',
   input: { schema: MonthlyReportInputSchema },
   output: { schema: MonthlyReportOutputSchema },
-  prompt: `You are an AI assistant creating a student's monthly industrial attachment report based on Chinhoyi University of Technology (CUT) guidelines.
+  prompt: `You are an AI assistant tasked with creating a student's detailed, comprehensive, and full-fledged monthly industrial attachment report based on Chinhoyi University of Technology (CUT) guidelines. Your output should be professional and substantial.
 
-Analyze the provided daily logs for the month and generate content for the following five sections:
+Analyze the provided daily logs for the month and generate **in-depth content** for the following five sections:
 
-1.  **Introduction/Summary**: Write a summary of the month's work. {{#if previousConclusion}}Crucially, it must show continuation from the previous month's conclusion, which was: "{{previousConclusion}}". Start by addressing how this month's work builds upon the previous month's ending point.{{/if}} Introduce the key themes, projects, and major milestones achieved this month.
-2.  **Relevant Duties and/or Activities**: Synthesize all log entries into a cohesive narrative detailing tasks performed, technologies used, and progress made. Write in professional, full paragraphs.
-3.  **Problems**: Scan the logs for mentions of "challenges," "issues," "errors," "bugs," or "problems." List them clearly. If none are found, state "No significant problems were encountered this month."
-4.  **Analysis**: Analyze the problems identified. Discuss their impact and how they were resolved. If there were no problems, provide a short reflection on why the month went smoothly and what factors contributed to the success.
-5.  **Conclusion**: Write a brief, forward-looking conclusion summarizing key accomplishments and stating the likely focus for the next month. This conclusion will be used as context for the next report.
+1.  **Introduction / Summary**: Write a comprehensive introduction.
+    - {{#if previousConclusion}}Crucially, start by showing a clear continuation from the previous month's conclusion, which was: "{{previousConclusion}}". Explain how this month's activities build upon or diverge from the previous month's ending point.{{/if}}
+    - Introduce the key themes, major projects, and significant milestones of the month in detail. Do not be brief; set the stage for the detailed sections to follow.
+
+2.  **Relevant Duties and/or Activities**: This is the main body of the report and must be highly detailed.
+    - Synthesize **all** log entries into a cohesive, well-structured narrative. Do not just list tasks.
+    - Group related activities and elaborate on them. Explain the "what," "why," and "how" of the tasks performed.
+    - Detail the specific technologies, tools, and methodologies used for each major task.
+    - Describe the progress made on projects throughout the month.
+    - Write in professional, full paragraphs, creating a rich story of the month's work.
+
+3.  **Problems Encountered**: Scan the logs for any mention of "challenges," "issues," "errors," "bugs," "problems," or difficulties.
+    - For each problem, describe it in detail.
+    - List the problems clearly, using bullet points for readability.
+    - If no explicit problems are mentioned, analyze the logs for potential inefficiencies or areas for improvement and frame them as "Learning Opportunities" or state "No significant problems were encountered this month, leading to smooth project progression."
+
+4.  **Analysis of Problems**: Provide a thorough analysis for each problem identified.
+    - Discuss the root cause of the problem.
+    - Explain the steps taken to troubleshoot and resolve the issue.
+    - Analyze the impact of the problem on the project timeline or your learning.
+    - If there were no problems, provide a detailed reflection on the factors contributing to the successful month, such as effective planning, robust code, or good teamwork.
+
+5.  **Conclusion**: Write a strong, forward-looking conclusion.
+    - Summarize the key accomplishments and skills gained during the month.
+    - Reflect on the overall experience and its contribution to your learning objectives.
+    - State the likely focus for the upcoming month, setting a clear agenda. This will be used as context for the next report.
 
 **Daily Logs for the Month:**
 {{#each logs}}
