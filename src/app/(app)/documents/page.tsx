@@ -81,7 +81,7 @@ export default function DocumentsPage() {
                     createdAt: new Date(),
                 };
                 
-                await addDocumentNonBlocking(doc(collection(firestore, `users/${user.uid}/documents`), documentId), newDoc);
+                addDocumentNonBlocking(doc(collection(firestore, `users/${user.uid}/documents`), documentId), newDoc);
                 
                 toast({
                     title: "Document Saved",
