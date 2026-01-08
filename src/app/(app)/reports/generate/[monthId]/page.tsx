@@ -131,7 +131,6 @@ export default function GenerateMonthlyReportPage({ params }: { params: Promise<
       try {
         const reportRef = doc(firestore, `users/${user.uid}/monthlyReports`, monthId);
         const finalReportData: MonthlyReport = {
-          ...reportData as MonthlyReport,
           id: monthId,
           userId: user.uid,
           month: monthName,
@@ -139,6 +138,11 @@ export default function GenerateMonthlyReportPage({ params }: { params: Promise<
           logCount: logs.length,
           status: 'Draft',
           lastUpdated: new Date(),
+          introduction: reportData.introduction || '',
+          duties: reportData.duties || '',
+          problems: reportData.problems || '',
+          analysis: reportData.analysis || '',
+          conclusion: reportData.conclusion || '',
         };
 
         await setDoc(reportRef, finalReportData, { merge: true });
