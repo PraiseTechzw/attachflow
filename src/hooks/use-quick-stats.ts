@@ -37,28 +37,26 @@ export function useQuickStats() {
   const { data: userStats, isLoading: isStatsLoading, error: statsError } = useDoc<UserStats>(statsDocRef);
 
   useEffect(() => {
-    // This effect handles the creation and updating of stats display
-    const ensureAndFormatStats = async () => {
-      // Wait until user is authenticated and the initial stats doc read is complete
+    const processStats = async () => {
+      // Don't do anything until loading is finished and we have a user
       if (isStatsLoading || !user) {
         return;
       }
 
-      // If the stats document does NOT exist, create it.
+      // If the document doesn't exist and there's no error, it means we need to create it.
       if (!userStats && !statsError) {
+        console.log("useQuickStats: Stats document not found for user. Creating now...");
         try {
-          console.log("useQuickStats: Stats document not found for user. Creating now...");
           statsService.setFirestore(firestore);
-          // Create the document. The useDoc hook will automatically refetch and trigger a re-render.
           await statsService.createInitialStats(user.uid);
-          console.log("useQuickStats: Stats document created successfully.");
+          // The useDoc hook will automatically pick up the new document, triggering this effect again.
         } catch (e) {
           console.error("useQuickStats: Failed to create initial stats document.", e);
         }
-        return; // Exit and wait for the hook to re-run with the new data.
+        return; // Exit and wait for the re-render with the new doc.
       }
-
-      // If the stats document DOES exist, format it for the UI.
+      
+      // If the document *does* exist, format the data for the UI.
       if (userStats) {
         const logsTrend = userStats.thisWeekLogs > 0 ? Math.min(Math.round((userStats.thisWeekLogs / 7) * 100), 99) : 0;
         const projectsTrend = userStats.totalProjects > 0 ? Math.min(userStats.totalProjects * 10, 99) : 0;
@@ -96,7 +94,7 @@ export function useQuickStats() {
       }
     };
     
-    ensureAndFormatStats();
+    processStats();
   }, [user, firestore, userStats, isStatsLoading, statsError]);
 
   if (statsError) {

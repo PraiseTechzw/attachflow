@@ -7,11 +7,11 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from 'firebase/auth';
-import { initializeFirebase } from '@/firebase';
+import { initializeFirebase, updateDocumentNonBlocking } from '@/firebase';
 import { createUserProfile } from './firestore';
 import { createSessionCookie, clearSessionCookie } from './server-auth';
 import { statsService } from './stats-service';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, doc } from 'firebase/firestore';
 
 const { auth } = initializeFirebase();
 
@@ -42,7 +42,6 @@ export const signUpUser = async (userData) => {
   });
 
   // IMPORTANT: Create the initial stats document at the same time.
-  // This is the definitive fix for the permissions error.
   const db = getFirestore(auth.app);
   statsService.setFirestore(db);
   await statsService.createInitialStats(userCredential.user.uid);
