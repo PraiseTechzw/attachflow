@@ -103,8 +103,7 @@ service cloud.firestore {
        * @principle Enforces document ownership for all operations within a user-specific subcollection.
        */
       match /dailyLogs/{logId} {
-        allow get: if isOwner(userId);
-        allow list: if isOwner(userId);
+        allow get, list: if isOwner(userId);
         allow create: if isOwner(userId) && hasCorrectSubcollectionIdsOnCreate(userId, logId);
         allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
         allow delete: if isExistingOwner(userId);
@@ -118,8 +117,7 @@ service cloud.firestore {
        * @principle Enforces document ownership for all operations within a user-specific subcollection.
        */
       match /projects/{projectId} {
-        allow get: if isOwner(userId);
-        allow list: if isOwner(userId);
+        allow get, list: if isOwner(userId);
         allow create: if isOwner(userId) && hasCorrectSubcollectionIdsOnCreate(userId, projectId);
         allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
         allow delete: if isExistingOwner(userId);
@@ -133,8 +131,7 @@ service cloud.firestore {
        * @principle Enforces document ownership for all operations within a user-specific subcollection.
        */
       match /documents/{documentId} {
-        allow get: if isOwner(userId);
-        allow list: if isOwner(userId);
+        allow get, list: if isOwner(userId);
         allow create: if isOwner(userId) && hasCorrectSubcollectionIdsOnCreate(userId, documentId);
         allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
         allow delete: if isExistingOwner(userId);
@@ -148,8 +145,7 @@ service cloud.firestore {
        * @principle Enforces document ownership and data integrity for the skills subcollection.
        */
       match /skills/{skillId} {
-        allow get: if isOwner(userId);
-        allow list: if isOwner(userId);
+        allow get, list: if isOwner(userId);
         allow create: if isOwner(userId) && hasCorrectSubcollectionIdsOnCreate(userId, skillId);
         allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
         allow delete: if false; // Prevent accidental deletion
@@ -163,8 +159,7 @@ service cloud.firestore {
        * @principle Enforces document ownership for the monthly report subcollection.
        */
       match /monthlyReports/{monthId} {
-        allow get: if isOwner(userId);
-        allow list: if isOwner(userId);
+        allow get, list: if isOwner(userId);
         allow create: if isOwner(userId) && hasCorrectSubcollectionIdsOnCreate(userId, monthId);
         allow update: if isExistingOwner(userId) && hasImmutableSubcollectionIds();
         allow delete: if false;
@@ -172,15 +167,12 @@ service cloud.firestore {
 
       /**
        * @description Rules for a user's aggregated statistics.
-       * @path /users/{userId}/stats/summary
+       * @path /users/{userId}/stats/{statId}
        * @allow (get, write) Only the owner of the stats can read or write to them.
        * @principle Secures aggregated user statistics to the owner.
        */
       match /stats/{statId} {
-        allow get: if isOwner(userId);
-        allow list: if isOwner(userId);
-        allow create, update: if isOwner(userId) && statId == 'summary';
-        allow delete: if false;
+        allow read, write: if isOwner(userId);
       }
     }
   }
