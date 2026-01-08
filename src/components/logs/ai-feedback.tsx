@@ -82,7 +82,7 @@ export function AIFeedback({ log, studentGoals }: AIFeedbackProps) {
             });
             // Use setValue from react-hook-form to update the parent form's field
             form.setValue('activitiesRaw', result.improvedContent, { shouldValidate: true, shouldDirty: true });
-        } catch (err) => {
+        } catch (err) {
             setError("Failed to improve the log. Please try again.");
             console.error(err);
         } finally {
