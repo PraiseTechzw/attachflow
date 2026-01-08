@@ -1,10 +1,11 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useFirebase, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { statsService, type UserStats } from '@/lib/firebase/stats-service';
-import { FolderKanban, Calendar, Activity, FileText } from 'lucide-react';
+import { FolderKanban, Calendar, Activity, FileText, TrendingUp } from 'lucide-react';
 
 export interface QuickStat {
   label: string;
@@ -54,6 +55,11 @@ export function useQuickStats() {
 
 
   useEffect(() => {
+    if (isLoading) {
+      // While loading, we can show skeleton state or stick to initial
+      return;
+    }
+
     if (userStats) {
       const logsTrend = userStats.thisWeekLogs > 0 ? 
           Math.min(Math.round((userStats.thisWeekLogs / 7) * 10), 99) : 0;
@@ -91,7 +97,7 @@ export function useQuickStats() {
           trend: { value: Math.min(Math.round(userStats.totalDocuments * 2), 99), isPositive: userStats.totalDocuments > 0 }
         },
       ]);
-    } else if (!isLoading) {
+    } else {
       // If there are no stats or an error occurred, show zeros.
       setQuickStats(initialStats);
       if (error) {
