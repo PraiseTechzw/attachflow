@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -19,7 +20,8 @@ import {
   FileCheck, Printer, Share, Star
 } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
-import { addDays, format, startOfMonth, differenceInDays } from "date-fns"
+import { eachDayOfInterval, format, startOfMonth } from "date-fns"
+import { isNonWorkDay } from '@/lib/holidays';
 import dynamic from 'next/dynamic';
 
 const ModernPDFGenerator = dynamic(() => import('@/components/reports/ModernPDFGenerator'), {
@@ -38,19 +40,23 @@ export default function CutLogGeneratorPage() {
   });
   const [loadingProgress, setLoadingProgress] = useState(0);
 
-  // Calculate statistics for the selected date range
+  // Calculate statistics for the selected date range, considering work days only
   const dateRangeStats = React.useMemo(() => {
     if (!dateRange?.from || !dateRange?.to) return null;
     
-    const totalDays = differenceInDays(dateRange.to, dateRange.from) + 1;
+    const allDays = eachDayOfInterval({ start: dateRange.from, end: dateRange.to });
+    const workDays = allDays.filter(day => !isNonWorkDay(day));
+    
+    const totalWorkableDays = workDays.length;
     const logCount = logsForPdf?.length || 0;
-    const completionRate = totalDays > 0 ? (logCount / totalDays) * 100 : 0;
+    const completionRate = totalWorkableDays > 0 ? (logCount / totalWorkableDays) * 100 : 0;
     
     return {
-      totalDays,
+      totalDays: allDays.length,
+      totalWorkableDays,
       logCount,
       completionRate: Math.round(completionRate),
-      missingDays: totalDays - logCount,
+      missingDays: totalWorkableDays - logCount,
       dateRangeText: `${format(dateRange.from, 'MMM dd')} - ${format(dateRange.to, 'MMM dd, yyyy')}`
     };
   }, [dateRange, logsForPdf]);
@@ -247,7 +253,7 @@ export default function CutLogGeneratorPage() {
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="secondary" className="flex items-center gap-1">
                     <CalendarDays className="h-3 w-3" />
-                    {dateRangeStats.totalDays} days
+                    {dateRangeStats.totalWorkableDays} work days
                   </Badge>
                   {logsForPdf && (
                     <>
@@ -317,8 +323,8 @@ export default function CutLogGeneratorPage() {
                 <div className="p-3 rounded-full bg-blue-500/10 w-fit mx-auto">
                   <CalendarDays className="h-6 w-6 text-blue-600" />
                 </div>
-                <div className="text-2xl font-bold text-blue-600">{dateRangeStats.totalDays}</div>
-                <p className="text-sm text-muted-foreground">Total Days</p>
+                <div className="text-2xl font-bold text-blue-600">{dateRangeStats.totalWorkableDays}</div>
+                <p className="text-sm text-muted-foreground">Workable Days</p>
               </div>
               <div className="text-center space-y-2">
                 <div className="p-3 rounded-full bg-green-500/10 w-fit mx-auto">
@@ -343,7 +349,7 @@ export default function CutLogGeneratorPage() {
               </div>
             </div>
             
-            {dateRangeStats.completionRate < 100 && (
+            {dateRangeStats.completionRate < 100 && dateRangeStats.missingDays > 0 && (
               <div className="mt-6 p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
                 <div className="flex items-start gap-3">
                   <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
@@ -352,7 +358,7 @@ export default function CutLogGeneratorPage() {
                       Incomplete Log Coverage
                     </p>
                     <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
-                      You have {dateRangeStats.missingDays} missing log entries. Consider adding logs for those days to improve your completion rate.
+                      You have {dateRangeStats.missingDays} missing log entries on working days. Consider adding logs for those days to improve your completion rate.
                     </p>
                   </div>
                 </div>
